@@ -1,6 +1,6 @@
 import {
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
   CartesianGrid,
   Cell,
   Legend,
@@ -23,11 +23,8 @@ import {
   chartTooltipItemStyle,
   chartTooltipLabelStyle,
 } from "../../lib/chartTooltip";
+import { buildMonthBalancePath, type BalancePathPoint } from "./balancePath";
 import { formatUsd } from "./money";
-import {
-  buildSavingsBreakdownSteps,
-  type SavingsBreakdownStep,
-} from "./savingsBreakdown";
 
 /** High-contrast teal / gold / red-coral map — fixed per category so slices stay distinct. */
 const categoryColorByName: Record<string, string> = {
@@ -70,7 +67,7 @@ export function FinanceAnalytics({
   history,
 }: FinanceAnalyticsProps) {
   const categoryData = categorySpending(overview);
-  const savingsBreakdown = buildSavingsBreakdownSteps(overview.summary);
+  const balancePath = buildMonthBalancePath(overview);
   const monthlyData = historyMonths.flatMap((month, index) => {
     const item = history[index];
     return item === undefined
@@ -99,7 +96,7 @@ export function FinanceAnalytics({
       </div>
       <div className="analytics-grid">
         <CategorySplitChart data={categoryData} />
-        <SavingsBreakdownChart data={savingsBreakdown} />
+        <BalancePathChart data={balancePath} />
         <CashFlowTrendChart data={monthlyData} />
       </div>
     </section>
@@ -182,35 +179,54 @@ function CategorySplitChart({ data }: { data: CategoryDatum[] }) {
   );
 }
 
-function SavingsBreakdownChart({ data }: { data: SavingsBreakdownStep[] }) {
+function BalancePathChart({ data }: { data: BalancePathPoint[] }) {
+  const ending = data.at(-1)?.balance;
   return (
     <ChartCard
-      title="Savings breakdown"
-      description="Ledger path to available savings"
+      title="Balance through the month"
+      description="Running ledger balance by day"
     >
       {data.length === 0 ? (
-        <EmptyChart text="Record income or expenses to see the savings path." />
+        <EmptyChart text="Record a transaction to see the month's balance path." />
       ) : (
         <div
           className="analytics-chart"
           role="img"
-          aria-label={`Savings breakdown: ${data
-            .map((item) => `${item.name} ${formatUsd(item.end)}`)
-            .join(", ")}`}
+          aria-label={`Balance through the month ending at ${formatUsd(ending ?? 0)}`}
         >
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart
+            <AreaChart
               data={data}
-              margin={{ top: 10, right: 8, left: 0, bottom: 28 }}
+              margin={{ top: 10, right: 8, left: 0, bottom: 0 }}
             >
+              <defs>
+                <linearGradient
+                  id="balancePathFill"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor="var(--income)"
+                    stopOpacity={0.35}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="var(--income)"
+                    stopOpacity={0.02}
+                  />
+                </linearGradient>
+              </defs>
               <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
               <XAxis
-                dataKey="name"
-                interval={0}
+                dataKey="label"
                 tick={chartTickStyle}
-                angle={-28}
-                textAnchor="end"
-                height={52}
+                interval="preserveStartEnd"
+                tickFormatter={(value: string) =>
+                  Number(value) === 1 || Number(value) % 5 === 0 ? value : ""
+                }
               />
               <YAxis
                 tick={chartTickStyle}
@@ -222,37 +238,27 @@ function SavingsBreakdownChart({ data }: { data: SavingsBreakdownStep[] }) {
                 contentStyle={chartTooltipContentStyle}
                 labelStyle={chartTooltipLabelStyle}
                 itemStyle={chartTooltipItemStyle}
-                formatter={(_value, _name, item) => {
-                  const step = item.payload as SavingsBreakdownStep;
-                  if (step.kind === "total") {
-                    return [formatUsd(step.end), step.name];
-                  }
-                  const signed =
-                    step.delta >= 0
-                      ? `+${formatUsd(step.delta)}`
-                      : formatUsd(step.delta);
-                  return [`${signed} → ${formatUsd(step.end)}`, step.name];
+                labelFormatter={(_label, payload) => {
+                  const point = payload?.[0]?.payload as
+                    BalancePathPoint | undefined;
+                  return point?.date ?? "";
                 }}
+                formatter={(value) => [
+                  formatUsd(Number(value)),
+                  "Running balance",
+                ]}
               />
-              <Bar
-                dataKey="base"
-                stackId="waterfall"
-                fill="transparent"
-                legendType="none"
-                tooltipType="none"
-                isAnimationActive={false}
+              <Area
+                type="stepAfter"
+                dataKey="balance"
+                name="Running balance"
+                stroke="var(--income)"
+                strokeWidth={2.5}
+                fill="url(#balancePathFill)"
+                dot={false}
+                activeDot={{ r: 4 }}
               />
-              <Bar
-                dataKey="amount"
-                stackId="waterfall"
-                name="Amount"
-                radius={[4, 4, 0, 0]}
-              >
-                {data.map((item) => (
-                  <Cell key={item.name} fill={item.fill} />
-                ))}
-              </Bar>
-            </BarChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       )}
