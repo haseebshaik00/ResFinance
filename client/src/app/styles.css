@@ -844,6 +844,43 @@ code {
   padding: 1.3rem;
 }
 
+/* Insight evidence accents: gold, teal, pink, blue */
+.finance-summary-grid .metric-card:nth-child(1) {
+  background: color-mix(in srgb, var(--warning) 14%, var(--panel-background));
+  border-color: color-mix(in srgb, var(--warning) 40%, var(--card-border));
+  box-shadow:
+    0 1.1rem 3rem rgb(78 72 139 / 12%),
+    inset 0 1px 0 var(--card-highlight),
+    inset 3px 0 0 color-mix(in srgb, var(--warning) 68%, transparent);
+}
+
+.finance-summary-grid .metric-card:nth-child(2) {
+  background: color-mix(in srgb, var(--income) 16%, var(--panel-background));
+  border-color: color-mix(in srgb, var(--income) 42%, var(--card-border));
+  box-shadow:
+    0 1.1rem 3rem rgb(78 72 139 / 12%),
+    inset 0 1px 0 var(--card-highlight),
+    inset 3px 0 0 color-mix(in srgb, var(--income) 70%, transparent);
+}
+
+.finance-summary-grid .metric-card:nth-child(3) {
+  background: color-mix(in srgb, var(--expense) 14%, var(--panel-background));
+  border-color: color-mix(in srgb, var(--expense) 40%, var(--card-border));
+  box-shadow:
+    0 1.1rem 3rem rgb(78 72 139 / 12%),
+    inset 0 1px 0 var(--card-highlight),
+    inset 3px 0 0 color-mix(in srgb, var(--expense) 68%, transparent);
+}
+
+.finance-summary-grid .metric-card:nth-child(4) {
+  background: color-mix(in srgb, #4f7ea8 16%, var(--panel-background));
+  border-color: color-mix(in srgb, #4f7ea8 40%, var(--card-border));
+  box-shadow:
+    0 1.1rem 3rem rgb(78 72 139 / 12%),
+    inset 0 1px 0 var(--card-highlight),
+    inset 3px 0 0 color-mix(in srgb, #4f7ea8 68%, transparent);
+}
+
 .metric-card p,
 .metric-card small {
   margin: 0;

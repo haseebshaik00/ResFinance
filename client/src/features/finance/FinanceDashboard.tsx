@@ -216,7 +216,10 @@ export function SummaryCards({ overview }: { overview: FinanceOverview }) {
     ],
   ] as const;
   return (
-    <section className="summary-grid" aria-label="Finance summary">
+    <section
+      className="summary-grid finance-summary-grid"
+      aria-label="Finance summary"
+    >
       {cards.map(([label, amount, note]) => (
         <article className="metric-card" key={label}>
           <p>{label}</p>
