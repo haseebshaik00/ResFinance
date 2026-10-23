@@ -337,7 +337,8 @@ const SUGGESTED_QUESTION_DEFAULTS = [
 ] as const;
 
 function buildSuggestedQuestions(followUps: string[]): string[] {
-  return [...new Set([...followUps, ...SUGGESTED_QUESTION_DEFAULTS])].slice(
+  // Keep the four canonical prompts visible; unique API follow-ups only fill gaps.
+  return [...new Set([...SUGGESTED_QUESTION_DEFAULTS, ...followUps])].slice(
     0,
     4,
   );

@@ -447,9 +447,8 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   await expect(page.getByText("All Recorded Cash Flow")).toBeVisible();
   await expect(page.getByText("Total Earned This Month")).toBeVisible();
   await expect(page.getByText("Total Spent This Month")).toBeVisible();
-  await expect(
-    page.getByText("Projected savings", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByLabel("Projected savings calculation")).toBeVisible();
+  await expect(page.getByText("Here Savings is defined as:")).toBeVisible();
   await expect(page.getByText("Near the limit")).toBeVisible();
   await expect(
     page.getByRole("progressbar", { name: "Groceries budget utilization" }),
@@ -1342,11 +1341,11 @@ test("updates the ResWallet login guidance after the popup changes wallet state"
     );
   });
 
-  await expect(
-    page.getByText("Approval Received! Signing you in to ResFinance…"),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Signing in…" }),
-  ).toBeDisabled();
+  await Promise.all([
+    expect(
+      page.getByText("Approval Received! Signing you in to ResFinance…"),
+    ).toBeVisible(),
+    expect(page.getByRole("button", { name: "Signing in…" })).toBeDisabled(),
+  ]);
   await expect(page.getByRole("button", { name: "ResFinance" })).toBeVisible();
 });
