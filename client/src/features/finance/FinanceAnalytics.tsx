@@ -83,7 +83,7 @@ export function FinanceAnalytics({
       <div className="dashboard-section-heading">
         <div>
           <p className="section-kicker">Spending patterns</p>
-          <h2 id="analytics-title">Your financial trends</h2>
+          <h2 id="analytics-title">Your Financial Trends</h2>
           <p className="section-description">
             Charts use your recorded ledger and upcoming recurring commitments.
           </p>

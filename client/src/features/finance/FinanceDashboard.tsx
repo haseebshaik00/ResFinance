@@ -159,7 +159,7 @@ export function FinanceDashboard({ accessToken }: FinanceDashboardProps) {
         <div className="dashboard-section-heading finance-activity-heading">
           <div>
             <p className="section-kicker">Monthly money management</p>
-            <h2 id="finance-activity-title">Your financial activity</h2>
+            <h2 id="finance-activity-title">Your Financial Activity</h2>
             <p>
               Add records, then review cash flow, recent transactions, budgets,
               and commitments for the selected month.

@@ -461,10 +461,10 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
     page.getByRole("img", { name: /Income \$5,000.00/ }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Your financial trends" }),
+    page.getByRole("heading", { name: "Your Financial Trends" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Your financial activity" }),
+    page.getByRole("heading", { name: "Your Financial Activity" }),
   ).toBeVisible();
   await expect(
     page.getByText("Monthly money management", { exact: true }),
@@ -513,7 +513,7 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
     );
   expect(new Set(sectionDescriptionStyles.map(JSON.stringify)).size).toBe(1);
   const trendsHeadingBox = await page
-    .getByRole("heading", { name: "Your financial trends" })
+    .getByRole("heading", { name: "Your Financial Trends" })
     .boundingBox();
   const trendsDescriptionBox = await page
     .getByText(
