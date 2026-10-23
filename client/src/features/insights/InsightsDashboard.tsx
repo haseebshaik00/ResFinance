@@ -1,6 +1,7 @@
 import { Lightbulb } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
+import { AlwaysVisibleScroll } from "../../components/AlwaysVisibleScroll";
 import type { FinanceOverview, InsightResponse } from "../../lib/api/client";
 import { currentMonth } from "../finance/money";
 import { useInsightsDashboard } from "./useInsightsDashboard";
@@ -210,37 +211,42 @@ function CombinedProvenancePanel({
       >
         {financeOverview !== undefined && (
           <section
-            className="provenance-column"
+            className="provenance-column finance-provenance"
             aria-labelledby="finance-provenance-title"
           >
-            <h3 id="finance-provenance-title">Finance Insights</h3>
-            <p>
-              Projection{" "}
-              <strong>v{financeOverview.provenance.projection_version}</strong>
-              {financeOverview.provenance.as_of_utc === null
-                ? " has no events yet."
-                : ` rebuilt through ${new Date(financeOverview.provenance.as_of_utc).toLocaleString()}.`}
-            </p>
-            <p>
-              Savings calculation{" "}
-              <code>{financeOverview.summary.savings.calculation_id}</code> uses{" "}
-              <code>{financeOverview.summary.savings.formula_version}</code> and{" "}
-              {financeOverview.summary.savings.source_event_ids.length} source
-              event(s).
-            </p>
-            {financeOverview.provenance.source_event_ids.length > 0 && (
-              <ul className="event-id-list">
-                {financeOverview.provenance.source_event_ids.map((eventId) => (
-                  <li key={eventId}>
-                    <code>{eventId}</code>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <AlwaysVisibleScroll>
+              <h3 id="finance-provenance-title">Finance Insights</h3>
+              <p className="provenance-oneline">
+                Projection{" "}
+                <strong>
+                  v{financeOverview.provenance.projection_version}
+                </strong>
+                {financeOverview.provenance.as_of_utc === null
+                  ? " has no events yet."
+                  : ` rebuilt through ${new Date(financeOverview.provenance.as_of_utc).toLocaleString()}.`}{" "}
+                Savings calculation{" "}
+                <code>{financeOverview.summary.savings.calculation_id}</code>{" "}
+                uses{" "}
+                <code>{financeOverview.summary.savings.formula_version}</code>{" "}
+                and {financeOverview.summary.savings.source_event_ids.length}{" "}
+                source event(s).
+              </p>
+              {financeOverview.provenance.source_event_ids.length > 0 && (
+                <ul className="event-id-list">
+                  {financeOverview.provenance.source_event_ids.map(
+                    (eventId) => (
+                      <li key={eventId}>
+                        <code>{eventId}</code>
+                      </li>
+                    ),
+                  )}
+                </ul>
+              )}
+            </AlwaysVisibleScroll>
           </section>
         )}
         <section
-          className="provenance-column"
+          className="provenance-column savings-provenance"
           aria-labelledby="savings-provenance-title"
         >
           <h3 id="savings-provenance-title">Savings Insights</h3>

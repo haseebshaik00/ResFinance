@@ -802,6 +802,16 @@ code {
   color-scheme: light;
 }
 
+.form-field select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 2.2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' viewBox='0 0 12 8'%3E%3Cpath stroke='%231a2436' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='m1.5 1.75 4.5 4.5 4.5-4.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.95rem center;
+  background-size: 0.75rem 0.5rem;
+}
+
 .form-field textarea {
   resize: vertical;
 }
@@ -861,7 +871,7 @@ code {
 
 .finance-overview-row {
   display: grid;
-  grid-template-columns: minmax(18rem, 0.95fr) minmax(24rem, 1.25fr) minmax(
+  grid-template-columns: minmax(14rem, 0.65fr) minmax(28rem, 1.55fr) minmax(
       20rem,
       0.9fr
     );
@@ -869,28 +879,49 @@ code {
   align-items: stretch;
 }
 
-.finance-overview-row > .overview-panel {
-  height: 30rem;
+/* Row height follows the planning panel; cash flow + transactions fill it. */
+.finance-overview-row > .chart-panel,
+.finance-overview-row > .transactions-panel {
+  height: 0;
+  min-height: 100%;
 }
 
+.chart-panel,
 .transactions-panel,
 .planning-panel {
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
-.transactions-panel .table-scroll,
-.planning-scroll {
+.chart-panel {
+  gap: 0.7rem;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.chart-panel .section-heading {
+  margin-bottom: 0;
+}
+
+.transactions-panel > .always-visible-scroll {
+  flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+}
+
+.transactions-panel .table-scroll {
+  min-height: 0;
+  overflow: visible;
 }
 
 .planning-scroll {
   display: grid;
   gap: 1.1rem;
+  min-height: 0;
   padding-right: 0.35rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .planning-section + .planning-section {
@@ -1055,6 +1086,83 @@ code {
   line-height: 1.5;
 }
 
+.panel-note p {
+  margin: 0;
+}
+
+.panel-note ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.15rem;
+}
+
+.panel-note li + li {
+  margin-top: 0.2rem;
+}
+
+.savings-breakdown {
+  margin: 0;
+  min-width: 0;
+}
+
+.savings-breakdown-title {
+  margin: 0 0 0.45rem;
+  color: var(--page-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.savings-breakdown ul {
+  display: grid;
+  gap: 0.32rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.savings-breakdown li {
+  display: grid;
+  grid-template-columns: 1.2rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+  color: var(--page-muted);
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.savings-sign {
+  display: inline-grid;
+  place-items: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.savings-breakdown li[data-sign="plus"] .savings-sign {
+  color: color-mix(in srgb, var(--income) 18%, #041512);
+  background: color-mix(in srgb, var(--income) 82%, white);
+}
+
+.savings-breakdown li[data-sign="minus"] .savings-sign {
+  color: color-mix(in srgb, var(--expense) 12%, #1a080c);
+  background: color-mix(in srgb, var(--expense) 78%, white);
+}
+
+:root[data-theme="dark"] .savings-breakdown li[data-sign="plus"] .savings-sign {
+  color: #041512;
+}
+
+:root[data-theme="dark"]
+  .savings-breakdown
+  li[data-sign="minus"]
+  .savings-sign {
+  color: #1a080c;
+}
+
 .section-kicker {
   margin: 0 0 0.28rem;
   color: var(--page-accent);
@@ -1075,6 +1183,17 @@ code {
 
 .chart-wrap {
   min-height: 15rem;
+}
+
+.chart-panel .chart-wrap {
+  flex: none;
+  width: 100%;
+  height: 8.75rem;
+  min-height: 0;
+}
+
+.chart-panel .savings-breakdown {
+  margin: 0;
 }
 
 .budget-list,
@@ -1637,10 +1756,73 @@ td.expense {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.5rem;
+  align-items: stretch;
 }
 
 .provenance-column {
   min-width: 0;
+}
+
+/* Panel height follows Savings Insights; left Finance column scrolls. */
+.provenance-columns > .finance-provenance {
+  display: flex;
+  flex-direction: column;
+  height: 0;
+  min-height: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.always-visible-scroll {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 0.65rem;
+  gap: 0.55rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.always-visible-scroll-body {
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.always-visible-scroll-body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.always-visible-scroll-track {
+  position: relative;
+  align-self: stretch;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warning) 22%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--warning) 40%, transparent);
+}
+
+.always-visible-scroll-thumb {
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-radius: 999px;
+  background: var(--warning);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warning) 45%, black);
+}
+
+.provenance-oneline {
+  margin: 0;
+}
+
+.provenance-oneline code {
+  display: inline;
+  padding: 0.08rem 0.28rem;
+  white-space: nowrap;
 }
 
 .provenance-column + .provenance-column {
@@ -1659,8 +1841,10 @@ td.expense {
 }
 
 .event-id-list {
-  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.65rem;
   margin-top: 0.8rem;
+  padding-bottom: 0.25rem;
 }
 
 .event-id-list code {
@@ -2312,6 +2496,10 @@ td.expense {
   color-scheme: dark;
 }
 
+:root[data-theme="dark"] .form-field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' viewBox='0 0 12 8'%3E%3Cpath stroke='%23f5f7fb' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='m1.5 1.75 4.5 4.5 4.5-4.5'/%3E%3C/svg%3E");
+}
+
 @media (max-width: 70rem) {
   .app-shell > .auth-card {
     grid-template-areas:
@@ -2341,9 +2529,10 @@ td.expense {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .finance-overview-row > .overview-panel {
+  .finance-overview-row > .chart-panel,
+  .finance-overview-row > .transactions-panel {
     height: auto;
-    min-height: 28rem;
+    min-height: 22rem;
   }
 
   .planning-panel {
@@ -2395,7 +2584,9 @@ td.expense {
     grid-column: auto;
   }
 
-  .finance-overview-row > .overview-panel {
+  .finance-overview-row > .chart-panel,
+  .finance-overview-row > .transactions-panel {
+    height: auto;
     min-height: 0;
   }
 
@@ -2431,6 +2622,12 @@ td.expense {
   .evidence-list li:last-child {
     padding-bottom: 0;
     border-bottom: 0;
+  }
+
+  .provenance-columns > .finance-provenance {
+    height: auto;
+    min-height: 0;
+    max-height: 16rem;
   }
 
   .provenance-column + .provenance-column {

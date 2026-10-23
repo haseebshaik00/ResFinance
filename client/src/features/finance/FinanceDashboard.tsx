@@ -11,6 +11,7 @@ import {
   YAxis,
 } from "recharts";
 
+import { AlwaysVisibleScroll } from "../../components/AlwaysVisibleScroll";
 import type { FinanceOverview } from "../../lib/api/client";
 import { FinanceEntryForms } from "./FinanceEntryForms";
 import { FinanceAnalytics } from "./FinanceAnalytics";
@@ -227,6 +228,15 @@ export function SummaryCards({ overview }: { overview: FinanceOverview }) {
   );
 }
 
+const SAVINGS_BREAKDOWN = [
+  { sign: "plus", label: "Recorded Income" },
+  { sign: "minus", label: "Recorded Expenses" },
+  { sign: "plus", label: "Unmatched Recurring Income" },
+  { sign: "minus", label: "Unmatched Recurring Expenses" },
+  { sign: "plus", label: "Confirmed Receivables" },
+  { sign: "minus", label: "Confirmed Payables" },
+] as const;
+
 function CashFlowChart({ overview }: { overview: FinanceOverview }) {
   const { summary } = overview;
   const data = [
@@ -241,7 +251,7 @@ function CashFlowChart({ overview }: { overview: FinanceOverview }) {
       color: "var(--expense)",
     },
     {
-      label: "Projected savings",
+      label: "Savings",
       amount: summary.savings.projected.minor_units,
       color: "var(--warning)",
     },
@@ -262,21 +272,28 @@ function CashFlowChart({ overview }: { overview: FinanceOverview }) {
         role="img"
         aria-label={`Income ${formatUsd(summary.income.minor_units)}, expenses ${formatUsd(summary.expense.minor_units)}, projected savings ${formatUsd(summary.savings.projected.minor_units)}`}
       >
-        <ResponsiveContainer width="100%" height={240}>
+        <ResponsiveContainer width="100%" height={140}>
           <BarChart
             data={data}
-            margin={{ top: 18, right: 4, left: 4, bottom: 0 }}
+            margin={{ top: 8, right: 8, left: 4, bottom: 4 }}
           >
             <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
             <XAxis
               dataKey="label"
-              tick={{ fill: "var(--page-muted)", fontSize: 12 }}
+              interval={0}
+              tick={{ fill: "var(--page-muted)", fontSize: 11 }}
             />
             <YAxis
-              tick={{ fill: "var(--page-muted)", fontSize: 12 }}
+              width={64}
+              tick={{ fill: "var(--page-muted)", fontSize: 11 }}
               tickFormatter={(value: number) => formatUsd(value)}
             />
-            <Tooltip formatter={(value) => formatUsd(Number(value))} />
+            <Tooltip
+              formatter={(value) => formatUsd(Number(value))}
+              labelFormatter={(label) =>
+                label === "Savings" ? "Projected savings" : String(label)
+              }
+            />
             <Bar dataKey="amount" radius={[8, 8, 2, 2]}>
               {data.map((item) => (
                 <Cell key={item.label} fill={item.color} />
@@ -285,10 +302,22 @@ function CashFlowChart({ overview }: { overview: FinanceOverview }) {
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <p className="panel-note">
-        Projected savings includes unmatched monthly recurring entries and open
-        obligations due this month.
-      </p>
+      <div
+        className="savings-breakdown"
+        aria-label="Projected savings calculation"
+      >
+        <p className="savings-breakdown-title">Here Savings is defined as:</p>
+        <ul>
+          {SAVINGS_BREAKDOWN.map((item) => (
+            <li key={item.label} data-sign={item.sign}>
+              <span className="savings-sign" aria-hidden="true">
+                {item.sign === "plus" ? "+" : "−"}
+              </span>
+              <span>{item.label}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
@@ -410,46 +439,48 @@ function TransactionPanel({
       {active.length === 0 ? (
         <EmptyState text="No transactions yet. Add income or an expense above." />
       ) : (
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Description</th>
-                <th scope="col">Category</th>
-                <th scope="col">Amount</th>
-                <th scope="col" className="record-actions-heading">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {active.slice(0, 8).map((entry) => (
-                <tr key={entry.transaction_id}>
-                  <td>{entry.occurred_on}</td>
-                  <td>{entry.description}</td>
-                  <td>{categories.get(entry.category_id) ?? "Unknown"}</td>
-                  <td className={entry.direction}>
-                    {entry.direction === "expense" ? "−" : "+"}
-                    {formatUsd(entry.amount.minor_units)}
-                  </td>
-                  <td className="record-actions-cell">
-                    <RecordActionButton
-                      accessibleLabel={`Void transaction ${entry.description}`}
-                      onAction={() =>
-                        onAction({
-                          kind: "void-transaction",
-                          recordId: entry.transaction_id,
-                          label: entry.description,
-                        })
-                      }
-                    />
-                  </td>
+        <AlwaysVisibleScroll>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Description</th>
+                  <th scope="col">Category</th>
+                  <th scope="col">Amount</th>
+                  <th scope="col" className="record-actions-heading">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {active.slice(0, 8).map((entry) => (
+                  <tr key={entry.transaction_id}>
+                    <td>{entry.occurred_on}</td>
+                    <td>{entry.description}</td>
+                    <td>{categories.get(entry.category_id) ?? "Unknown"}</td>
+                    <td className={entry.direction}>
+                      {entry.direction === "expense" ? "−" : "+"}
+                      {formatUsd(entry.amount.minor_units)}
+                    </td>
+                    <td className="record-actions-cell">
+                      <RecordActionButton
+                        accessibleLabel={`Void transaction ${entry.description}`}
+                        onAction={() =>
+                          onAction({
+                            kind: "void-transaction",
+                            recordId: entry.transaction_id,
+                            label: entry.description,
+                          })
+                        }
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </AlwaysVisibleScroll>
       )}
     </section>
   );
