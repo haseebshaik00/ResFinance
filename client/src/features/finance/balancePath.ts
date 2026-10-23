@@ -4,19 +4,31 @@ export interface BalancePathPoint {
   day: number;
   label: string;
   date: string;
+  /** Running net balance after this day. */
   balance: number;
+  /** Cumulative recorded income through this day. */
+  incomeToDate: number;
+  /** Cumulative recorded expenses through this day. */
+  expenseToDate: number;
+  dayIncome: number;
+  dayExpense: number;
+  /** Balance marker on days with income (null otherwise). */
+  incomeEvent: number | null;
+  /** Balance marker on days with expense (null otherwise). */
+  expenseEvent: number | null;
 }
 
 /**
- * Day-by-day running balance for the reporting month from non-voided
- * ledger transactions (income adds, expense subtracts).
+ * Day-by-day ledger path for the reporting month: running balance,
+ * cumulative income/expense, and event markers from non-voided transactions.
  */
 export function buildMonthBalancePath(
   overview: FinanceOverview,
 ): BalancePathPoint[] {
   const month = overview.summary.month;
   const dayCount = daysInMonth(month);
-  const netByDay = new Map<number, number>();
+  const incomeByDay = new Map<number, number>();
+  const expenseByDay = new Map<number, number>();
 
   for (const entry of overview.transactions) {
     if (entry.voided || !entry.occurred_on.startsWith(month)) {
@@ -26,27 +38,45 @@ export function buildMonthBalancePath(
     if (!Number.isInteger(day) || day < 1 || day > dayCount) {
       continue;
     }
-    const signed =
-      entry.direction === "income"
-        ? entry.amount.minor_units
-        : -entry.amount.minor_units;
-    netByDay.set(day, (netByDay.get(day) ?? 0) + signed);
+    if (entry.direction === "income") {
+      incomeByDay.set(
+        day,
+        (incomeByDay.get(day) ?? 0) + entry.amount.minor_units,
+      );
+    } else {
+      expenseByDay.set(
+        day,
+        (expenseByDay.get(day) ?? 0) + entry.amount.minor_units,
+      );
+    }
   }
 
-  if (netByDay.size === 0) {
+  if (incomeByDay.size === 0 && expenseByDay.size === 0) {
     return [];
   }
 
   const points: BalancePathPoint[] = [];
-  let running = 0;
+  let balance = 0;
+  let incomeToDate = 0;
+  let expenseToDate = 0;
   for (let day = 1; day <= dayCount; day += 1) {
-    running += netByDay.get(day) ?? 0;
+    const dayIncome = incomeByDay.get(day) ?? 0;
+    const dayExpense = expenseByDay.get(day) ?? 0;
+    incomeToDate += dayIncome;
+    expenseToDate += dayExpense;
+    balance += dayIncome - dayExpense;
     const date = `${month}-${String(day).padStart(2, "0")}`;
     points.push({
       day,
       label: String(day),
       date,
-      balance: running,
+      balance,
+      incomeToDate,
+      expenseToDate,
+      dayIncome,
+      dayExpense,
+      incomeEvent: dayIncome > 0 ? balance : null,
+      expenseEvent: dayExpense > 0 ? balance : null,
     });
   }
   return points;

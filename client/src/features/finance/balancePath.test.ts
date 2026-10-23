@@ -64,7 +64,7 @@ describe("buildMonthBalancePath", () => {
     ).toEqual([]);
   });
 
-  it("builds a day-by-day running balance across the month", () => {
+  it("builds balance, cumulatives, and event markers across the month", () => {
     const path = buildMonthBalancePath(
       overview([
         {
@@ -97,15 +97,31 @@ describe("buildMonthBalancePath", () => {
       day: 1,
       date: "2026-10-01",
       balance: 500_000,
+      incomeToDate: 500_000,
+      expenseToDate: 0,
+      incomeEvent: 500_000,
+      expenseEvent: null,
     });
-    expect(path[8]?.balance).toBe(500_000);
+    expect(path[8]).toMatchObject({
+      balance: 500_000,
+      incomeToDate: 500_000,
+      expenseToDate: 0,
+      incomeEvent: null,
+      expenseEvent: null,
+    });
     expect(path[9]).toMatchObject({
       day: 10,
       balance: 410_000,
+      incomeToDate: 500_000,
+      expenseToDate: 90_000,
+      incomeEvent: null,
+      expenseEvent: 410_000,
     });
     expect(path.at(-1)).toMatchObject({
       day: 31,
       balance: 410_000,
+      incomeToDate: 500_000,
+      expenseToDate: 90_000,
     });
   });
 });

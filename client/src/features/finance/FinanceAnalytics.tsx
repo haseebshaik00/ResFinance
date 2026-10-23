@@ -1,14 +1,16 @@
 import {
   Area,
-  AreaChart,
   CartesianGrid,
   Cell,
+  ComposedChart,
   Legend,
   Line,
   LineChart,
   Pie,
   PieChart,
+  ReferenceLine,
   ResponsiveContainer,
+  Scatter,
   Tooltip,
   XAxis,
   YAxis,
@@ -180,11 +182,13 @@ function CategorySplitChart({ data }: { data: CategoryDatum[] }) {
 }
 
 function BalancePathChart({ data }: { data: BalancePathPoint[] }) {
-  const ending = data.at(-1)?.balance;
+  const ending = data.at(-1);
+  const incomeEvents = data.filter((point) => point.incomeEvent !== null);
+  const expenseEvents = data.filter((point) => point.expenseEvent !== null);
   return (
     <ChartCard
       title="Balance through the month"
-      description="Running ledger balance by day"
+      description="Running balance with cumulative income, expenses, and event marks"
     >
       {data.length === 0 ? (
         <EmptyChart text="Record a transaction to see the month's balance path." />
@@ -192,10 +196,10 @@ function BalancePathChart({ data }: { data: BalancePathPoint[] }) {
         <div
           className="analytics-chart"
           role="img"
-          aria-label={`Balance through the month ending at ${formatUsd(ending ?? 0)}`}
+          aria-label={`Balance through the month ending at ${formatUsd(ending?.balance ?? 0)}; cumulative income ${formatUsd(ending?.incomeToDate ?? 0)}; cumulative expenses ${formatUsd(ending?.expenseToDate ?? 0)}`}
         >
           <ResponsiveContainer width="100%" height={260}>
-            <AreaChart
+            <ComposedChart
               data={data}
               margin={{ top: 10, right: 8, left: 0, bottom: 0 }}
             >
@@ -210,7 +214,7 @@ function BalancePathChart({ data }: { data: BalancePathPoint[] }) {
                   <stop
                     offset="0%"
                     stopColor="var(--income)"
-                    stopOpacity={0.35}
+                    stopOpacity={0.28}
                   />
                   <stop
                     offset="100%"
@@ -233,6 +237,7 @@ function BalancePathChart({ data }: { data: BalancePathPoint[] }) {
                 tickFormatter={compactUsd}
                 width={56}
               />
+              <ReferenceLine y={0} stroke="var(--chart-grid)" strokeWidth={1} />
               <Tooltip
                 cursor={chartTooltipCursor}
                 contentStyle={chartTooltipContentStyle}
@@ -241,13 +246,29 @@ function BalancePathChart({ data }: { data: BalancePathPoint[] }) {
                 labelFormatter={(_label, payload) => {
                   const point = payload?.[0]?.payload as
                     BalancePathPoint | undefined;
-                  return point?.date ?? "";
+                  if (point === undefined) {
+                    return "";
+                  }
+                  const dayBits = [
+                    point.dayIncome > 0
+                      ? `income ${formatUsd(point.dayIncome)}`
+                      : null,
+                    point.dayExpense > 0
+                      ? `expense ${formatUsd(point.dayExpense)}`
+                      : null,
+                  ].filter(Boolean);
+                  return dayBits.length > 0
+                    ? `${point.date} · ${dayBits.join(", ")}`
+                    : point.date;
                 }}
-                formatter={(value) => [
-                  formatUsd(Number(value)),
-                  "Running balance",
-                ]}
+                formatter={(value, name) => {
+                  if (value === null || value === undefined) {
+                    return [null, null];
+                  }
+                  return [formatUsd(Number(value)), String(name)];
+                }}
               />
+              <Legend wrapperStyle={chartLegendWrapperStyle} />
               <Area
                 type="stepAfter"
                 dataKey="balance"
@@ -258,7 +279,42 @@ function BalancePathChart({ data }: { data: BalancePathPoint[] }) {
                 dot={false}
                 activeDot={{ r: 4 }}
               />
-            </AreaChart>
+              <Line
+                type="monotone"
+                dataKey="incomeToDate"
+                name="Income to date"
+                stroke="var(--income)"
+                strokeWidth={2}
+                strokeDasharray="4 4"
+                dot={false}
+                activeDot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="expenseToDate"
+                name="Expenses to date"
+                stroke="var(--expense)"
+                strokeWidth={2}
+                strokeDasharray="1 6"
+                strokeLinecap="round"
+                dot={false}
+                activeDot={false}
+              />
+              <Scatter
+                data={incomeEvents}
+                dataKey="incomeEvent"
+                name="Income event"
+                fill="var(--income)"
+                legendType="circle"
+              />
+              <Scatter
+                data={expenseEvents}
+                dataKey="expenseEvent"
+                name="Expense event"
+                fill="var(--expense)"
+                legendType="circle"
+              />
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       )}

@@ -68,9 +68,10 @@ Evidence:
   preserve the original audit record instead of deleting persisted history.
 - Made the fixed direction-aware category catalog available immediately to new
   wallets and removed the category-creation step. Dashboard analytics cover
-  category spending, a step-area running balance path by day within the month,
-  and an exact six-month income, expense, and available-savings history.
-  Budget utilization stays on the planning progress bars.
+  category spending, a composed month path (running balance area, cumulative
+  income/expense lines, and transaction event marks), and an exact six-month
+  income, expense, and available-savings history. Budget utilization stays on
+  the planning progress bars.
 - Embedded Smart Savings Insights inside Personal Finance using
   wallet-authorized fact bundles, evidence-ID validation, deterministic
   fallback, bounded local-model selection, prompt-injection defenses, and
