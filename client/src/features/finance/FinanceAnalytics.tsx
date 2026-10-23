@@ -105,7 +105,7 @@ export function FinanceAnalytics({
 
 function CategorySplitChart({ data }: { data: CategoryDatum[] }) {
   return (
-    <ChartCard title="Spending by category" description="This reporting month">
+    <ChartCard title="Spending By Category" description="This reporting month">
       {data.length === 0 ? (
         <EmptyChart text="Record an expense to see its category split." />
       ) : (
@@ -183,7 +183,7 @@ function BalancePathChart({ data }: { data: BalancePathPoint[] }) {
   const ending = data.at(-1)?.balance;
   return (
     <ChartCard
-      title="Balance through the month"
+      title="Balance Through The Month"
       description="Running ledger balance by day"
     >
       {data.length === 0 ? (
@@ -192,7 +192,7 @@ function BalancePathChart({ data }: { data: BalancePathPoint[] }) {
         <div
           className="analytics-chart"
           role="img"
-          aria-label={`Balance through the month ending at ${formatUsd(ending ?? 0)}`}
+          aria-label={`Balance Through The Month ending at ${formatUsd(ending ?? 0)}`}
         >
           <ResponsiveContainer width="100%" height={260}>
             <AreaChart
@@ -269,7 +269,7 @@ function BalancePathChart({ data }: { data: BalancePathPoint[] }) {
 function CashFlowTrendChart({ data }: { data: MonthlyDatum[] }) {
   return (
     <ChartCard
-      title="Cash flow over time"
+      title="Cash Flow Over Time"
       description="Exactly six reporting months"
     >
       <div

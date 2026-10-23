@@ -526,13 +526,13 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
     trendsHeadingBox!.y + trendsHeadingBox!.height,
   );
   await expect(
-    page.getByRole("heading", { name: "Spending by category" }),
+    page.getByRole("heading", { name: "Spending By Category" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Balance through the month" }),
+    page.getByRole("heading", { name: "Balance Through The Month" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Cash flow over time" }),
+    page.getByRole("heading", { name: "Cash Flow Over Time" }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Savings breakdown" }),
@@ -550,7 +550,7 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   );
   expect(new Set(analyticsCardTopEdges).size).toBe(1);
   const balancePathCard = page.locator(".analytics-card", {
-    has: page.getByRole("heading", { name: "Balance through the month" }),
+    has: page.getByRole("heading", { name: "Balance Through The Month" }),
   });
   await expect(
     balancePathCard.getByText("Running ledger balance by day"),
@@ -559,11 +559,11 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   await expect(balancePathCard.locator(".recharts-bar")).toHaveCount(0);
   await expect(
     balancePathCard.getByRole("img", {
-      name: /Balance through the month ending at \$4,100\.00/,
+      name: /Balance Through The Month ending at \$4,100\.00/,
     }),
   ).toBeVisible();
   const cashFlowTrendCard = page.locator(".analytics-card", {
-    has: page.getByRole("heading", { name: "Cash flow over time" }),
+    has: page.getByRole("heading", { name: "Cash Flow Over Time" }),
   });
   await expect(cashFlowTrendCard.locator(".recharts-line")).toHaveCount(3);
   await expect(cashFlowTrendCard.locator(".recharts-bar")).toHaveCount(0);
