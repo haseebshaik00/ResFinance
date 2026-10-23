@@ -553,17 +553,13 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
     has: page.getByRole("heading", { name: "Balance through the month" }),
   });
   await expect(
-    balancePathCard.getByText(
-      "Running balance with cumulative income, expenses, and event marks",
-    ),
+    balancePathCard.getByText("Running ledger balance by day"),
   ).toBeVisible();
   await expect(balancePathCard.locator(".recharts-area")).toHaveCount(1);
-  await expect(balancePathCard.locator(".recharts-line")).toHaveCount(2);
-  await expect(balancePathCard.locator(".recharts-scatter")).toHaveCount(2);
   await expect(balancePathCard.locator(".recharts-bar")).toHaveCount(0);
   await expect(
     balancePathCard.getByRole("img", {
-      name: /Balance through the month ending at \$4,100\.00; cumulative income \$5,000\.00; cumulative expenses \$900\.00/,
+      name: /Balance through the month ending at \$4,100\.00/,
     }),
   ).toBeVisible();
   const cashFlowTrendCard = page.locator(".analytics-card", {
