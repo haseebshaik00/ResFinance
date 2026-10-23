@@ -448,7 +448,7 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   await expect(page.getByText("Total Earned This Month")).toBeVisible();
   await expect(page.getByText("Total Spent This Month")).toBeVisible();
   await expect(page.getByLabel("Projected savings calculation")).toBeVisible();
-  await expect(page.getByText("Here Savings is defined as:")).toBeVisible();
+  await expect(page.getByText("Here Savings (Projected) is defined as:")).toBeVisible();
   await expect(page.getByText("Near the limit")).toBeVisible();
   await expect(
     page.getByRole("progressbar", { name: "Groceries budget utilization" }),
