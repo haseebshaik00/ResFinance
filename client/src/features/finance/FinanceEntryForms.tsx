@@ -120,7 +120,7 @@ export function FinanceEntryForms({
             Add A Finance Record (Update Your Ledger)
           </span>
           <small>
-            Every saved change appends an encrypted, auditable event.
+            Every saved change appends an encrypted, auditable event!
           </small>
         </summary>
         <div className="entry-grid">
