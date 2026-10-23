@@ -306,7 +306,7 @@ function CashFlowChart({ overview }: { overview: FinanceOverview }) {
         className="savings-breakdown"
         aria-label="Projected savings calculation"
       >
-        <p className="savings-breakdown-title">Here Savings is defined as:</p>
+        <p className="savings-breakdown-title">Here Savings (Projected) is defined as:</p>
         <ul>
           {SAVINGS_BREAKDOWN.map((item) => (
             <li key={item.label} data-sign={item.sign}>

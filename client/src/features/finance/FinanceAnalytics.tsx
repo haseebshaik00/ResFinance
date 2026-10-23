@@ -242,7 +242,15 @@ function CashFlowTrendChart({ data }: { data: MonthlyDatum[] }) {
               tickFormatter={compactUsd}
             />
             <Tooltip formatter={(value) => formatUsd(Number(value))} />
-            <Legend />
+            <Legend
+              itemSorter={(item) =>
+                item.dataKey === "income"
+                  ? 0
+                  : item.dataKey === "expenses"
+                    ? 1
+                    : 2
+              }
+            />
             <Line
               type="monotone"
               dataKey="income"
@@ -255,9 +263,9 @@ function CashFlowTrendChart({ data }: { data: MonthlyDatum[] }) {
             />
             <Line
               type="monotone"
-              dataKey="savings"
-              name="Available savings"
-              stroke="var(--warning)"
+              dataKey="expenses"
+              name="Expenses"
+              stroke="var(--expense)"
               strokeWidth={3}
               strokeDasharray="1 7"
               strokeLinecap="round"
@@ -267,9 +275,9 @@ function CashFlowTrendChart({ data }: { data: MonthlyDatum[] }) {
             />
             <Line
               type="monotone"
-              dataKey="expenses"
-              name="Expenses"
-              stroke="var(--expense)"
+              dataKey="savings"
+              name="Available savings"
+              stroke="var(--warning)"
               strokeWidth={3}
               strokeDasharray="1 7"
               strokeLinecap="round"
