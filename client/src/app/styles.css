@@ -1032,6 +1032,16 @@ code {
   min-height: 16.25rem;
 }
 
+/* Recharts SVG text defaults to a generic sans; keep dashboard Inter. */
+.recharts-wrapper,
+.recharts-legend-wrapper,
+.recharts-default-legend,
+.recharts-legend-item-text,
+.recharts-text,
+.recharts-cartesian-axis-tick-value {
+  font-family: inherit;
+}
+
 .single-category-chart {
   display: grid;
   grid-template-columns: minmax(8rem, 1fr) minmax(7rem, auto);

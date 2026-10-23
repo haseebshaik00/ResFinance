@@ -529,11 +529,14 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
     page.getByRole("heading", { name: "Spending by category" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Budget utilization" }),
+    page.getByRole("heading", { name: "Savings breakdown" }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Cash flow over time" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Budget utilization" }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: "Savings outlook" }),
   ).toHaveCount(0);
@@ -543,10 +546,18 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
     cards.map((card) => Math.round(card.getBoundingClientRect().top)),
   );
   expect(new Set(analyticsCardTopEdges).size).toBe(1);
-  const budgetUtilizationCard = page.locator(".analytics-card", {
-    has: page.getByRole("heading", { name: "Budget utilization" }),
+  const savingsBreakdownCard = page.locator(".analytics-card", {
+    has: page.getByRole("heading", { name: "Savings breakdown" }),
   });
-  await expect(budgetUtilizationCard.locator(".recharts-bar")).toHaveCount(1);
+  await expect(
+    savingsBreakdownCard.getByText("Ledger path to available savings"),
+  ).toBeVisible();
+  await expect(savingsBreakdownCard.locator(".recharts-bar")).toHaveCount(2);
+  await expect(
+    savingsBreakdownCard.getByRole("img", {
+      name: /Savings breakdown:.*Available \$2,700\.00/,
+    }),
+  ).toBeVisible();
   const cashFlowTrendCard = page.locator(".analytics-card", {
     has: page.getByRole("heading", { name: "Cash flow over time" }),
   });

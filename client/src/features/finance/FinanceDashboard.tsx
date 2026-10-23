@@ -13,6 +13,13 @@ import {
 
 import { AlwaysVisibleScroll } from "../../components/AlwaysVisibleScroll";
 import type { FinanceOverview } from "../../lib/api/client";
+import {
+  chartTickStyle,
+  chartTooltipContentStyle,
+  chartTooltipCursor,
+  chartTooltipItemStyle,
+  chartTooltipLabelStyle,
+} from "../../lib/chartTooltip";
 import { FinanceEntryForms } from "./FinanceEntryForms";
 import { FinanceAnalytics } from "./FinanceAnalytics";
 import { currentMonth, formatUsd } from "./money";
@@ -281,17 +288,17 @@ function CashFlowChart({ overview }: { overview: FinanceOverview }) {
             margin={{ top: 8, right: 8, left: 4, bottom: 4 }}
           >
             <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
-            <XAxis
-              dataKey="label"
-              interval={0}
-              tick={{ fill: "var(--page-muted)", fontSize: 11 }}
-            />
+            <XAxis dataKey="label" interval={0} tick={chartTickStyle} />
             <YAxis
               width={64}
-              tick={{ fill: "var(--page-muted)", fontSize: 11 }}
+              tick={chartTickStyle}
               tickFormatter={(value: number) => formatUsd(value)}
             />
             <Tooltip
+              cursor={chartTooltipCursor}
+              contentStyle={chartTooltipContentStyle}
+              labelStyle={chartTooltipLabelStyle}
+              itemStyle={chartTooltipItemStyle}
               formatter={(value) => formatUsd(Number(value))}
               labelFormatter={(label) =>
                 label === "Savings" ? "Projected savings" : String(label)

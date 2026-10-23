@@ -15,7 +15,19 @@ import {
 } from "recharts";
 
 import type { FinanceOverview } from "../../lib/api/client";
+import {
+  chartLegendWrapperStyle,
+  chartTickStyle,
+  chartTooltipContentStyle,
+  chartTooltipCursor,
+  chartTooltipItemStyle,
+  chartTooltipLabelStyle,
+} from "../../lib/chartTooltip";
 import { formatUsd } from "./money";
+import {
+  buildSavingsBreakdownSteps,
+  type SavingsBreakdownStep,
+} from "./savingsBreakdown";
 
 /** High-contrast teal / gold / red-coral map — fixed per category so slices stay distinct. */
 const categoryColorByName: Record<string, string> = {
@@ -58,11 +70,7 @@ export function FinanceAnalytics({
   history,
 }: FinanceAnalyticsProps) {
   const categoryData = categorySpending(overview);
-  const budgetData = overview.summary.budget_statuses.map((budget) => ({
-    name: budget.category_name,
-    utilization: Math.round(budget.utilization_basis_points / 100),
-    status: budget.status,
-  }));
+  const savingsBreakdown = buildSavingsBreakdownSteps(overview.summary);
   const monthlyData = historyMonths.flatMap((month, index) => {
     const item = history[index];
     return item === undefined
@@ -91,7 +99,7 @@ export function FinanceAnalytics({
       </div>
       <div className="analytics-grid">
         <CategorySplitChart data={categoryData} />
-        <BudgetUtilizationChart data={budgetData} />
+        <SavingsBreakdownChart data={savingsBreakdown} />
         <CashFlowTrendChart data={monthlyData} />
       </div>
     </section>
@@ -157,8 +165,14 @@ function CategorySplitChart({ data }: { data: CategoryDatum[] }) {
                   layout="vertical"
                   verticalAlign="middle"
                   align="right"
+                  wrapperStyle={chartLegendWrapperStyle}
                 />
-                <Tooltip formatter={(value) => formatUsd(Number(value))} />
+                <Tooltip
+                  contentStyle={chartTooltipContentStyle}
+                  labelStyle={chartTooltipLabelStyle}
+                  itemStyle={chartTooltipItemStyle}
+                  formatter={(value) => formatUsd(Number(value))}
+                />
               </PieChart>
             </ResponsiveContainer>
           )}
@@ -168,44 +182,74 @@ function CategorySplitChart({ data }: { data: CategoryDatum[] }) {
   );
 }
 
-function BudgetUtilizationChart({ data }: { data: BudgetDatum[] }) {
+function SavingsBreakdownChart({ data }: { data: SavingsBreakdownStep[] }) {
   return (
-    <ChartCard title="Budget utilization" description="Percent used this month">
+    <ChartCard
+      title="Savings breakdown"
+      description="Ledger path to available savings"
+    >
       {data.length === 0 ? (
-        <EmptyChart text="Add a budget to compare monthly limits." />
+        <EmptyChart text="Record income or expenses to see the savings path." />
       ) : (
         <div
           className="analytics-chart"
           role="img"
-          aria-label={`Budget utilization: ${data.map((item) => `${item.name} ${item.utilization}%`).join(", ")}`}
+          aria-label={`Savings breakdown: ${data
+            .map((item) => `${item.name} ${formatUsd(item.end)}`)
+            .join(", ")}`}
         >
           <ResponsiveContainer width="100%" height={260}>
             <BarChart
               data={data}
-              layout="vertical"
-              margin={{ top: 10, right: 18, left: 12, bottom: 0 }}
+              margin={{ top: 10, right: 8, left: 0, bottom: 28 }}
             >
-              <CartesianGrid horizontal={false} stroke="var(--chart-grid)" />
+              <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
               <XAxis
-                type="number"
-                domain={[0, 100]}
-                tick={{ fill: "var(--page-muted)", fontSize: 11 }}
-                tickFormatter={(value: number) => `${value}%`}
+                dataKey="name"
+                interval={0}
+                tick={chartTickStyle}
+                angle={-28}
+                textAnchor="end"
+                height={52}
               />
               <YAxis
-                type="category"
-                dataKey="name"
-                width={90}
-                tick={{ fill: "var(--page-muted)", fontSize: 11 }}
+                tick={chartTickStyle}
+                tickFormatter={compactUsd}
+                width={56}
               />
-              <Tooltip formatter={(value) => `${Number(value)}% used`} />
+              <Tooltip
+                cursor={chartTooltipCursor}
+                contentStyle={chartTooltipContentStyle}
+                labelStyle={chartTooltipLabelStyle}
+                itemStyle={chartTooltipItemStyle}
+                formatter={(_value, _name, item) => {
+                  const step = item.payload as SavingsBreakdownStep;
+                  if (step.kind === "total") {
+                    return [formatUsd(step.end), step.name];
+                  }
+                  const signed =
+                    step.delta >= 0
+                      ? `+${formatUsd(step.delta)}`
+                      : formatUsd(step.delta);
+                  return [`${signed} → ${formatUsd(step.end)}`, step.name];
+                }}
+              />
               <Bar
-                dataKey="utilization"
-                name="Budget used"
-                radius={[2, 7, 7, 2]}
+                dataKey="base"
+                stackId="waterfall"
+                fill="transparent"
+                legendType="none"
+                tooltipType="none"
+                isAnimationActive={false}
+              />
+              <Bar
+                dataKey="amount"
+                stackId="waterfall"
+                name="Amount"
+                radius={[4, 4, 0, 0]}
               >
                 {data.map((item) => (
-                  <Cell key={item.name} fill={budgetStatusColor(item.status)} />
+                  <Cell key={item.name} fill={item.fill} />
                 ))}
               </Bar>
             </BarChart>
@@ -233,16 +277,16 @@ function CashFlowTrendChart({ data }: { data: MonthlyDatum[] }) {
             margin={{ top: 10, right: 8, left: 0, bottom: 0 }}
           >
             <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
-            <XAxis
-              dataKey="label"
-              tick={{ fill: "var(--page-muted)", fontSize: 11 }}
+            <XAxis dataKey="label" tick={chartTickStyle} />
+            <YAxis tick={chartTickStyle} tickFormatter={compactUsd} />
+            <Tooltip
+              contentStyle={chartTooltipContentStyle}
+              labelStyle={chartTooltipLabelStyle}
+              itemStyle={chartTooltipItemStyle}
+              formatter={(value) => formatUsd(Number(value))}
             />
-            <YAxis
-              tick={{ fill: "var(--page-muted)", fontSize: 11 }}
-              tickFormatter={compactUsd}
-            />
-            <Tooltip formatter={(value) => formatUsd(Number(value))} />
             <Legend
+              wrapperStyle={chartLegendWrapperStyle}
               itemSorter={(item) =>
                 item.dataKey === "income"
                   ? 0
@@ -374,17 +418,4 @@ interface MonthlyDatum {
   income: number;
   expenses: number;
   savings: number;
-}
-
-interface BudgetDatum {
-  [key: string]: string | number;
-  name: string;
-  utilization: number;
-  status: string;
-}
-
-function budgetStatusColor(status: string): string {
-  if (status === "over_budget") return "var(--expense)";
-  if (status === "near_limit") return "var(--warning)";
-  return "var(--income)";
 }
