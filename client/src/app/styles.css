@@ -1737,7 +1737,10 @@ td.expense {
 
 .provenance-panel {
   padding: 1rem 1.2rem;
+  border: 2px solid color-mix(in srgb, var(--warning) 72%, transparent);
+  border-radius: 1.1rem;
   color: var(--page-muted);
+  background: color-mix(in srgb, var(--warning) 7%, var(--control-background));
 }
 
 .provenance-panel summary {
@@ -2077,7 +2080,7 @@ td.expense {
 
 .insights-workspace {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 35fr) minmax(0, 65fr);
   align-items: stretch;
   gap: 1rem;
 }
@@ -2106,30 +2109,38 @@ td.expense {
 .insight-composer .follow-up-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
   margin: 0;
-}
-
-.insight-composer .follow-up-row button:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
 }
 
 .insight-composer .follow-up-row button {
   display: flex;
   width: 100%;
   gap: 0.45rem;
-  align-items: center;
+  align-items: flex-start;
+  min-height: 2.6rem;
   padding: 0.48rem 0.7rem;
-  overflow: hidden;
   color: var(--page-muted);
   font-size: 0.76rem;
+  line-height: 1.3;
   text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .insight-composer .suggestion-icon {
   flex: 0 0 auto;
+  margin-top: 0.1rem;
   color: var(--warning);
+}
+
+.insight-composer .form-field textarea {
+  color: var(--page-text);
+  background: color-mix(in srgb, var(--warning) 14%, var(--control-background));
+  border-color: color-mix(in srgb, var(--warning) 38%, var(--control-border));
+}
+
+.insight-composer .form-field textarea::placeholder {
+  color: color-mix(in srgb, var(--warning) 35%, var(--page-muted));
 }
 
 .form-success {
@@ -2159,6 +2170,11 @@ td.expense {
   color: var(--warning);
 }
 
+.insight-result {
+  display: flex;
+  flex-direction: column;
+}
+
 .insight-result h2 {
   margin-bottom: 0.8rem;
   font-size: clamp(1.15rem, 1.6vw, 1.5rem);
@@ -2171,42 +2187,108 @@ td.expense {
 
 .evidence-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
+  flex: 1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
   margin: 0;
-  padding-left: 1.2rem;
+  padding: 0;
+  list-style: none;
 }
 
 .evidence-list li {
-  padding: 0 0.85rem 0 0.2rem;
-  border-right: 1px solid var(--control-border);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 5.75rem;
+  height: 100%;
+  padding: 0.85rem 0.95rem;
+  overflow: hidden;
+  border: 1px solid var(--control-border);
+  border-radius: 0.9rem;
+  background: var(--control-background);
+  box-shadow: inset 0 1px 0 var(--card-highlight);
+  transition:
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
 }
 
-.evidence-list li + li {
-  margin-left: 0.85rem;
+.evidence-list li:not(.evidence-card-empty):hover,
+.evidence-list li:not(.evidence-card-empty):focus-within {
+  z-index: 3;
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0.7rem 1.1rem rgb(0 0 0 / 32%));
 }
 
-.evidence-list li:last-child {
-  padding-right: 0;
-  border-right: 0;
+.evidence-list li:not(.evidence-card-empty):nth-child(1) {
+  background: color-mix(in srgb, var(--income) 16%, var(--control-background));
+  border-color: color-mix(in srgb, var(--income) 42%, var(--control-border));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--income) 70%, transparent);
+}
+
+.evidence-list li:not(.evidence-card-empty):nth-child(2) {
+  background: color-mix(in srgb, var(--warning) 14%, var(--control-background));
+  border-color: color-mix(in srgb, var(--warning) 40%, var(--control-border));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--warning) 68%, transparent);
+}
+
+.evidence-list li:not(.evidence-card-empty):nth-child(3) {
+  background: color-mix(in srgb, #4f7ea8 16%, var(--control-background));
+  border-color: color-mix(in srgb, #4f7ea8 40%, var(--control-border));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, #4f7ea8 68%, transparent);
+}
+
+.evidence-list li:not(.evidence-card-empty):nth-child(4) {
+  background: color-mix(in srgb, var(--expense) 14%, var(--control-background));
+  border-color: color-mix(in srgb, var(--expense) 40%, var(--control-border));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--expense) 68%, transparent);
+}
+
+.evidence-list li.evidence-card-empty {
+  justify-content: center;
+  color: var(--page-muted);
+  background: color-mix(in srgb, var(--control-background) 72%, transparent);
 }
 
 .evidence-list p {
-  margin: 0 0 0.2rem;
-  line-height: 1.45;
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
-.evidence-list small,
-.caveat-list {
+.evidence-list li:not(.evidence-card-empty):hover p,
+.evidence-list li:not(.evidence-card-empty):focus-within p {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+
+.evidence-list small {
+  margin-top: auto;
   color: var(--page-muted);
+  font-size: 0.72rem;
+}
+
+.evidence-list .evidence-card-empty p {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  font-size: 0.82rem;
 }
 
 .caveat-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.2rem 1.25rem;
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
   margin: 0.8rem 0 0;
   padding-left: 1.2rem;
+  color: var(--page-muted);
   font-size: 0.78rem;
   line-height: 1.5;
 }
@@ -2551,20 +2633,6 @@ td.expense {
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .evidence-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.65rem 0;
-  }
-
-  .evidence-list li:nth-child(2n) {
-    padding-right: 0;
-    border-right: 0;
-  }
-
-  .evidence-list li:nth-child(2n + 1) {
-    margin-left: 0;
-  }
 }
 
 @media (max-width: 52rem) {
@@ -2607,21 +2675,13 @@ td.expense {
     gap: 0.5rem;
   }
 
-  .evidence-list,
+  .evidence-list {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+
   .caveat-list {
     grid-template-columns: 1fr;
-  }
-
-  .evidence-list li {
-    padding: 0 0 0.65rem 0.2rem;
-    margin-left: 0;
-    border-right: 0;
-    border-bottom: 1px solid var(--control-border);
-  }
-
-  .evidence-list li:last-child {
-    padding-bottom: 0;
-    border-bottom: 0;
   }
 
   .provenance-columns > .finance-provenance {

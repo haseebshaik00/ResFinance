@@ -620,8 +620,13 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   const suggestedQuestions = page
     .locator(".insight-composer")
     .getByRole("group", { name: "Suggested questions" });
-  await expect(suggestedQuestions.getByRole("button")).toHaveCount(3);
-  await expect(suggestedQuestions.locator(".lucide-lightbulb")).toHaveCount(3);
+  await expect(suggestedQuestions.getByRole("button")).toHaveCount(4);
+  await expect(suggestedQuestions.locator(".lucide-lightbulb")).toHaveCount(4);
+  await expect(
+    page.getByRole("button", {
+      name: "What are my biggest expenses this month?",
+    }),
+  ).toBeVisible();
   await expect(
     page.getByText("Verified template fallback", { exact: true }),
   ).toHaveCSS("color", "rgb(242, 189, 90)");
@@ -636,17 +641,22 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   expect(suggestionBoxes[0]!.y).toBe(suggestionBoxes[1]!.y);
   expect(suggestionBoxes[1]!.x).toBeGreaterThan(suggestionBoxes[0]!.x);
   expect(suggestionBoxes[2]!.y).toBeGreaterThan(suggestionBoxes[0]!.y);
+  expect(suggestionBoxes[2]!.y).toBe(suggestionBoxes[3]!.y);
+  expect(suggestionBoxes[3]!.x).toBeGreaterThan(suggestionBoxes[2]!.x);
   const evidenceItems = page.locator(".evidence-list > li");
-  await expect(evidenceItems).toHaveCount(3);
+  await expect(evidenceItems).toHaveCount(4);
+  await expect(
+    page.locator(".evidence-list > li.evidence-card-empty"),
+  ).toHaveCount(1);
   const evidenceItemTopEdges = await evidenceItems.evaluateAll((items) =>
     items.map((item) => Math.round(item.getBoundingClientRect().top)),
   );
-  expect(new Set(evidenceItemTopEdges).size).toBe(1);
+  expect(new Set(evidenceItemTopEdges).size).toBe(2);
   const insightsWorkspaceBox = await page
     .locator(".insights-workspace")
     .boundingBox();
   expect(insightsWorkspaceBox).not.toBeNull();
-  expect(insightsWorkspaceBox!.height).toBeLessThan(420);
+  expect(insightsWorkspaceBox!.height).toBeLessThan(520);
   await expect(
     page.locator(".insight-result").getByRole("group", {
       name: "Suggested questions",

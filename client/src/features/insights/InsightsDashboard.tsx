@@ -278,6 +278,8 @@ function CombinedProvenancePanel({
 }
 
 function InsightResult({ response }: { response: InsightResponse }) {
+  const evidenceCards = padEvidenceCards(response.evidence, 4);
+
   return (
     <section
       className={`insight-result panel${response.refused ? " refusal" : ""}`}
@@ -291,17 +293,31 @@ function InsightResult({ response }: { response: InsightResponse }) {
           ? response.summary
           : "What your records show?"}
       </h2>
-      {response.evidence.length > 0 && (
+      {!response.refused && (
         <ul className="evidence-list" aria-label="Evidence used">
-          {response.evidence.map((item) => (
-            <li key={item.fact_id}>
-              <p>{item.statement}</p>
-              <small>
-                Based on {item.source_ids.length} verified{" "}
-                {item.source_ids.length === 1 ? "record" : "records"}
-              </small>
-            </li>
-          ))}
+          {evidenceCards.map((item, index) =>
+            item === null ? (
+              <li
+                key={`empty-${index}`}
+                className="evidence-card-empty"
+                aria-hidden="true"
+              >
+                <p>No additional evidence for this answer.</p>
+              </li>
+            ) : (
+              <li
+                key={item.fact_id}
+                data-topic={item.topic}
+                title={item.statement}
+              >
+                <p>{item.statement}</p>
+                <small>
+                  Based on {item.source_ids.length} verified{" "}
+                  {item.source_ids.length === 1 ? "record" : "records"}
+                </small>
+              </li>
+            ),
+          )}
         </ul>
       )}
       <ul className="caveat-list">
@@ -313,13 +329,29 @@ function InsightResult({ response }: { response: InsightResponse }) {
   );
 }
 
+const SUGGESTED_QUESTION_DEFAULTS = [
+  "Which recorded budgets need attention?",
+  "How do recurring items affect projected savings?",
+  "What is my available savings?",
+  "What are my biggest expenses this month?",
+] as const;
+
 function buildSuggestedQuestions(followUps: string[]): string[] {
-  const defaults = [
-    "Which recorded budgets need attention?",
-    "How do recurring items affect projected savings?",
-    "What is my available savings?",
+  return [...new Set([...followUps, ...SUGGESTED_QUESTION_DEFAULTS])].slice(
+    0,
+    4,
+  );
+}
+
+function padEvidenceCards<T>(items: T[], count: number): Array<T | null> {
+  const prioritized = items.slice(0, count);
+  return [
+    ...prioritized,
+    ...Array.from(
+      { length: Math.max(0, count - prioritized.length) },
+      () => null,
+    ),
   ];
-  return [...new Set([...followUps, ...defaults])].slice(0, 3);
 }
 
 function DashboardState({

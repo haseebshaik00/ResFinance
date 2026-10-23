@@ -17,15 +17,34 @@ import {
 import type { FinanceOverview } from "../../lib/api/client";
 import { formatUsd } from "./money";
 
-const chartColors = [
-  "#4cc9f0",
-  "#4361ee",
-  "#7209b7",
-  "#f72585",
-  "#f77f00",
-  "#43aa8b",
-  "#f9c74f",
+/** High-contrast teal / gold / red-coral map — fixed per category so slices stay distinct. */
+const categoryColorByName: Record<string, string> = {
+  "Food & Groceries": "#38d1c5",
+  Utilities: "#f2bd5a",
+  Entertainment: "#ff5c6c",
+  "Medical Bills": "#e76f51",
+  Rent: "#2bbbad",
+  Shopping: "#ffb703",
+  Miscellaneous: "#e63946",
+};
+
+const chartColorFallback = [
+  "#38d1c5",
+  "#f2bd5a",
+  "#ff5c6c",
+  "#e76f51",
+  "#2bbbad",
+  "#ffb703",
+  "#e63946",
+  "#8ecae6",
 ];
+
+function categoryChartColor(name: string, index: number): string {
+  return (
+    categoryColorByName[name] ??
+    chartColorFallback[index % chartColorFallback.length]!
+  );
+}
 
 interface FinanceAnalyticsProps {
   overview: FinanceOverview;
@@ -95,12 +114,17 @@ function CategorySplitChart({ data }: { data: CategoryDatum[] }) {
               <span
                 className="single-category-donut"
                 style={{
-                  background: `conic-gradient(${chartColors[0]} 0 100%)`,
+                  background: `conic-gradient(${categoryChartColor(data[0]!.name, 0)} 0 100%)`,
                 }}
                 aria-hidden="true"
               />
               <span className="single-category-legend">
-                <i style={{ background: chartColors[0] }} aria-hidden="true" />
+                <i
+                  style={{
+                    background: categoryChartColor(data[0]!.name, 0),
+                  }}
+                  aria-hidden="true"
+                />
                 <span>
                   <strong>{data[0]!.name}</strong>
                   <small>{formatUsd(data[0]!.amount)} · 100%</small>
@@ -118,12 +142,14 @@ function CategorySplitChart({ data }: { data: CategoryDatum[] }) {
                   cy="50%"
                   innerRadius={46}
                   outerRadius={88}
-                  paddingAngle={2}
+                  paddingAngle={3}
+                  stroke="var(--panel-background)"
+                  strokeWidth={2}
                 >
                   {data.map((item, index) => (
                     <Cell
                       key={item.categoryId}
-                      fill={chartColors[index % chartColors.length]}
+                      fill={categoryChartColor(item.name, index)}
                     />
                   ))}
                 </Pie>

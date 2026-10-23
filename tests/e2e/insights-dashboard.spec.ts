@@ -137,19 +137,23 @@ test("shows evidence-linked insights, notifications, and safe refusals", async (
       .locator(".evidence-list")
       .getByText("finance-budget · 2 source references"),
   ).toHaveCount(0);
-  await expect(page.locator(".evidence-list > li")).toHaveCount(1);
+  await expect(page.locator(".evidence-list > li")).toHaveCount(4);
+  await expect(
+    page.locator(".evidence-list > li.evidence-card-empty"),
+  ).toHaveCount(3);
   const composerBox = await page.locator(".insight-composer").boundingBox();
   const resultBox = await page.locator(".insight-result").boundingBox();
   expect(composerBox).not.toBeNull();
   expect(resultBox).not.toBeNull();
   expect(resultBox!.x).toBeGreaterThan(composerBox!.x);
-  expect(Math.abs(resultBox!.width - composerBox!.width)).toBeLessThan(2);
+  expect(resultBox!.width / composerBox!.width).toBeGreaterThan(1.5);
+  expect(resultBox!.width / composerBox!.width).toBeLessThan(2.2);
   expect(Math.abs(resultBox!.y - composerBox!.y)).toBeLessThan(2);
   expect(Math.abs(resultBox!.height - composerBox!.height)).toBeLessThan(2);
   const suggestedQuestions = page
     .locator(".insight-composer")
     .getByRole("group", { name: "Suggested questions" });
-  await expect(suggestedQuestions.getByRole("button")).toHaveCount(3);
+  await expect(suggestedQuestions.getByRole("button")).toHaveCount(4);
   await expect(
     page.locator(".insight-result").getByRole("group", {
       name: "Suggested questions",
