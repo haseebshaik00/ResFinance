@@ -154,43 +154,47 @@ export function FinanceEntryForms({
                 });
               })}
             >
-              <Field
-                label="Type"
-                error={transaction.formState.errors.direction?.message}
-              >
-                <select
-                  {...transaction.register("direction", {
-                    onChange: () => transaction.setValue("category_id", ""),
-                  })}
+              <div className="form-row">
+                <Field
+                  label="Type"
+                  error={transaction.formState.errors.direction?.message}
                 >
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
-                </select>
-              </Field>
-              <CategoryField
-                label="Category"
-                categories={deterministicCategories.filter(
-                  (item) => item.direction === transactionDirection,
-                )}
-                registration={transaction.register("category_id")}
-                error={transaction.formState.errors.category_id?.message}
-              />
-              <Field
-                label="Amount in USD"
-                error={transaction.formState.errors.amount?.message}
-              >
-                <input
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  {...transaction.register("amount")}
+                  <select
+                    {...transaction.register("direction", {
+                      onChange: () => transaction.setValue("category_id", ""),
+                    })}
+                  >
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                  </select>
+                </Field>
+                <CategoryField
+                  label="Category"
+                  categories={deterministicCategories.filter(
+                    (item) => item.direction === transactionDirection,
+                  )}
+                  registration={transaction.register("category_id")}
+                  error={transaction.formState.errors.category_id?.message}
                 />
-              </Field>
-              <Field
-                label="Date"
-                error={transaction.formState.errors.occurred_on?.message}
-              >
-                <input type="date" {...transaction.register("occurred_on")} />
-              </Field>
+              </div>
+              <div className="form-row">
+                <Field
+                  label="Amount in USD"
+                  error={transaction.formState.errors.amount?.message}
+                >
+                  <input
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    {...transaction.register("amount")}
+                  />
+                </Field>
+                <Field
+                  label="Date"
+                  error={transaction.formState.errors.occurred_on?.message}
+                >
+                  <input type="date" {...transaction.register("occurred_on")} />
+                </Field>
+              </div>
               <Field
                 label="Description"
                 error={transaction.formState.errors.description?.message}
@@ -288,27 +292,29 @@ export function FinanceEntryForms({
                 });
               })}
             >
-              <Field
-                label="Type"
-                error={recurring.formState.errors.direction?.message}
-              >
-                <select
-                  {...recurring.register("direction", {
-                    onChange: () => recurring.setValue("category_id", ""),
-                  })}
+              <div className="form-row">
+                <Field
+                  label="Type"
+                  error={recurring.formState.errors.direction?.message}
                 >
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
-                </select>
-              </Field>
-              <CategoryField
-                label="Category"
-                categories={deterministicCategories.filter(
-                  (item) => item.direction === recurringDirection,
-                )}
-                registration={recurring.register("category_id")}
-                error={recurring.formState.errors.category_id?.message}
-              />
+                  <select
+                    {...recurring.register("direction", {
+                      onChange: () => recurring.setValue("category_id", ""),
+                    })}
+                  >
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                  </select>
+                </Field>
+                <CategoryField
+                  label="Category"
+                  categories={deterministicCategories.filter(
+                    (item) => item.direction === recurringDirection,
+                  )}
+                  registration={recurring.register("category_id")}
+                  error={recurring.formState.errors.category_id?.message}
+                />
+              </div>
               <Field
                 label="Amount in USD"
                 error={recurring.formState.errors.amount?.message}
