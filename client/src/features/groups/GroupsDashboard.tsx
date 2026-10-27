@@ -1,4 +1,5 @@
-import { useEffect, useId, useState } from "react";
+import { CircleHelp, X } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import type { JsonValue } from "../auth/reswallet";
 import { formatUsd, usdToMinorUnits } from "../finance/money";
@@ -33,6 +34,7 @@ interface Props {
 export function GroupsDashboard({ accessToken, actorAddress }: Props) {
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [showDashboardGuide, setShowDashboardGuide] = useState(false);
   const createPanelId = useId();
   const dashboard = useGroupsDashboard(accessToken, selectedGroupId);
   const groups = dashboard.groups.data;
@@ -49,15 +51,19 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
     <div className="groups-dashboard">
       <section className="dashboard-header" aria-labelledby="groups-title">
         <div className="dashboard-hero-copy">
-          <p className="eyebrow">Friends &amp; Groups</p>
-          <h1 id="groups-title">
-            Shared expenses, signed by every participant.
-          </h1>
-          <p className="lede">
-            ResContract is authoritative for obligations and settlements.
-            Finance changes only after an immutable contract receipt is
-            confirmed.
-          </p>
+          <div className="dashboard-eyebrow-row">
+            <p className="eyebrow">Friends &amp; Groups</p>
+            <button
+              className="dashboard-info-button"
+              type="button"
+              aria-label="How to use the Friends & Groups dashboard"
+              title="How to use the Friends & Groups dashboard"
+              onClick={() => setShowDashboardGuide(true)}
+            >
+              <CircleHelp size={20} aria-hidden="true" />
+            </button>
+          </div>
+          <h1 id="groups-title">Shared expenses, signed by all!</h1>
         </div>
         <span className="wallet-chip">
           <svg
@@ -75,7 +81,18 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
           </svg>
           Wallet {shortAddress(actorAddress)}
         </span>
+        <p className="lede">
+          Split expenses, track balances, and settle payments securely via
+          ResContract (smart contracts). Every transaction is verified and
+          recorded for transparency.
+        </p>
       </section>
+
+      {showDashboardGuide && (
+        <GroupsDashboardGuideDialog
+          onClose={() => setShowDashboardGuide(false)}
+        />
+      )}
 
       {dashboard.groups.isLoading && (
         <DashboardState text="Loading your groups…" />
@@ -173,6 +190,88 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
         />
       )}
     </div>
+  );
+}
+
+function GroupsDashboardGuideDialog({ onClose }: { onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const element = dialog.current;
+    if (element !== null && !element.open) element.showModal();
+    return () => {
+      if (element?.open) element.close();
+    };
+  }, []);
+
+  return (
+    <dialog
+      ref={dialog}
+      className="dashboard-guide-dialog"
+      aria-labelledby="groups-dashboard-guide-title"
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+    >
+      <div className="dashboard-guide-heading">
+        <div>
+          <p className="section-kicker">Friends &amp; Groups guide</p>
+          <h2 id="groups-dashboard-guide-title">How to use this dashboard?</h2>
+        </div>
+        <button
+          type="button"
+          aria-label="Close dashboard guide"
+          onClick={onClose}
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
+      </div>
+      <ul className="dashboard-guide-points">
+        <li>
+          Use the group row to switch workspaces, or choose New group to start
+          one. The Members control shows each participant and wallet address.
+        </li>
+        <li>
+          Open Update the group to add a member, fund internal settlement
+          credits, or record an expense. Select the participants, then split the
+          total equally or enter exact amounts.
+        </li>
+        <li>
+          Review Obligations for shares that need your approval or settlement.
+          Expenses preserves the split history, while Notifications records
+          actions that need attention.
+        </li>
+        <li>
+          ResWallet asks for an explicit signature when an action affects the
+          contract. ResContract remains authoritative, and Personal Finance
+          changes only after a confirmed receipt.
+        </li>
+      </ul>
+      <div className="savings-conventions groups-guide-concepts">
+        <article>
+          <strong>Split an expense</strong>
+          <p>
+            Choose who participated. Equal and exact splits must reconcile to
+            the expense total in USD cents.
+          </p>
+        </article>
+        <article>
+          <strong>Approve and settle</strong>
+          <p>
+            Participants approve their own shares, then use funded internal
+            credits for partial or full settlement.
+          </p>
+        </article>
+        <article>
+          <strong>Know the boundary</strong>
+          <p>
+            Credits are non-redeemable and have no cash value. This dashboard
+            does not transfer fiat or cryptocurrency.
+          </p>
+        </article>
+      </div>
+    </dialog>
   );
 }
 

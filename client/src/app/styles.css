@@ -2637,15 +2637,17 @@ td.expense {
   gap: 1.3rem;
 }
 
-.groups-dashboard .dashboard-header h1 {
-  font-size: clamp(2.3rem, 4.4vw, 3.9rem);
-  line-height: 1;
-  white-space: normal;
+.groups-dashboard .dashboard-header {
+  row-gap: 0.95rem;
 }
 
-.groups-dashboard .dashboard-header .lede {
-  max-width: 46rem;
-  white-space: normal;
+.groups-dashboard .wallet-chip {
+  align-self: end;
+  margin-bottom: 0.2rem;
+}
+
+.groups-dashboard .dashboard-header > .lede {
+  grid-column: 1 / -1;
 }
 
 .wallet-chip,
@@ -3757,6 +3759,13 @@ td.expense {
 
 :root[data-theme="dark"] .form-field select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' viewBox='0 0 12 8'%3E%3Cpath stroke='%23f5f7fb' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='m1.5 1.75 4.5 4.5 4.5-4.5'/%3E%3C/svg%3E");
+}
+
+@media (max-width: 82rem) {
+  .groups-dashboard .dashboard-header h1,
+  .groups-dashboard .dashboard-header .lede {
+    white-space: normal;
+  }
 }
 
 @media (max-width: 70rem) {

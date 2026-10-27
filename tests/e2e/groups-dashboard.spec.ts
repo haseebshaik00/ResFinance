@@ -136,11 +136,70 @@ test("approves and settles an obligation partially and fully", async ({
   );
 
   await page.goto("/groups");
+  const groupsTitle = page.locator("#groups-title");
+  await expect(groupsTitle).toBeVisible();
+  const heroDescription = page.locator(
+    ".groups-dashboard .dashboard-header > .lede",
+  );
+  await expect(heroDescription).toBeVisible();
+  await expect(heroDescription).toHaveCSS("white-space", "normal");
+
+  const standardViewport = page.viewportSize()!;
+  await page.setViewportSize({ width: 2366, height: 900 });
+  await expect(heroDescription).toHaveCSS("white-space", "nowrap");
+  expect(
+    await heroDescription.evaluate(
+      (element) => element.scrollWidth <= element.clientWidth,
+    ),
+  ).toBe(true);
+  await expect(groupsTitle).toHaveCSS("white-space", "nowrap");
+  expect(
+    await groupsTitle.evaluate((element) =>
+      parseFloat(getComputedStyle(element).fontSize),
+    ),
+  ).toBeGreaterThan(70);
+  await page.screenshot({
+    path: "test-results/groups-dashboard-header-wide.png",
+    fullPage: false,
+  });
+  await page.setViewportSize(standardViewport);
+  await expect(heroDescription).toHaveCSS("white-space", "normal");
+  await expect(groupsTitle).toHaveCSS("white-space", "normal");
+
+  const guideButton = page.getByRole("button", {
+    name: "How to use the Friends & Groups dashboard",
+  });
+  await expect(guideButton).toHaveCSS("color", "rgb(242, 189, 90)");
+  await guideButton.click();
+  const dashboardGuide = page.getByRole("dialog", {
+    name: "How to use this dashboard?",
+  });
+  await expect(dashboardGuide).toBeVisible();
   await expect(
-    page.getByRole("heading", {
-      name: "Shared expenses, signed by every participant.",
-    }),
+    dashboardGuide.getByText("Split an expense", { exact: true }),
   ).toBeVisible();
+  await expect(
+    dashboardGuide.getByText("Approve and settle", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    dashboardGuide.getByText("Know the boundary", { exact: true }),
+  ).toBeVisible();
+  await expect(dashboardGuide.locator("li")).toHaveCount(4);
+  await expect(
+    dashboardGuide.getByText(
+      "This dashboard does not transfer fiat or cryptocurrency.",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/groups-dashboard-guide.png",
+    fullPage: false,
+  });
+  await dashboardGuide
+    .getByRole("button", { name: "Close dashboard guide" })
+    .click();
+  await expect(dashboardGuide).not.toBeVisible();
+
   const walletChip = page.locator(".wallet-chip");
   await expect(walletChip).toHaveCSS("background-color", "rgb(24, 43, 52)");
   await expect(walletChip).toHaveCSS("border-color", "rgb(50, 99, 106)");
@@ -200,6 +259,8 @@ test("approves and settles an obligation partially and fully", async ({
 
   const desktopViewport = page.viewportSize()!;
   await page.setViewportSize({ width: 390, height: 844 });
+  await expect(heroDescription).toHaveCSS("white-space", "normal");
+  await expect(groupsTitle).toHaveCSS("white-space", "normal");
   await membersButton.click();
   await expectInsideViewport(page, membersPopover);
   await page.screenshot({
@@ -210,11 +271,7 @@ test("approves and settles an obligation partially and fully", async ({
 
   await membersButton.click();
   await expect(membersPopover).toBeVisible();
-  await page
-    .getByRole("heading", {
-      name: "Shared expenses, signed by every participant.",
-    })
-    .click();
+  await groupsTitle.click();
   await expect(membersPopover).toHaveCount(0);
 
   await expect(page.locator(".obligation-parties")).toHaveText(

@@ -123,6 +123,10 @@ Evidence:
 - Reorganized the Friends & Groups dashboard around a Personal Finance-style
   hero, summary cards, a collapsible Update the group section, and paged
   activity tabs with filters. Signing and settlement behavior is unchanged.
+- Matched the Friends & Groups hero typography and responsive header layout to
+  Personal Finance, and added an accessible in-app guide covering group setup,
+  splits, signed approvals, internal-credit settlement, receipts, and the
+  non-monetary settlement boundary.
 
 Evidence:
 [`milestones/milestone4-bill-split-contractual-settlement.md`](milestones/milestone4-bill-split-contractual-settlement.md).

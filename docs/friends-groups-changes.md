@@ -821,3 +821,26 @@ Signing, settlement, and ResContract behavior are unchanged.
    a member, fund credits, or add an expense.
 3. Use the activity tabs and filter chips. If a list is longer than six
    items, use **Show more**. Tab to a button and confirm the focus ring.
+
+## Task 8 — Match the dashboard header and add an in-app guide
+
+**Status:** implemented on `main`.
+
+### What changed
+
+- The Friends & Groups hero now uses the same title scale, line height,
+  responsive wrapping, eyebrow layout, and right-side alignment as Personal
+  Finance.
+- A gold help button beside **Friends & Groups** opens a keyboard-accessible
+  guide using the same dialog treatment as the Personal Finance guide.
+- The guide explains how to select or create a group, inspect members, add and
+  split an expense, approve obligations, fund and use internal credits, review
+  notifications, and understand when Personal Finance changes.
+- The guide explicitly states that internal credits are non-redeemable and
+  that the dashboard does not transfer fiat or cryptocurrency.
+
+### Verification
+
+- The browser test checks the shared desktop title scale, responsive mobile
+  wrapping, help-button styling, guide content, dialog close behavior, and a
+  visual screenshot of the open guide.
