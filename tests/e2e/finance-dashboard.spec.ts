@@ -407,11 +407,15 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   );
   await expect(page.locator(".theme-slider-thumb")).toHaveCSS(
     "background-color",
-    "rgb(207, 196, 245)",
+    "rgb(203, 187, 244)",
   );
   await expect(
     page.locator('.theme-toggle[data-theme="dark"] .theme-slider-icon').nth(1),
-  ).toHaveCSS("color", "rgb(23, 32, 42)");
+  ).toHaveCSS("color", "rgb(48, 39, 71)");
+  await expect(page.locator(".theme-slider-track")).toHaveCSS(
+    "background-color",
+    "rgb(41, 52, 70)",
+  );
   await page.getByRole("button", { name: "Switch to Light Mode" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(topBar.locator(".auth-brand-logo-light")).toBeVisible();

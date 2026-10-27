@@ -141,6 +141,15 @@ test("approves and settles an obligation partially and fully", async ({
       name: "Shared expenses, signed by every participant.",
     }),
   ).toBeVisible();
+  const walletChip = page.locator(".wallet-chip");
+  await expect(walletChip).toHaveCSS("background-color", "rgb(24, 43, 52)");
+  await expect(walletChip).toHaveCSS("border-color", "rgb(50, 99, 106)");
+  await expect(walletChip).toHaveCSS("color", "rgb(189, 231, 228)");
+  await expect(walletChip.locator(".wallet-chip-icon")).toHaveCSS(
+    "color",
+    "rgb(54, 207, 195)",
+  );
+
   await expect(page.getByRole("tab", { name: /^Obligations/ })).toHaveAttribute(
     "aria-selected",
     "true",

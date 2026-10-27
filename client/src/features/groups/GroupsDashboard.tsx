@@ -59,7 +59,22 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
             confirmed.
           </p>
         </div>
-        <span className="wallet-chip">Wallet {shortAddress(actorAddress)}</span>
+        <span className="wallet-chip">
+          <svg
+            className="wallet-chip-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20 7V6a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h15v8a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V7" />
+            <path d="M16 14h.01" />
+          </svg>
+          Wallet {shortAddress(actorAddress)}
+        </span>
       </section>
 
       {dashboard.groups.isLoading && (
