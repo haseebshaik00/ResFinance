@@ -3749,6 +3749,12 @@ td.expense {
   color-scheme: dark;
 }
 
+:root[data-theme="dark"] .reporting-month-control input {
+  border-color: #32636a;
+  background: #182b34;
+  color: #bde7e4;
+}
+
 :root[data-theme="dark"] .form-field select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' viewBox='0 0 12 8'%3E%3Cpath stroke='%23f5f7fb' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='m1.5 1.75 4.5 4.5 4.5-4.5'/%3E%3C/svg%3E");
 }

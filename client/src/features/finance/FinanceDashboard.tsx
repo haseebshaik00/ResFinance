@@ -151,7 +151,7 @@ export function FinanceDashboard({ accessToken }: FinanceDashboardProps) {
             exact savings amount that will feed future portfolio analysis.
           </p>
         </div>
-        <label className="month-control">
+        <label className="month-control reporting-month-control">
           <span>Reporting month</span>
           <input
             type="month"
