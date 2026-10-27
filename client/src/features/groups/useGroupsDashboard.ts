@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import {
   addGroupMember,
@@ -44,6 +49,13 @@ export function useGroupsDashboard(
     queryFn: ({ signal }) =>
       getGroupOverview(accessToken, selectedGroupId!, signal),
     enabled: selectedGroupId !== null,
+  });
+  const overviews = useQueries({
+    queries: (groups.data ?? []).map((group) => ({
+      queryKey: ["group", accessToken, group.group_id],
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        getGroupOverview(accessToken, group.group_id, signal),
+    })),
   });
 
   async function refresh(groupId?: string) {
@@ -126,6 +138,7 @@ export function useGroupsDashboard(
   return {
     groups,
     overview,
+    overviews,
     create,
     member,
     expense,

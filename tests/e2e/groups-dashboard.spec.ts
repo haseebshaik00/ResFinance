@@ -646,6 +646,19 @@ test("lists expenses and obligations by name", async ({ page }) => {
   );
   await expect(summaryValue(page, "You owe")).toHaveText("$20.00");
   await expect(summaryValue(page, "You are owed")).toHaveText("$20.00");
+  const balances = page.locator(".group-balance");
+  await expect(
+    balances.getByRole("heading", { name: "Outstanding balances" }),
+  ).toBeVisible();
+  await expect(
+    balances.getByRole("region", { name: "You are owed" }),
+  ).toContainText("Priya");
+  await expect(balances.getByRole("region", { name: "You owe" })).toContainText(
+    "Sam",
+  );
+  await page.locator(".group-balance").screenshot({
+    path: "test-results/groups-balance.png",
+  });
   await expensesTab.click();
   const expenses = page.locator(".expenses-panel");
   await expect(expensesTab.locator(".tab-count")).toHaveText("2");

@@ -2740,8 +2740,139 @@ td.expense {
 }
 
 .create-group-panel .section-heading,
-.group-activity .section-heading {
+.group-activity .section-heading,
+.group-balance .section-heading {
   margin-bottom: 0;
+}
+
+.group-balance {
+  position: relative;
+  z-index: 6;
+  display: grid;
+  gap: 1.15rem;
+}
+
+.group-balance .section-heading > div {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.group-balance .section-kicker {
+  margin: 0;
+}
+
+.group-balance .empty-state {
+  margin: 0;
+}
+
+.balance-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.balance-column h3 {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  margin: 0 0 0.45rem;
+  color: var(--page-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.balance-column ul,
+.balance-more ul {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.balance-column li {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+  gap: 0.55rem;
+  align-items: center;
+  min-height: 1.35rem;
+  font-size: 0.88rem;
+}
+
+.balance-name {
+  overflow: hidden;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.balance-track {
+  height: 0.4rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--page-muted) 18%, transparent);
+}
+
+.balance-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.balance-fill.owed {
+  background: var(--income);
+}
+
+.balance-fill.owe {
+  background: var(--expense);
+}
+
+.balance-amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+
+.balance-empty {
+  margin: 0;
+  color: var(--page-muted);
+  font-size: 0.84rem;
+}
+
+.balance-column .share-overflow {
+  margin-top: 0.7rem;
+}
+
+.share-popover.balance-more {
+  left: 0;
+  min-width: 12rem;
+}
+
+.share-popover.balance-more li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  width: auto;
+  height: auto;
+  padding: 0.35rem 0.55rem;
+  border: 0;
+  border-radius: 0.55rem;
+  font-size: 0.84rem;
+}
+
+.balance-swatch {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+}
+
+.balance-swatch.owed {
+  background: var(--income);
+}
+
+.balance-swatch.owe {
+  background: var(--expense);
 }
 
 .group-form {
@@ -3770,6 +3901,10 @@ td.expense {
 
   .group-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .balance-columns {
+    grid-template-columns: 1fr;
   }
 
   .group-summary-grid .metric-card {

@@ -3,8 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   filterExpenses,
   filterObligations,
+  balanceColumns,
   groupTotals,
   needsAction,
+  personalBalances,
+  personBalances,
+  topBalances,
   obligationCounts,
   pageItems,
   type ObligationLike,
@@ -81,6 +85,38 @@ describe("group activity", () => {
     expect(pageItems(items, 12).remaining).toBe(2);
     expect(pageItems(items, 18)).toEqual({ items, remaining: 0 });
     expect(pageItems([], 6)).toEqual({ items: [], remaining: 0 });
+  });
+
+  it("sums outstanding balances with each other person", () => {
+    expect(personBalances(obligations, you)).toEqual([
+      { address: priya, oweMinorUnits: 2000, owedMinorUnits: 0 },
+      { address: sam, oweMinorUnits: 0, owedMinorUnits: 1500 },
+    ]);
+    expect(personBalances([], you)).toEqual([]);
+  });
+
+  it("nets what you owe a person across groups into one balance", () => {
+    const combined = [
+      ...obligations,
+      obligation("other-group-you-owe-sam", you, sam, "open", 500),
+    ];
+    expect(personalBalances(combined, you)).toEqual([
+      { address: priya, oweMinorUnits: 2000, owedMinorUnits: 0 },
+      { address: sam, oweMinorUnits: 0, owedMinorUnits: 1000 },
+    ]);
+  });
+
+  it("ranks each direction and keeps the largest four on the card", () => {
+    const columns = balanceColumns([
+      { name: "Sam", oweMinorUnits: 2000, owedMinorUnits: 0 },
+      { name: "Priya", oweMinorUnits: 500, owedMinorUnits: 4000 },
+      { name: "Maya", oweMinorUnits: 0, owedMinorUnits: 1000 },
+    ]);
+    expect(columns.owed.map((row) => row.name)).toEqual(["Priya", "Maya"]);
+    expect(columns.owe.map((row) => row.name)).toEqual(["Sam", "Priya"]);
+    const many = Array.from({ length: 6 }, (_, index) => index);
+    expect(topBalances(many).visible).toEqual([0, 1, 2, 3]);
+    expect(topBalances(many).hidden).toEqual([4, 5]);
   });
 
   it("totals confirmed outstanding amounts in cents for each direction", () => {
