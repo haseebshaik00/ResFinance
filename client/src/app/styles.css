@@ -2641,19 +2641,6 @@ td.expense {
   gap: 1.3rem;
 }
 
-.groups-dashboard .dashboard-header {
-  row-gap: 0.95rem;
-}
-
-.groups-dashboard .wallet-chip {
-  align-self: end;
-  margin-bottom: 0.2rem;
-}
-
-.groups-dashboard .dashboard-header > .lede {
-  grid-column: 1 / -1;
-}
-
 .wallet-chip,
 .tab-count,
 .chip-count {
@@ -2661,18 +2648,38 @@ td.expense {
 }
 
 .wallet-chip {
+  position: relative;
   display: inline-flex;
   gap: 0.35rem;
-  align-self: center;
+  align-self: end;
   align-items: center;
+  margin: 0;
   padding: 0.5rem 0.85rem;
   border: 1px solid #32636a;
   border-radius: 999px;
   color: #bde7e4;
+  font: inherit;
   font-size: 0.78rem;
   font-weight: 750;
   white-space: nowrap;
   background: #182b34;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.wallet-chip:hover,
+.wallet-chip:focus-visible {
+  border-color: #36cfc3;
+  color: #e7fffc;
+  background: #1d3640;
+}
+
+.wallet-chip:focus-visible {
+  outline: 3px solid color-mix(in srgb, #36cfc3 52%, transparent);
+  outline-offset: 2px;
 }
 
 .wallet-chip-icon {
@@ -2680,6 +2687,54 @@ td.expense {
   height: 1rem;
   flex: 0 0 auto;
   color: #36cfc3;
+}
+
+.wallet-chip-tooltip {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  left: auto;
+  z-index: 8;
+  display: grid;
+  gap: 0.25rem;
+  width: max-content;
+  max-width: min(86vw, 22rem);
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #32636a;
+  border-radius: 0.75rem;
+  color: #e7fffc;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: normal;
+  white-space: normal;
+  background: #13262e;
+  box-shadow: 0 0.65rem 1.5rem rgb(8 18 24 / 35%);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.2rem);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.wallet-chip-tooltip code {
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.wallet-chip-hint {
+  color: #8eb8b4;
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.wallet-chip:hover .wallet-chip-tooltip,
+.wallet-chip:focus-visible .wallet-chip-tooltip {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Group switcher: one scrollable row so many groups never wrap the page. */
@@ -2749,7 +2804,70 @@ td.expense {
 }
 
 .new-group-button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0.55rem;
+  row-gap: 0.2rem;
+  align-items: center;
   flex: 0 0 auto;
+  min-width: 11.5rem;
+  max-width: 16rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid color-mix(in srgb, #f2bd5a 58%, #1a2436);
+  border-radius: 1rem;
+  color: #1a2436;
+  font: inherit;
+  text-align: left;
+  background: #f2bd5a;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    filter 140ms ease;
+}
+
+.new-group-button[aria-expanded="true"] {
+  border-color: color-mix(in srgb, #332633 72%, white);
+  color: #fff;
+  background: #332633;
+}
+
+.new-group-button-icon {
+  grid-row: 1 / span 2;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+}
+
+.new-group-button strong {
+  overflow: hidden;
+  font-size: 0.92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.new-group-button span {
+  color: rgb(26 36 54 / 72%);
+  font-size: 0.76rem;
+}
+
+.new-group-button[aria-expanded="true"] span {
+  color: rgb(255 255 255 / 78%);
+}
+
+.new-group-button:hover {
+  filter: brightness(1.06);
+}
+
+.new-group-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, #f2bd5a 62%, transparent);
+  outline-offset: 2px;
+}
+
+.new-group-button[aria-expanded="true"]:focus-visible {
+  outline-color: color-mix(in srgb, #332633 58%, transparent);
 }
 
 .create-group-panel,

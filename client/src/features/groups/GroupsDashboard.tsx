@@ -1,4 +1,4 @@
-import { CircleHelp, X } from "lucide-react";
+import { CircleHelp, Plus, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 import type { JsonValue } from "../auth/reswallet";
@@ -64,28 +64,13 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
             </button>
           </div>
           <h1 id="groups-title">Shared expenses, signed by all!</h1>
+          <p className="lede">
+            Split expenses, track balances, and settle securely via ResContract
+            smart contracts, with every transaction verified and recorded for
+            transparency.
+          </p>
         </div>
-        <span className="wallet-chip">
-          <svg
-            className="wallet-chip-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M20 7V6a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h15v8a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V7" />
-            <path d="M16 14h.01" />
-          </svg>
-          Wallet {shortAddress(actorAddress)}
-        </span>
-        <p className="lede">
-          Split expenses, track balances, and settle payments securely via
-          ResContract (smart contracts). Every transaction is verified and
-          recorded for transparency.
-        </p>
+        <WalletChip address={actorAddress} />
       </section>
 
       {showDashboardGuide && (
@@ -137,12 +122,18 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
           </nav>
           <button
             type="button"
-            className="secondary-button new-group-button"
+            className="new-group-button"
             aria-expanded={creating}
             aria-controls={createPanelId}
             onClick={() => setCreating((current) => !current)}
           >
-            {creating ? "Close new group" : "New group"}
+            {creating ? (
+              <X aria-hidden="true" className="new-group-button-icon" />
+            ) : (
+              <Plus aria-hidden="true" className="new-group-button-icon" />
+            )}
+            <strong>{creating ? "Close" : "New Group"}</strong>
+            <span>{creating ? "Hide form" : "Start a split"}</span>
           </button>
         </div>
       )}
@@ -190,6 +181,64 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
         />
       )}
     </div>
+  );
+}
+
+function WalletChip({ address }: { address: string }) {
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">(
+    "idle",
+  );
+
+  useEffect(() => {
+    if (copyStatus === "idle") return;
+    const timer = window.setTimeout(() => setCopyStatus("idle"), 2000);
+    return () => window.clearTimeout(timer);
+  }, [copyStatus]);
+
+  async function copyAddress() {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopyStatus("copied");
+    } catch {
+      setCopyStatus("failed");
+    }
+  }
+
+  const statusLabel =
+    copyStatus === "copied"
+      ? "Copied"
+      : copyStatus === "failed"
+        ? "Copy failed"
+        : "Click to copy";
+
+  return (
+    <button
+      type="button"
+      className="wallet-chip"
+      aria-label={`Wallet ${address}. ${statusLabel}`}
+      onClick={() => void copyAddress()}
+    >
+      <svg
+        className="wallet-chip-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M20 7V6a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h15v8a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V7" />
+        <path d="M16 14h.01" />
+      </svg>
+      <span className="wallet-chip-label">
+        Wallet {shortAddress(address)}
+      </span>
+      <span className="wallet-chip-tooltip" role="tooltip">
+        <code>{address}</code>
+        <span className="wallet-chip-hint">{statusLabel}</span>
+      </span>
+    </button>
   );
 }
 
