@@ -76,6 +76,99 @@ export function pageItems<T>(
   return { items: shown, remaining: items.length - shown.length };
 }
 
+export interface PersonBalance {
+  address: string;
+  oweMinorUnits: number;
+  owedMinorUnits: number;
+}
+
+export function personBalances(
+  obligations: readonly ObligationLike[],
+  actorAddress: string,
+): PersonBalance[] {
+  const totals = new Map<string, PersonBalance>();
+  for (const item of obligations) {
+    if (!CONFIRMED_OUTSTANDING.has(item.status)) continue;
+    const youOwe = sameAddress(item.debtor_address, actorAddress);
+    const youAreOwed = sameAddress(item.creditor_address, actorAddress);
+    if (!youOwe && !youAreOwed) continue;
+    const other = youOwe ? item.creditor_address : item.debtor_address;
+    const key = other.toLowerCase();
+    const current = totals.get(key) ?? {
+      address: other,
+      oweMinorUnits: 0,
+      owedMinorUnits: 0,
+    };
+    if (youOwe) current.oweMinorUnits += item.outstanding_amount.minor_units;
+    else current.owedMinorUnits += item.outstanding_amount.minor_units;
+    totals.set(key, current);
+  }
+  return [...totals.values()]
+    .filter((item) => item.oweMinorUnits > 0 || item.owedMinorUnits > 0)
+    .sort(byLargestBalance);
+}
+
+/** One net amount per person, combined across every group. */
+export function personalBalances(
+  obligations: readonly ObligationLike[],
+  actorAddress: string,
+): PersonBalance[] {
+  return personBalances(obligations, actorAddress)
+    .map((row) => {
+      const net = row.owedMinorUnits - row.oweMinorUnits;
+      return net >= 0
+        ? { ...row, owedMinorUnits: net, oweMinorUnits: 0 }
+        : { ...row, oweMinorUnits: -net, owedMinorUnits: 0 };
+    })
+    .filter((row) => row.oweMinorUnits > 0 || row.owedMinorUnits > 0)
+    .sort(byLargestBalance);
+}
+
+function byLargestBalance(left: PersonBalance, right: PersonBalance): number {
+  const leftTotal = left.oweMinorUnits + left.owedMinorUnits;
+  const rightTotal = right.oweMinorUnits + right.owedMinorUnits;
+  return rightTotal - leftTotal || left.address.localeCompare(right.address);
+}
+
+export const VISIBLE_BALANCE_ROWS = 4;
+
+export interface NamedBalance {
+  name: string;
+  oweMinorUnits: number;
+  owedMinorUnits: number;
+}
+
+export interface BalanceAmount {
+  name: string;
+  minorUnits: number;
+}
+
+export function balanceColumns(rows: readonly NamedBalance[]): {
+  owed: BalanceAmount[];
+  owe: BalanceAmount[];
+} {
+  const rank = (amount: (row: NamedBalance) => number): BalanceAmount[] =>
+    rows
+      .map((row) => ({ name: row.name, minorUnits: amount(row) }))
+      .filter((row) => row.minorUnits > 0)
+      .sort(
+        (left, right) =>
+          right.minorUnits - left.minorUnits ||
+          left.name.localeCompare(right.name),
+      );
+  return {
+    owed: rank((row) => row.owedMinorUnits),
+    owe: rank((row) => row.oweMinorUnits),
+  };
+}
+
+export function topBalances<T>(
+  items: readonly T[],
+  limit = VISIBLE_BALANCE_ROWS,
+): { visible: T[]; hidden: T[] } {
+  return { visible: items.slice(0, limit), hidden: items.slice(limit) };
+}
+
 export function groupTotals(
   obligations: readonly ObligationLike[],
   actorAddress: string,

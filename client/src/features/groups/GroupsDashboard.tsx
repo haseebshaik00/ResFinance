@@ -5,6 +5,7 @@ import { formatUsd, usdToMinorUnits } from "../finance/money";
 import { groupTotals } from "./activity";
 import { ActionFeedback, errorMessage } from "./ActionFeedback";
 import { GroupActivityTabs } from "./GroupActivityTabs";
+import { GroupBalanceChart } from "./GroupBalanceChart";
 import {
   isGroupWritePending,
   requestSignature,
@@ -61,6 +62,26 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
         <span className="wallet-chip">Wallet {shortAddress(actorAddress)}</span>
       </section>
 
+      {dashboard.groups.isLoading && (
+        <DashboardState text="Loading your groups…" />
+      )}
+      {dashboard.groups.isError && (
+        <DashboardState text={errorMessage(dashboard.groups.error)} error />
+      )}
+
+      {hasGroups && (
+        <GroupBalanceChart
+          actorAddress={actorAddress}
+          obligations={dashboard.overviews.flatMap(
+            (query) => query.data?.obligations ?? [],
+          )}
+          members={dashboard.overviews.flatMap(
+            (query) => query.data?.members ?? [],
+          )}
+          loading={dashboard.overviews.some((query) => query.isLoading)}
+        />
+      )}
+
       {hasGroups && (
         <div className="group-bar">
           <nav className="group-switcher" aria-label="Your groups">
@@ -115,12 +136,6 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
         />
       )}
 
-      {dashboard.groups.isLoading && (
-        <DashboardState text="Loading your groups…" />
-      )}
-      {dashboard.groups.isError && (
-        <DashboardState text={errorMessage(dashboard.groups.error)} error />
-      )}
       {groups !== undefined && groups.length === 0 && (
         <p className="empty-state">
           No groups yet. Create one above, then add friends by wallet address to
