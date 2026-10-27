@@ -115,7 +115,7 @@ export function GroupActivityTabs({
             {item.label}
             <span className="tab-count">{tabCounts[item.id]}</span>
             {item.id === "obligations" && counts.action > 0 && (
-              <span className="tab-badge">{counts.action} to do</span>
+              <span className="tab-badge">{counts.action} TODO</span>
             )}
           </button>
         ))}

@@ -777,7 +777,7 @@ The page now follows the Personal Finance layout:
 3. **Update the group.** A collapsible section, open only when the group has
    no expenses yet, holds Add member, Fund credits, and Add an expense.
 4. **Group activity tabs.** Obligations, Expenses, and Notifications. Each
-   tab shows a count. Obligations also shows a "to do" badge when you need to
+   tab shows a count. Obligations also shows a "TODO" badge when you need to
    approve or settle. The page opens on Obligations in that case, otherwise
    on Expenses.
 5. **Filters and paging.** Obligations: All, Needs your action, Open,

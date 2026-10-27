@@ -706,7 +706,7 @@ test("lists expenses and obligations by name", async ({ page }) => {
   const expensesTab = page.getByRole("tab", { name: /^Expenses/ });
   await expect(obligationsTab).toHaveAttribute("aria-selected", "true");
   await expect(obligationsTab.locator(".tab-count")).toHaveText("3");
-  await expect(obligationsTab.locator(".tab-badge")).toHaveText("1 to do");
+  await expect(obligationsTab.locator(".tab-badge")).toHaveText("1 TODO");
   await expect(page.locator("details.group-update")).not.toHaveAttribute(
     "open",
   );
