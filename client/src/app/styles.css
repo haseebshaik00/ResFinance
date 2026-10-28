@@ -2900,6 +2900,10 @@ td.expense {
     color-mix(in srgb, var(--card-border) 86%, transparent);
 }
 
+.group-network-summary > .new-group-button {
+  justify-self: start;
+}
+
 .group-network-heading {
   display: grid;
   gap: 0.4rem;

@@ -154,6 +154,9 @@ test("approves and settles an obligation partially and fully", async ({
   await expect(
     groupNetwork.getByRole("heading", { name: "Your group network" }),
   ).toBeVisible();
+  await expect(
+    groupNetwork.getByRole("button", { name: "New Group" }),
+  ).toBeVisible();
   await expect(groupNetwork.getByText("1 group · 1 connection")).toBeVisible();
   await expect(
     groupNetwork.locator(".network-metric-credits strong"),

@@ -1,4 +1,5 @@
 import { formatUsd } from "../finance/money";
+import { Plus, X } from "lucide-react";
 import { groupNetworkTotals, personalBalances } from "./activity";
 import type { GroupOverview } from "./groupActions";
 import {
@@ -14,6 +15,9 @@ export function GroupBalanceChart({
   groups,
   overviews,
   loading,
+  creating,
+  createPanelId,
+  onCreateToggle,
 }: {
   actorAddress: string;
   obligations: GroupOverview["obligations"];
@@ -21,6 +25,9 @@ export function GroupBalanceChart({
   groups: readonly { group_id: string }[];
   overviews: readonly GroupOverview[];
   loading: boolean;
+  creating: boolean;
+  createPanelId: string;
+  onCreateToggle: () => void;
 }) {
   const balances = personalBalances(obligations, actorAddress).map((row) => {
     const youOwe = row.oweMinorUnits > 0;
@@ -47,6 +54,21 @@ export function GroupBalanceChart({
           <p className="section-kicker">Across every group</p>
           <h2 id="group-balance-title">Your group network</h2>
         </div>
+        <button
+          type="button"
+          className="new-group-button"
+          aria-expanded={creating}
+          aria-controls={createPanelId}
+          onClick={onCreateToggle}
+        >
+          {creating ? (
+            <X aria-hidden="true" className="new-group-button-icon" />
+          ) : (
+            <Plus aria-hidden="true" className="new-group-button-icon" />
+          )}
+          <strong>{creating ? "Close" : "New Group"}</strong>
+          <span>{creating ? "Hide form" : "Start a split"}</span>
+        </button>
         <div className="group-network-metrics" aria-label="Network summary">
           <article className="network-metric network-metric-groups">
             <p>Group network</p>

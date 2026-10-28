@@ -1,4 +1,4 @@
-import { CircleHelp, Plus, X } from "lucide-react";
+import { CircleHelp, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 import type { JsonValue } from "../auth/reswallet";
@@ -100,6 +100,9 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
             query.data === undefined ? [] : [query.data],
           )}
           loading={dashboard.overviews.some((query) => query.isLoading)}
+          creating={creating}
+          createPanelId={createPanelId}
+          onCreateToggle={() => setCreating((current) => !current)}
         />
       )}
 
@@ -124,21 +127,6 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
               </button>
             ))}
           </nav>
-          <button
-            type="button"
-            className="new-group-button"
-            aria-expanded={creating}
-            aria-controls={createPanelId}
-            onClick={() => setCreating((current) => !current)}
-          >
-            {creating ? (
-              <X aria-hidden="true" className="new-group-button-icon" />
-            ) : (
-              <Plus aria-hidden="true" className="new-group-button-icon" />
-            )}
-            <strong>{creating ? "Close" : "New Group"}</strong>
-            <span>{creating ? "Hide form" : "Start a split"}</span>
-          </button>
         </div>
       )}
 
