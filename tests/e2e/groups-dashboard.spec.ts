@@ -183,7 +183,7 @@ test("approves and settles an obligation partially and fully", async ({
 
   const standardViewport = page.viewportSize()!;
   await page.setViewportSize({ width: 2366, height: 900 });
-  await expect(heroDescription).toHaveCSS("white-space", "nowrap");
+  await expect(heroDescription).toHaveCSS("white-space", "normal");
   expect(
     await heroDescription.evaluate(
       (element) => element.scrollWidth <= element.clientWidth,
