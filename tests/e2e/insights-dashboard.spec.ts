@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { approveWalletLogin, prepareWalletLogin } from "./wallet-login";
+
 const model = {
   model_id: "Qwen/Qwen2.5-1.5B-Instruct",
   model_revision: "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
@@ -8,6 +10,7 @@ const model = {
 test("shows evidence-linked insights, notifications, and safe refusals", async ({
   page,
 }) => {
+  await prepareWalletLogin(page);
   await page.route("**/api/v1/auth/refresh", async (route) => {
     await route.fulfill({
       status: 200,
@@ -115,6 +118,7 @@ test("shows evidence-linked insights, notifications, and safe refusals", async (
   });
 
   await page.goto("/insights");
+  await approveWalletLogin(page);
   await expect(page).toHaveURL(/\/finance#smart-insights$/);
 
   await expect(

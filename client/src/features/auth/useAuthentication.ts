@@ -4,7 +4,6 @@ import {
   createChallenge,
   createSession,
   logoutSession,
-  refreshSession,
 } from "../../lib/api/client";
 import {
   formatIntentTimestamp,
@@ -35,15 +34,6 @@ interface Authentication {
   accessToken: string | null;
   connect(): Promise<void>;
   logout(): Promise<void>;
-}
-
-let pendingInitialRefresh: ReturnType<typeof refreshSession> | null = null;
-
-function refreshInitialSession(): ReturnType<typeof refreshSession> {
-  pendingInitialRefresh ??= refreshSession().finally(() => {
-    pendingInitialRefresh = null;
-  });
-  return pendingInitialRefresh;
 }
 
 export function useAuthentication(): Authentication {
@@ -117,25 +107,8 @@ export function useAuthentication(): Authentication {
   }, [inspectWallet]);
 
   useEffect(() => {
-    let active = true;
-    // React Strict Mode intentionally remounts effects in development. Share the
-    // rotating refresh request so the remount cannot consume the same cookie
-    // twice and let a racing 401 overwrite the valid refreshed session.
-    refreshInitialSession()
-      .then((session) => {
-        if (!active) return;
-        setAccessToken(session.access_token);
-        setActorAddress(session.actor_address);
-        transitionTo("authenticated");
-        setMessage("Authenticated with a rotated ResilientDB-backed session.");
-      })
-      .catch(() => {
-        if (active) void inspectWallet();
-      });
-    return () => {
-      active = false;
-    };
-  }, [inspectWallet, transitionTo]);
+    void inspectWallet();
+  }, [inspectWallet]);
 
   const connect = useCallback(async () => {
     transitionTo("pending");

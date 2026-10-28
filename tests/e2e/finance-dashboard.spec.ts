@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { approveWalletLogin, prepareWalletLogin } from "./wallet-login";
+
 const overview = {
   summary: {
     month: "2026-10",
@@ -141,6 +143,7 @@ const overview = {
 test("renders exact balances, budget alert, savings, and provenance", async ({
   page,
 }) => {
+  await prepareWalletLogin(page);
   await page.route("**/api/v1/auth/refresh", async (route) => {
     await route.fulfill({
       status: 200,
@@ -220,6 +223,7 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   });
 
   await page.goto("/finance");
+  await approveWalletLogin(page);
 
   await expect(
     page.getByRole("heading", { name: "Your money, in one view!" }),
@@ -814,6 +818,7 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   ).toHaveCount(0);
 
   await page.goto("/finance");
+  await approveWalletLogin(page);
   await expect(
     page.getByRole("heading", { name: "Your money, in one view!" }),
   ).toBeVisible();
@@ -848,6 +853,7 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
 test("voids transactions and deactivates recurring items and budgets through confirmed audit events", async ({
   page,
 }) => {
+  await prepareWalletLogin(page);
   const currentOverview = structuredClone(overview);
 
   await page.route("**/api/v1/auth/refresh", async (route) => {
@@ -975,6 +981,7 @@ test("voids transactions and deactivates recurring items and budgets through con
   );
 
   await page.goto("/finance");
+  await approveWalletLogin(page);
 
   const voidButton = page.getByRole("button", {
     name: "Void transaction October groceries",
@@ -1077,44 +1084,69 @@ test("voids transactions and deactivates recurring items and budgets through con
   expect(removeBudgetRequest).toEqual({ expected_version: 10 });
 });
 
-test("separates the wallet controls while checking the initial session", async ({
+test("keeps the welcome route unauthenticated until ResWallet approval", async ({
   page,
 }) => {
-  let releaseRefresh = () => {};
-  const holdRefresh = new Promise<void>((resolve) => {
-    releaseRefresh = resolve;
-  });
+  let refreshRequests = 0;
   await page.route("**/api/v1/auth/refresh", async (route) => {
-    await holdRefresh;
-    await route.fulfill({ status: 401 });
+    refreshRequests += 1;
+    await route.fulfill({ status: 200 });
+  });
+  await page.addInitScript(() => {
+    window.addEventListener("message", (event) => {
+      const request = event.data as {
+        source?: string;
+        version?: number;
+        request_id?: string;
+        type?: string;
+      };
+      if (
+        event.source !== window ||
+        request.source !== "resfinance-page" ||
+        request.version !== 1 ||
+        request.type !== "GET_STATUS" ||
+        request.request_id === undefined
+      ) {
+        return;
+      }
+      window.postMessage(
+        {
+          source: "reswallet",
+          version: 1,
+          request_id: request.request_id,
+          ok: true,
+          result: {
+            exists: true,
+            unlocked: true,
+            identity: {
+              public_key: "e2e-public-key",
+              address: `0x${"a".repeat(40)}`,
+            },
+          },
+        },
+        window.location.origin,
+      );
+    });
   });
   await page.goto("/");
 
   const card = page.locator(".auth-card");
   const connect = page.getByRole("button", { name: "Connect Wallet" });
-  const help = page.getByRole("button", { name: "How to connect ResWallet" });
-  await expect(card).toHaveAttribute("data-state", "checking");
+  await expect(card).toHaveAttribute("data-state", "ready");
   await expect(
-    page.getByText("Checking wallet and session state…"),
+    page.getByText("ResWallet Unlocked! Connect to Wallet now..."),
   ).toBeVisible();
-  await expect(connect).toBeDisabled();
+  await expect(connect).toBeEnabled();
+  await expect(page).toHaveURL("http://127.0.0.1:4173/");
+  await expect(
+    page.getByRole("heading", { name: "Your money, in one view!" }),
+  ).toHaveCount(0);
+  expect(refreshRequests).toBe(0);
 
-  const cardBox = await card.boundingBox();
-  const connectBox = await connect.boundingBox();
-  const helpBox = await help.boundingBox();
-  expect(cardBox).not.toBeNull();
-  expect(connectBox).not.toBeNull();
-  expect(helpBox).not.toBeNull();
-  expect(cardBox!.height).toBeGreaterThanOrEqual(168);
-  expect(connectBox!.y - (helpBox!.y + helpBox!.height)).toBeGreaterThanOrEqual(
-    8,
-  );
   await page.screenshot({
     path: "test-results/reswallet-checking.png",
     fullPage: false,
   });
-
-  releaseRefresh();
 });
 
 test("separates the wallet controls before a wallet is created", async ({

@@ -47,6 +47,9 @@ Evidence:
 - Implemented challenge login, memory-only access tokens, HttpOnly refresh
   cookies, ResilientDB-backed session hashes, rotation, replay protection,
   revocation, and logout.
+- Opening the local client checks only public ResWallet status. It does not
+  restore a dashboard from a refresh cookie: each visit requires an explicit
+  **Connect Wallet** selection and fresh ResWallet challenge approval.
 - Verified tamper, expiry, origin, network, replay, and locked-wallet defenses
   against the local stack, including restart persistence.
 - Refined the wallet login and extension experience with ResFinance branding,

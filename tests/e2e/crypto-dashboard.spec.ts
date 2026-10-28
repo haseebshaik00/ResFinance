@@ -1,8 +1,11 @@
 import { expect, test } from "@playwright/test";
 
+import { approveWalletLogin, prepareWalletLogin } from "./wallet-login";
+
 test("shows the promotion gate and records a versioned risk profile", async ({
   page,
 }) => {
+  await prepareWalletLogin(page);
   let profileSaved = false;
   await page.route("**/api/v1/auth/refresh", async (route) => {
     await route.fulfill({
@@ -69,6 +72,7 @@ test("shows the promotion gate and records a versioned risk profile", async ({
   });
 
   await page.goto("/crypto");
+  await approveWalletLogin(page);
 
   await expect(
     page.getByRole("link", { name: "Crypto Intelligence", exact: true }),
@@ -114,6 +118,7 @@ test("shows the promotion gate and records a versioned risk profile", async ({
 test("renders promoted forecast overlays and reconciled allocations", async ({
   page,
 }) => {
+  await prepareWalletLogin(page);
   await page.route("**/api/v1/auth/refresh", async (route) => {
     await route.fulfill({
       status: 200,
@@ -228,6 +233,7 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
   });
 
   await page.goto("/crypto");
+  await approveWalletLogin(page);
 
   await expect(
     page.getByRole("img", {

@@ -6,6 +6,8 @@ import {
   type Route,
 } from "@playwright/test";
 
+import { approveWalletLogin, prepareWalletLogin } from "./wallet-login";
+
 const debtor = `0x${"b".repeat(40)}`;
 const creditor = `0x${"a".repeat(40)}`;
 const obligationId = "obl-dinner-sam";
@@ -13,6 +15,7 @@ const obligationId = "obl-dinner-sam";
 test("approves and settles an obligation partially and fully", async ({
   page,
 }) => {
+  await prepareWalletLogin(page, debtor);
   let projectionVersion = 1;
   let status = "pending";
   let settled = 0;
@@ -29,7 +32,8 @@ test("approves and settles an obligation partially and fully", async ({
       };
       if (
         message.source !== "resfinance-page" ||
-        message.type !== "SIGN_INTENT"
+        message.type !== "SIGN_INTENT" ||
+        message.intent?.action === "auth.login"
       )
         return;
       const intent = message.intent!;
@@ -136,10 +140,11 @@ test("approves and settles an obligation partially and fully", async ({
   );
 
   await page.goto("/groups");
+  await approveWalletLogin(page);
   const groupsTitle = page.locator("#groups-title");
   await expect(groupsTitle).toBeVisible();
   const heroDescription = page.locator(
-    ".groups-dashboard .dashboard-header > .lede",
+    ".groups-dashboard .dashboard-hero-copy > .lede",
   );
   await expect(heroDescription).toBeVisible();
   await expect(heroDescription).toHaveCSS("white-space", "normal");
@@ -383,6 +388,7 @@ test("explains what to do when the user has no groups", async ({ page }) => {
   );
 
   await page.goto("/groups");
+  await approveWalletLogin(page);
   await expect(
     page.getByText(/No groups yet\. Create one above/),
   ).toBeVisible();
@@ -393,11 +399,11 @@ test("shows validation and signing failures inside the affected form", async ({
   page,
 }) => {
   let commandRequests = 0;
+  await mockSession(page, creditor);
   await mockVault(page, {
     ok: false,
     error: "User rejected the request in ResWallet",
   });
-  await mockSession(page, creditor);
   await mockGroup(page, [
     { address: creditor, name: "Alex" },
     { address: debtor, name: "Sam" },
@@ -408,6 +414,7 @@ test("shows validation and signing failures inside the affected form", async ({
   });
 
   await page.goto("/groups");
+  await approveWalletLogin(page);
   const expenseForm = page.locator(".expense-form");
   await expect(
     expenseForm.getByRole("heading", { name: "Add an expense" }),
@@ -453,6 +460,7 @@ test("splits an expense equally between the selected members by default", async 
 }) => {
   const posted = await mockSplitGroup(page);
   await page.goto("/groups");
+  await approveWalletLogin(page);
   const expenseForm = page.locator(".expense-form");
   await expect(expenseForm.getByText("Paid by you (Alex).")).toBeVisible();
   await expect(expenseForm.getByLabel("Split equally")).toBeChecked();
@@ -523,6 +531,7 @@ test("lets the payer adjust an equal split into exact amounts", async ({
 }) => {
   const posted = await mockSplitGroup(page);
   await page.goto("/groups");
+  await approveWalletLogin(page);
   const expenseForm = page.locator(".expense-form");
   await expenseForm.getByLabel("Description").fill("Groceries");
   await expenseForm.getByLabel("Total amount").fill("90.00");
@@ -573,8 +582,8 @@ test("shows that it is waiting for ResWallet and then saving", async ({
     releaseSave = resolve;
   });
   let saveRequests = 0;
-  await mockVault(page, { ok: true, actorAddress: creditor, manual: true });
   await mockSession(page, creditor);
+  await mockVault(page, { ok: true, actorAddress: creditor, manual: true });
   await mockGroup(page, [
     { address: creditor, name: "Alex" },
     { address: debtor, name: "Sam" },
@@ -586,6 +595,7 @@ test("shows that it is waiting for ResWallet and then saving", async ({
   });
 
   await page.goto("/groups");
+  await approveWalletLogin(page);
   const expenseForm = page.locator(".expense-form");
   const submit = expenseForm.getByRole("button", {
     name: "Approve split in ResWallet",
@@ -702,6 +712,7 @@ test("lists expenses and obligations by name", async ({ page }) => {
   );
 
   await page.goto("/groups");
+  await approveWalletLogin(page);
   const obligationsTab = page.getByRole("tab", { name: /^Obligations/ });
   const expensesTab = page.getByRole("tab", { name: /^Expenses/ });
   await expect(obligationsTab).toHaveAttribute("aria-selected", "true");
@@ -851,6 +862,7 @@ test("pages long expense histories and keeps focus visible", async ({
   );
 
   await page.goto("/groups");
+  await approveWalletLogin(page);
   const expensesTab = page.getByRole("tab", { name: /^Expenses/ });
   await expect(expensesTab).toHaveAttribute("aria-selected", "true");
   const panel = page.locator(".expenses-panel");
@@ -955,8 +967,8 @@ function focusOutline(locator: Locator): Promise<string> {
 
 async function mockSplitGroup(page: Page): Promise<ExpenseRequest[]> {
   const posted: ExpenseRequest[] = [];
-  await mockVault(page, { ok: true, actorAddress: creditor });
   await mockSession(page, creditor);
+  await mockVault(page, { ok: true, actorAddress: creditor });
   await mockGroup(page, [
     { address: creditor, name: "Alex" },
     { address: debtor, name: "Sam" },
@@ -1039,18 +1051,7 @@ async function mockVault(page: Page, outcome: VaultOutcome) {
 }
 
 async function mockSession(page: Page, actorAddress: string) {
-  await page.route("**/api/v1/auth/refresh", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        access_token: "groups-e2e-token",
-        token_type: "Bearer",
-        expires_at: "2026-10-14T18:00:00Z",
-        actor_address: actorAddress,
-      }),
-    }),
-  );
+  await prepareWalletLogin(page, actorAddress);
   await page.route("**/api/v1/health", (route) =>
     route.fulfill({
       status: 200,
