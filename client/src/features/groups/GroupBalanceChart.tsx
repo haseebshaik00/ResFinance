@@ -56,34 +56,38 @@ export function GroupBalanceChart({
         </div>
         <div className="group-network-metrics" aria-label="Network summary">
           <article className="network-metric network-metric-groups">
-            <p>Group network</p>
-            <strong>
-              {groups.length} {pluralize(groups.length, "group")} ·{" "}
-              {overviewIsComplete ? totals.connectionCount : "…"}{" "}
-              {pluralize(totals.connectionCount, "connection")}
-            </strong>
-            <small>Active people across your shared groups</small>
-          </article>
-          <article className="network-metric network-metric-credits">
-            <p>Funded credits</p>
-            <strong>
-              {overviewIsComplete ? formatUsd(totals.creditMinorUnits) : "…"}
-            </strong>
-            <small>Internal credits funded across all groups</small>
+            <div className="network-metric-primary">
+              <p>Group network</p>
+              <strong>
+                {groups.length} {pluralize(groups.length, "group")} ·{" "}
+                {overviewIsComplete ? totals.connectionCount : "…"}{" "}
+                {pluralize(totals.connectionCount, "connection")}
+              </strong>
+              <small>Active people across your shared groups</small>
+            </div>
+            <div className="network-metric-support network-metric-credits">
+              <p>Funded credits</p>
+              <strong>
+                {overviewIsComplete ? formatUsd(totals.creditMinorUnits) : "…"}
+              </strong>
+              <small>Internal credits across your groups</small>
+            </div>
           </article>
           <article className="network-metric network-metric-owe">
-            <p>Effective payables</p>
-            <strong>
-              {overviewIsComplete ? formatUsd(totals.oweMinorUnits) : "…"}
-            </strong>
-            <small>Net amount due across your connections</small>
-          </article>
-          <article className="network-metric network-metric-owed">
-            <p>Effective receivables</p>
-            <strong>
-              {overviewIsComplete ? formatUsd(totals.owedMinorUnits) : "…"}
-            </strong>
-            <small>Net amount due back to you</small>
+            <div className="network-metric-primary">
+              <p>Effective payables</p>
+              <strong>
+                {overviewIsComplete ? formatUsd(totals.oweMinorUnits) : "…"}
+              </strong>
+              <small>Net amount due across your connections</small>
+            </div>
+            <div className="network-metric-support network-metric-owed">
+              <p>Effective receivables</p>
+              <strong>
+                {overviewIsComplete ? formatUsd(totals.owedMinorUnits) : "…"}
+              </strong>
+              <small>Net amount due back to you</small>
+            </div>
           </article>
         </div>
       </div>

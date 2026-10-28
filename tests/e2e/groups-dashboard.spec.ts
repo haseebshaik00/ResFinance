@@ -157,13 +157,14 @@ test("approves and settles an obligation partially and fully", async ({
   await expect(
     groupNetwork.getByRole("button", { name: "New Group" }),
   ).toBeVisible();
+  await expect(groupNetwork.locator(".network-metric")).toHaveCount(2);
   await expect(groupNetwork.getByText("1 group · 1 connection")).toBeVisible();
   await expect(
     groupNetwork.locator(".network-metric-credits strong"),
   ).toHaveText("$0.00");
-  await expect(groupNetwork.locator(".network-metric-owe strong")).toHaveText(
-    "$0.00",
-  );
+  await expect(
+    groupNetwork.locator(".network-metric-owe .network-metric-primary strong"),
+  ).toHaveText("$0.00");
   await expect(groupNetwork.locator(".network-metric-owed strong")).toHaveText(
     "$0.00",
   );
@@ -778,9 +779,9 @@ test("lists expenses and obligations by name", async ({ page }) => {
   await expect(balances.locator(".network-metric-credits strong")).toHaveText(
     "$5.00",
   );
-  await expect(balances.locator(".network-metric-owe strong")).toHaveText(
-    "$20.00",
-  );
+  await expect(
+    balances.locator(".network-metric-owe .network-metric-primary strong"),
+  ).toHaveText("$20.00");
   await expect(balances.locator(".network-metric-owed strong")).toHaveText(
     "$20.00",
   );

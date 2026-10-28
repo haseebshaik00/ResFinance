@@ -2886,7 +2886,7 @@ td.expense {
   position: relative;
   z-index: 6;
   display: grid;
-  grid-template-columns: minmax(18rem, 0.7fr) minmax(31rem, 1.6fr);
+  grid-template-columns: minmax(30rem, 1.5fr) minmax(21rem, 1fr);
   gap: clamp(1.25rem, 2.7vw, 3rem);
   align-items: stretch;
 }
@@ -2916,30 +2916,31 @@ td.expense {
 
 .group-network-metrics {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid var(--card-border);
-  border-radius: 1rem;
-  background: var(--card-background);
+  gap: 0.9rem;
 }
 
 .network-metric {
   display: grid;
-  min-height: 7.6rem;
-  align-content: start;
+  grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.65fr);
+  min-height: 8.35rem;
+  align-items: stretch;
+  border: 1px solid color-mix(in srgb, var(--warning) 58%, var(--card-border));
+  border-left: 4px solid var(--warning);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--warning) 9%, var(--card-background));
+}
+
+.network-metric-primary,
+.network-metric-support {
+  display: grid;
+  align-content: center;
   gap: 0.35rem;
-  padding: 1rem;
-  border-right: 1px solid var(--card-border);
-  border-bottom: 1px solid var(--card-border);
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--warning) 68%, transparent);
+  min-width: 0;
+  padding: 1.1rem 1.2rem;
 }
 
-.network-metric:nth-child(even) {
-  border-right: 0;
-}
-
-.network-metric:nth-child(n + 3) {
-  border-bottom: 0;
+.network-metric-support {
+  border-left: 1px solid color-mix(in srgb, var(--card-border) 86%, transparent);
 }
 
 .network-metric p,
@@ -2958,7 +2959,7 @@ td.expense {
 .network-metric strong {
   margin-top: 0.15rem;
   color: var(--page-text);
-  font-size: clamp(1.1rem, 1.45vw, 1.35rem);
+  font-size: clamp(1.2rem, 1.7vw, 1.75rem);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
@@ -2969,18 +2970,18 @@ td.expense {
   line-height: 1.35;
 }
 
-.network-metric-credits {
-  background: color-mix(in srgb, var(--warning) 11%, var(--card-background));
-}
-
 .network-metric-owe {
   background: color-mix(in srgb, var(--expense) 12%, var(--card-background));
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--expense) 74%, transparent);
+  border-color: color-mix(in srgb, var(--expense) 58%, var(--card-border));
+  border-left-color: var(--expense);
 }
 
-.network-metric-owed {
-  background: color-mix(in srgb, var(--income) 12%, var(--card-background));
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--income) 74%, transparent);
+.network-metric-credits strong {
+  color: color-mix(in srgb, var(--warning) 78%, var(--page-text));
+}
+
+.network-metric-owed strong {
+  color: color-mix(in srgb, var(--income) 82%, var(--page-text));
 }
 
 .network-counterparties {
@@ -2993,8 +2994,12 @@ td.expense {
 
 .group-network-action {
   display: flex;
-  justify-content: end;
   padding-top: 0.25rem;
+}
+
+.group-network-action .new-group-button {
+  width: 100%;
+  max-width: none;
 }
 
 .group-network .empty-state {
