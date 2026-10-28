@@ -2878,139 +2878,175 @@ td.expense {
 }
 
 .create-group-panel .section-heading,
-.group-activity .section-heading,
-.group-balance .section-heading {
+.group-activity .section-heading {
   margin-bottom: 0;
 }
 
-.group-balance {
+.group-network {
   position: relative;
   z-index: 6;
   display: grid;
-  gap: 1.15rem;
+  grid-template-columns: minmax(19rem, 0.95fr) minmax(25rem, 1.25fr);
+  gap: clamp(1.25rem, 2.7vw, 3rem);
+  align-items: stretch;
 }
 
-.group-balance .section-heading > div {
+.group-network-summary {
   display: grid;
-  gap: 0.45rem;
+  gap: 1rem;
+  align-content: start;
+  padding-right: clamp(1.25rem, 2.7vw, 3rem);
+  border-right: 1px solid
+    color-mix(in srgb, var(--card-border) 86%, transparent);
 }
 
-.group-balance .section-kicker {
+.group-network-heading {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.group-network-heading .section-kicker {
   margin: 0;
 }
 
-.group-balance .empty-state {
+.group-network-heading h2 {
   margin: 0;
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
 }
 
-.balance-columns {
+.group-network-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.25rem;
+  gap: 0.8rem;
 }
 
-.balance-column h3 {
-  display: flex;
-  gap: 0.45rem;
-  align-items: center;
-  margin: 0 0 0.45rem;
+.network-metric {
+  display: grid;
+  min-height: 8.8rem;
+  align-content: start;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid var(--card-border);
+  border-radius: 0.9rem;
+  background: var(--card-background);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--warning) 68%, transparent);
+}
+
+.network-metric p,
+.network-metric small {
+  margin: 0;
+}
+
+.network-metric p {
   color: var(--page-muted);
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: 0.73rem;
+  font-weight: 750;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.balance-column ul,
-.balance-more ul {
+.network-metric strong {
+  margin-top: 0.15rem;
+  color: var(--page-text);
+  font-size: clamp(1.1rem, 1.45vw, 1.35rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.network-metric small {
+  color: var(--page-muted);
+  font-size: 0.73rem;
+  line-height: 1.35;
+}
+
+.network-metric-credits {
+  background: color-mix(in srgb, var(--warning) 11%, var(--card-background));
+  border-color: color-mix(in srgb, var(--warning) 42%, var(--card-border));
+}
+
+.network-metric-owe {
+  background: color-mix(in srgb, var(--expense) 12%, var(--card-background));
+  border-color: color-mix(in srgb, var(--expense) 42%, var(--card-border));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--expense) 74%, transparent);
+}
+
+.network-metric-owed {
+  background: color-mix(in srgb, var(--income) 12%, var(--card-background));
+  border-color: color-mix(in srgb, var(--income) 42%, var(--card-border));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--income) 74%, transparent);
+}
+
+.network-counterparties {
   display: grid;
-  gap: 0.55rem;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.group-network .empty-state {
   margin: 0;
-  padding: 0;
-  list-style: none;
 }
 
-.balance-column li {
+.net-balance-list {
   display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr) auto;
-  gap: 0.55rem;
-  align-items: center;
-  min-height: 1.35rem;
-  font-size: 0.88rem;
+  gap: 0.8rem;
+  max-height: 22rem;
+  margin: 0;
+  padding: 0 0.35rem 0 0;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-color: color-mix(in srgb, var(--card-border) 85%, transparent)
+    transparent;
 }
 
-.balance-name {
+.net-balance-row {
+  display: grid;
+  grid-template-columns: minmax(6rem, 0.56fr) minmax(5rem, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  min-height: 2.1rem;
+}
+
+.net-balance-name {
   overflow: hidden;
-  font-weight: 650;
+  color: var(--page-text);
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.balance-track {
-  height: 0.4rem;
+.net-balance-track {
+  height: 0.55rem;
   overflow: hidden;
   border-radius: 999px;
   background: color-mix(in srgb, var(--page-muted) 18%, transparent);
 }
 
-.balance-fill {
+.net-balance-fill {
   display: block;
   height: 100%;
   border-radius: inherit;
+  transition: width 180ms ease;
 }
 
-.balance-fill.owed {
+.net-balance-row.owed .net-balance-fill {
   background: var(--income);
 }
 
-.balance-fill.owe {
+.net-balance-row.owe .net-balance-fill {
   background: var(--expense);
 }
 
-.balance-amount {
+.net-balance-amount {
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
+  font-weight: 800;
 }
 
-.balance-empty {
-  margin: 0;
-  color: var(--page-muted);
-  font-size: 0.84rem;
+.net-balance-row.owed .net-balance-amount {
+  color: var(--income);
 }
 
-.balance-column .share-overflow {
-  margin-top: 0.7rem;
-}
-
-.share-popover.balance-more {
-  left: 0;
-  min-width: 12rem;
-}
-
-.share-popover.balance-more li {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  width: auto;
-  height: auto;
-  padding: 0.35rem 0.55rem;
-  border: 0;
-  border-radius: 0.55rem;
-  font-size: 0.84rem;
-}
-
-.balance-swatch {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 999px;
-}
-
-.balance-swatch.owed {
-  background: var(--income);
-}
-
-.balance-swatch.owe {
-  background: var(--expense);
+.net-balance-row.owe .net-balance-amount {
+  color: var(--expense);
 }
 
 .group-form {
@@ -3944,6 +3980,18 @@ td.expense {
     grid-column: auto;
   }
 
+  .group-network {
+    grid-template-columns: 1fr;
+  }
+
+  .group-network-summary {
+    padding-right: 0;
+    padding-bottom: 1.25rem;
+    border-right: 0;
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--card-border) 86%, transparent);
+  }
+
   .finance-overview-row > .chart-panel,
   .finance-overview-row > .transactions-panel {
     height: auto;
@@ -4031,10 +4079,6 @@ td.expense {
 
   .group-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .balance-columns {
-    grid-template-columns: 1fr;
   }
 
   .group-summary-grid .metric-card {

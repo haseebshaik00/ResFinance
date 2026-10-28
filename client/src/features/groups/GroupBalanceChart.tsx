@@ -1,12 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
-
 import { formatUsd } from "../finance/money";
-import {
-  balanceColumns,
-  personalBalances,
-  topBalances,
-  type BalanceAmount,
-} from "./activity";
+import { groupNetworkTotals, personalBalances } from "./activity";
 import type { GroupOverview } from "./groupActions";
 import {
   memberDisplayName,
@@ -18,141 +11,122 @@ export function GroupBalanceChart({
   actorAddress,
   obligations,
   members,
+  groups,
+  overviews,
   loading,
 }: {
   actorAddress: string;
   obligations: GroupOverview["obligations"];
   members: readonly GroupMemberLike[];
+  groups: readonly { group_id: string }[];
+  overviews: readonly GroupOverview[];
   loading: boolean;
 }) {
-  const rows = personalBalances(obligations, actorAddress).map((row) => ({
-    name: memberDisplayName(members, row.address) ?? shortAddress(row.address),
-    oweMinorUnits: row.oweMinorUnits,
-    owedMinorUnits: row.owedMinorUnits,
-  }));
-  const columns = balanceColumns(rows);
+  const balances = personalBalances(obligations, actorAddress).map((row) => {
+    const youOwe = row.oweMinorUnits > 0;
+    return {
+      address: row.address,
+      name:
+        memberDisplayName(members, row.address) ?? shortAddress(row.address),
+      direction: youOwe ? "owe" : "owed",
+      minorUnits: youOwe ? row.oweMinorUnits : row.owedMinorUnits,
+    };
+  });
+  const totals = groupNetworkTotals(overviews, obligations, actorAddress);
+  const overviewIsComplete = overviews.length === groups.length;
+  const largestBalance = balances[0]?.minorUnits ?? 1;
 
   return (
     <section
-      className="panel group-balance"
+      className="panel group-network"
       aria-labelledby="group-balance-title"
+      aria-busy={loading && !overviewIsComplete}
     >
-      <div className="section-heading compact">
-        <div>
+      <div className="group-network-summary">
+        <div className="group-network-heading">
           <p className="section-kicker">Across every group</p>
-          <h2 id="group-balance-title">Outstanding balances</h2>
+          <h2 id="group-balance-title">Your group network</h2>
+        </div>
+        <div className="group-network-metrics" aria-label="Network summary">
+          <article className="network-metric network-metric-groups">
+            <p>Group network</p>
+            <strong>
+              {groups.length} {pluralize(groups.length, "group")} ·{" "}
+              {overviewIsComplete ? totals.connectionCount : "…"}{" "}
+              {pluralize(totals.connectionCount, "connection")}
+            </strong>
+            <small>Active people across your shared groups</small>
+          </article>
+          <article className="network-metric network-metric-credits">
+            <p>Funded credits</p>
+            <strong>
+              {overviewIsComplete ? formatUsd(totals.creditMinorUnits) : "…"}
+            </strong>
+            <small>Internal credits funded across all groups</small>
+          </article>
+          <article className="network-metric network-metric-owe">
+            <p>Effective payables</p>
+            <strong>
+              {overviewIsComplete ? formatUsd(totals.oweMinorUnits) : "…"}
+            </strong>
+            <small>Net amount due across your connections</small>
+          </article>
+          <article className="network-metric network-metric-owed">
+            <p>Effective receivables</p>
+            <strong>
+              {overviewIsComplete ? formatUsd(totals.owedMinorUnits) : "…"}
+            </strong>
+            <small>Net amount due back to you</small>
+          </article>
         </div>
       </div>
-      {rows.length === 0 ? (
-        loading ? (
-          <p className="empty-state">Loading balances…</p>
-        ) : (
-          <p className="empty-state">
-            No outstanding balances yet. They appear here after an obligation is
-            approved.
-          </p>
-        )
-      ) : (
-        <div className="balance-columns">
-          <BalanceColumn
-            title="You are owed"
-            tone="owed"
-            amounts={columns.owed}
-          />
-          <BalanceColumn title="You owe" tone="owe" amounts={columns.owe} />
+
+      <section
+        className="network-counterparties"
+        aria-labelledby="net-balances-title"
+      >
+        <div className="group-network-heading">
+          <p className="section-kicker">Individual people</p>
+          <h2 id="net-balances-title">Net balances</h2>
         </div>
-      )}
+        {!overviewIsComplete ? (
+          <p className="empty-state">Loading your net balances…</p>
+        ) : balances.length === 0 ? (
+          <p className="empty-state">
+            No outstanding balances yet. Approved obligations appear here.
+          </p>
+        ) : (
+          <ul className="net-balance-list">
+            {balances.map((balance) => (
+              <li
+                key={balance.address}
+                className={`net-balance-row ${balance.direction}`}
+                aria-label={`${balance.name}: you ${
+                  balance.direction === "owe" ? "owe" : "are owed"
+                } ${formatUsd(balance.minorUnits)}`}
+              >
+                <span className="net-balance-name">{balance.name}</span>
+                <span className="net-balance-track" aria-hidden="true">
+                  <span
+                    className="net-balance-fill"
+                    style={{
+                      width: `${(balance.minorUnits / largestBalance) * 100}%`,
+                    }}
+                  />
+                </span>
+                <span className="net-balance-amount">
+                  {balance.direction === "owe" ? "-" : "+"}
+                  {formatUsd(balance.minorUnits)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </section>
   );
 }
 
-function BalanceColumn({
-  title,
-  tone,
-  amounts,
-}: {
-  title: string;
-  tone: "owed" | "owe";
-  amounts: readonly BalanceAmount[];
-}) {
-  const { visible, hidden } = topBalances(amounts);
-  const largest = visible[0]?.minorUnits ?? 1;
-  const [open, setOpen] = useState(false);
-  const overflowRef = useRef<HTMLDivElement>(null);
-  const popoverId = useId();
-
-  useEffect(() => {
-    if (!open) return;
-    function closeOnOutsidePointer(event: PointerEvent) {
-      if (!overflowRef.current?.contains(event.target as Node)) setOpen(false);
-    }
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("pointerdown", closeOnOutsidePointer);
-    document.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.removeEventListener("pointerdown", closeOnOutsidePointer);
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [open]);
-
-  return (
-    <section className="balance-column" aria-label={title}>
-      <h3>
-        <span className={`balance-swatch ${tone}`} />
-        {title}
-      </h3>
-      {visible.length === 0 ? (
-        <p className="balance-empty">Nothing here.</p>
-      ) : (
-        <ul>
-          {visible.map((row) => (
-            <li key={row.name}>
-              <span className="balance-name">{row.name}</span>
-              <span className="balance-track" aria-hidden="true">
-                <span
-                  className={`balance-fill ${tone}`}
-                  style={{ width: `${(row.minorUnits / largest) * 100}%` }}
-                />
-              </span>
-              <span className="balance-amount">
-                {formatUsd(row.minorUnits)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {hidden.length > 0 && (
-        <div className="share-overflow" ref={overflowRef}>
-          <button
-            type="button"
-            className="share-more"
-            aria-expanded={open}
-            aria-controls={popoverId}
-            onClick={() => setOpen((current) => !current)}
-          >
-            {hidden.length} more
-          </button>
-          {open && (
-            <div
-              id={popoverId}
-              className="share-popover balance-more"
-              role="dialog"
-              aria-label={`More people you ${tone === "owed" ? "are owed" : "owe"}`}
-            >
-              <ul>
-                {hidden.map((row) => (
-                  <li key={row.name}>
-                    <span>{row.name}</span>
-                    <span>{formatUsd(row.minorUnits)}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-    </section>
-  );
+function pluralize(value: number, noun: string): string {
+  return `${noun}${value === 1 ? "" : "s"}`;
 }

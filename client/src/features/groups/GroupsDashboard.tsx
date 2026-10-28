@@ -95,6 +95,10 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
           members={dashboard.overviews.flatMap(
             (query) => query.data?.members ?? [],
           )}
+          groups={groups}
+          overviews={dashboard.overviews.flatMap((query) =>
+            query.data === undefined ? [] : [query.data],
+          )}
           loading={dashboard.overviews.some((query) => query.isLoading)}
         />
       )}
@@ -231,9 +235,7 @@ function WalletChip({ address }: { address: string }) {
         <path d="M20 7V6a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h15v8a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V7" />
         <path d="M16 14h.01" />
       </svg>
-      <span className="wallet-chip-label">
-        Wallet {shortAddress(address)}
-      </span>
+      <span className="wallet-chip-label">Wallet {shortAddress(address)}</span>
       <span className="wallet-chip-tooltip" role="tooltip">
         <code>{address}</code>
         <span className="wallet-chip-hint">{statusLabel}</span>

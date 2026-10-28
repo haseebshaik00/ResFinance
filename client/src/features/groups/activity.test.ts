@@ -4,6 +4,7 @@ import {
   filterExpenses,
   filterObligations,
   balanceColumns,
+  groupNetworkTotals,
   groupTotals,
   needsAction,
   personalBalances,
@@ -104,6 +105,42 @@ describe("group activity", () => {
       { address: priya, oweMinorUnits: 2000, owedMinorUnits: 0 },
       { address: sam, oweMinorUnits: 0, owedMinorUnits: 1000 },
     ]);
+  });
+
+  it("summarizes unique connections, funded credits, and effective balances", () => {
+    const combined = [
+      ...obligations,
+      obligation("other-group-you-owe-sam", you, sam, "open", 500),
+    ];
+    expect(
+      groupNetworkTotals(
+        [
+          {
+            credit_balances: { [you]: { minor_units: 1250 } },
+            members: [
+              { actor_address: you, active: true },
+              { actor_address: sam, active: true },
+            ],
+          },
+          {
+            credit_balances: { [you.toUpperCase()]: { minor_units: 750 } },
+            members: [
+              { actor_address: you, active: true },
+              { actor_address: sam, active: true },
+              { actor_address: priya, active: true },
+              { actor_address: "0xremoved", active: false },
+            ],
+          },
+        ],
+        combined,
+        you,
+      ),
+    ).toEqual({
+      connectionCount: 2,
+      creditMinorUnits: 2000,
+      oweMinorUnits: 2000,
+      owedMinorUnits: 1000,
+    });
   });
 
   it("ranks each direction and keeps the largest four on the card", () => {

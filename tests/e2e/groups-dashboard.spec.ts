@@ -149,6 +149,35 @@ test("approves and settles an obligation partially and fully", async ({
   await expect(heroDescription).toBeVisible();
   await expect(heroDescription).toHaveCSS("white-space", "normal");
 
+  const groupNetwork = page.locator(".group-network");
+  await expect(groupNetwork).toBeVisible();
+  await expect(
+    groupNetwork.getByRole("heading", { name: "Your group network" }),
+  ).toBeVisible();
+  await expect(groupNetwork.getByText("1 group · 1 connection")).toBeVisible();
+  await expect(
+    groupNetwork.locator(".network-metric-credits strong"),
+  ).toHaveText("$0.00");
+  await expect(groupNetwork.locator(".network-metric-owe strong")).toHaveText(
+    "$0.00",
+  );
+  await expect(groupNetwork.locator(".network-metric-owed strong")).toHaveText(
+    "$0.00",
+  );
+  await expect(groupNetwork.locator(".net-balance-row")).toHaveCount(0);
+  await expect(
+    groupNetwork.getByText(
+      "No outstanding balances yet. Approved obligations appear here.",
+    ),
+  ).toBeVisible();
+  await expect(groupNetwork.getByText("You owe", { exact: true })).toHaveCount(
+    0,
+  );
+  await page.screenshot({
+    path: "test-results/groups-network-overview.png",
+    fullPage: false,
+  });
+
   const standardViewport = page.viewportSize()!;
   await page.setViewportSize({ width: 2366, height: 900 });
   await expect(heroDescription).toHaveCSS("white-space", "nowrap");
@@ -290,6 +319,16 @@ test("approves and settles an obligation partially and fully", async ({
   );
 
   await expect(summaryValue(page, "You owe")).toHaveText("$60.00");
+  const netBalance = groupNetwork.locator(".net-balance-row.owe");
+  await expect(netBalance).toHaveText("Alex-$60.00");
+  await expect(netBalance.locator(".net-balance-amount")).toHaveCSS(
+    "color",
+    "rgb(255, 140, 160)",
+  );
+  await page.screenshot({
+    path: "test-results/groups-network-effective-balance.png",
+    fullPage: false,
+  });
   await page.getByLabel("Credit amount (USD units)").fill("60.00");
   await page
     .getByRole("button", { name: "Approve funding in ResWallet" })
@@ -723,17 +762,26 @@ test("lists expenses and obligations by name", async ({ page }) => {
   );
   await expect(summaryValue(page, "You owe")).toHaveText("$20.00");
   await expect(summaryValue(page, "You are owed")).toHaveText("$20.00");
-  const balances = page.locator(".group-balance");
+  const balances = page.locator(".group-network");
   await expect(
-    balances.getByRole("heading", { name: "Outstanding balances" }),
+    balances.getByRole("heading", { name: "Net balances" }),
   ).toBeVisible();
-  await expect(
-    balances.getByRole("region", { name: "You are owed" }),
-  ).toContainText("Priya");
-  await expect(balances.getByRole("region", { name: "You owe" })).toContainText(
-    "Sam",
+  await expect(balances.locator(".net-balance-row.owed")).toHaveText(
+    "Priya+$20.00",
   );
-  await page.locator(".group-balance").screenshot({
+  await expect(balances.locator(".net-balance-row.owe")).toHaveText(
+    "Sam-$20.00",
+  );
+  await expect(balances.locator(".network-metric-credits strong")).toHaveText(
+    "$5.00",
+  );
+  await expect(balances.locator(".network-metric-owe strong")).toHaveText(
+    "$20.00",
+  );
+  await expect(balances.locator(".network-metric-owed strong")).toHaveText(
+    "$20.00",
+  );
+  await balances.screenshot({
     path: "test-results/groups-balance.png",
   });
   await expensesTab.click();

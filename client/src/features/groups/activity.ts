@@ -82,6 +82,21 @@ export interface PersonBalance {
   owedMinorUnits: number;
 }
 
+export interface GroupNetworkLike {
+  credit_balances: Record<string, { minor_units: number }>;
+  members: readonly {
+    actor_address: string;
+    active: boolean;
+  }[];
+}
+
+export interface GroupNetworkTotals {
+  connectionCount: number;
+  creditMinorUnits: number;
+  oweMinorUnits: number;
+  owedMinorUnits: number;
+}
+
 export function personBalances(
   obligations: readonly ObligationLike[],
   actorAddress: string,
@@ -122,6 +137,47 @@ export function personalBalances(
     })
     .filter((row) => row.oweMinorUnits > 0 || row.owedMinorUnits > 0)
     .sort(byLargestBalance);
+}
+
+/**
+ * Summary values for the signed-in person's network across every group.
+ * Balances are first netted by person, so the directional totals are the
+ * effective amount owed or receivable rather than gross obligations.
+ */
+export function groupNetworkTotals(
+  groups: readonly GroupNetworkLike[],
+  obligations: readonly ObligationLike[],
+  actorAddress: string,
+): GroupNetworkTotals {
+  const actor = actorAddress.toLowerCase();
+  const connections = new Set<string>();
+  let creditMinorUnits = 0;
+
+  for (const group of groups) {
+    const actorCredits = Object.entries(group.credit_balances).find(
+      ([address]) => address.toLowerCase() === actor,
+    )?.[1];
+    creditMinorUnits += actorCredits?.minor_units ?? 0;
+
+    for (const member of group.members) {
+      if (member.active && member.actor_address.toLowerCase() !== actor)
+        connections.add(member.actor_address.toLowerCase());
+    }
+  }
+
+  return personalBalances(obligations, actorAddress).reduce<GroupNetworkTotals>(
+    (totals, row) => ({
+      ...totals,
+      oweMinorUnits: totals.oweMinorUnits + row.oweMinorUnits,
+      owedMinorUnits: totals.owedMinorUnits + row.owedMinorUnits,
+    }),
+    {
+      connectionCount: connections.size,
+      creditMinorUnits,
+      oweMinorUnits: 0,
+      owedMinorUnits: 0,
+    },
+  );
 }
 
 function byLargestBalance(left: PersonBalance, right: PersonBalance): number {

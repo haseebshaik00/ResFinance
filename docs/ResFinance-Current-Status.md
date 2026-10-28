@@ -130,6 +130,11 @@ Evidence:
   Personal Finance, and added an accessible in-app guide covering group setup,
   splits, signed approvals, internal-credit settlement, receipts, and the
   non-monetary settlement boundary.
+- Redesigned the cross-group balance space as a two-column network overview:
+  group and connection counts, funded internal credits, and effective net
+  payables/receivables sit beside one signed, color-coded list of every
+  counterparty. This presentation does not alter obligation or settlement
+  state.
 
 Evidence:
 [`milestones/milestone4-bill-split-contractual-settlement.md`](milestones/milestone4-bill-split-contractual-settlement.md).
