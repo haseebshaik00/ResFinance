@@ -52,7 +52,7 @@ export function GroupBalanceChart({
       <div className="group-network-summary">
         <div className="group-network-heading">
           <p className="section-kicker">Across every group</p>
-          <h2 id="group-balance-title">Your group network</h2>
+          <h2 id="group-balance-title">Your Groups Network!</h2>
         </div>
         <div className="group-network-metrics" aria-label="Network summary">
           <article className="network-metric network-metric-groups">
@@ -98,7 +98,7 @@ export function GroupBalanceChart({
       >
         <div className="group-network-heading">
           <p className="section-kicker">Individual people</p>
-          <h2 id="net-balances-title">Net balances</h2>
+          <h2 id="net-balances-title">Net Balances</h2>
         </div>
         {!overviewIsComplete ? (
           <p className="empty-state">Loading your net balances…</p>

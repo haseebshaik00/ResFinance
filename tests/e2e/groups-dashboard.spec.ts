@@ -152,7 +152,7 @@ test("approves and settles an obligation partially and fully", async ({
   const groupNetwork = page.locator(".group-network");
   await expect(groupNetwork).toBeVisible();
   await expect(
-    groupNetwork.getByRole("heading", { name: "Your group network" }),
+    groupNetwork.getByRole("heading", { name: "Your Groups Network!" }),
   ).toBeVisible();
   await expect(
     groupNetwork.getByRole("button", { name: "New Group" }),
@@ -768,7 +768,7 @@ test("lists expenses and obligations by name", async ({ page }) => {
   await expect(summaryValue(page, "You are owed")).toHaveText("$20.00");
   const balances = page.locator(".group-network");
   await expect(
-    balances.getByRole("heading", { name: "Net balances" }),
+    balances.getByRole("heading", { name: "Net Balances" }),
   ).toBeVisible();
   await expect(balances.locator(".net-balance-row.owed")).toHaveText(
     "Priya+$20.00",

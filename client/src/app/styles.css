@@ -2737,24 +2737,38 @@ td.expense {
   transform: translateY(0);
 }
 
-/* Group switcher: one scrollable row so many groups never wrap the page. */
+/* Active group on the left, scrollable group chips on the right. */
 .group-bar {
   display: flex;
-  gap: 0.75rem;
-  align-items: center;
+  gap: 1rem 1.5rem;
+  align-items: end;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.group-bar .group-heading {
+  flex: 1 1 18rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.group-bar .group-heading > div {
   min-width: 0;
 }
 
 .group-switcher {
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  justify-content: flex-end;
   gap: 0.6rem;
+  max-width: min(100%, 36rem);
   min-width: 0;
   padding: 0.25rem 0.15rem 0.45rem;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
   scrollbar-width: thin;
+  margin-left: auto;
 }
 
 .group-chip {
@@ -4021,6 +4035,16 @@ td.expense {
   .group-bar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .group-bar .group-heading {
+    flex-basis: auto;
+  }
+
+  .group-switcher {
+    max-width: none;
+    justify-content: start;
+    margin-left: 0;
   }
 
   .inline-actions,

@@ -106,27 +106,38 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
         />
       )}
 
-      {hasGroups && (
+      {(hasGroups || dashboard.overview.data !== undefined) && (
         <div className="group-bar">
-          <nav className="group-switcher" aria-label="Your groups">
-            {groups.map((group) => (
-              <button
-                key={group.group_id}
-                type="button"
-                className="group-chip"
-                aria-current={
-                  group.group_id === selectedGroupId ? "true" : undefined
-                }
-                onClick={() => setSelectedGroupId(group.group_id)}
-              >
-                <strong>{group.name}</strong>
-                <span>
-                  {group.member_count} members · {group.open_obligation_count}{" "}
-                  open
-                </span>
-              </button>
-            ))}
-          </nav>
+          {dashboard.overview.data !== undefined && (
+            <div className="dashboard-section-heading group-heading">
+              <div>
+                <p className="section-kicker">Active group</p>
+                <h2 id="group-name">{dashboard.overview.data.name}</h2>
+                <p>{dashboard.overview.data.credit_disclaimer}</p>
+              </div>
+            </div>
+          )}
+          {hasGroups && (
+            <nav className="group-switcher" aria-label="Your groups">
+              {groups.map((group) => (
+                <button
+                  key={group.group_id}
+                  type="button"
+                  className="group-chip"
+                  aria-current={
+                    group.group_id === selectedGroupId ? "true" : undefined
+                  }
+                  onClick={() => setSelectedGroupId(group.group_id)}
+                >
+                  <strong>{group.name}</strong>
+                  <span>
+                    {group.member_count} members ·{" "}
+                    {group.open_obligation_count} open
+                  </span>
+                </button>
+              ))}
+            </nav>
+          )}
         </div>
       )}
 
@@ -327,14 +338,6 @@ function GroupWorkspace({
   const totals = groupTotals(group.obligations, actorAddress);
   return (
     <section className="group-workspace" aria-labelledby="group-name">
-      <div className="dashboard-section-heading group-heading">
-        <div>
-          <p className="section-kicker">Active group</p>
-          <h2 id="group-name">{group.name}</h2>
-          <p>{group.credit_disclaimer}</p>
-        </div>
-      </div>
-
       <section
         className="summary-grid group-summary-grid"
         aria-label="Group summary"
@@ -375,7 +378,7 @@ function GroupWorkspace({
         onToggle={(event) => setUpdateOpen(event.currentTarget.open)}
       >
         <summary>
-          <span>Update the group</span>
+          <span>Update the Group - Add Member, Expense & Fund Credits</span>
           <small>
             Every change is approved in ResWallet and confirmed by ResContract.
           </small>
@@ -483,7 +486,7 @@ function AddMemberPanel({
   const action = useGroupAction();
   return (
     <section className="entry-form-card member-form">
-      <h3>Add member</h3>
+      <h3>Add Member</h3>
       <form
         className="group-form"
         onSubmit={(event) => {
@@ -526,7 +529,7 @@ function AddMemberPanel({
           className="primary-button form-action"
           disabled={isGroupWritePending(dashboard) || action.busy}
         >
-          Add member
+          Add Member
         </button>
         <ActionFeedback action={action} />
       </form>
@@ -547,7 +550,7 @@ function FundCreditsPanel({
   const action = useGroupAction();
   return (
     <section className="entry-form-card credits-form">
-      <h3>Fund internal credits</h3>
+      <h3>Fund Internal Credits</h3>
       <form
         className="group-form"
         onSubmit={(event) => {
@@ -637,7 +640,7 @@ function CreateExpensePanel({
     shortAddress(actorAddress);
   return (
     <section className="entry-form-card expense-form">
-      <h3>Add an expense</h3>
+      <h3>Add an Expense</h3>
       <form
         className="group-form expense-fields"
         onSubmit={(event) => {
