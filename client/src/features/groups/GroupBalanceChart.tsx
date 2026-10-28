@@ -54,21 +54,6 @@ export function GroupBalanceChart({
           <p className="section-kicker">Across every group</p>
           <h2 id="group-balance-title">Your group network</h2>
         </div>
-        <button
-          type="button"
-          className="new-group-button"
-          aria-expanded={creating}
-          aria-controls={createPanelId}
-          onClick={onCreateToggle}
-        >
-          {creating ? (
-            <X aria-hidden="true" className="new-group-button-icon" />
-          ) : (
-            <Plus aria-hidden="true" className="new-group-button-icon" />
-          )}
-          <strong>{creating ? "Close" : "New Group"}</strong>
-          <span>{creating ? "Hide form" : "Start a split"}</span>
-        </button>
         <div className="group-network-metrics" aria-label="Network summary">
           <article className="network-metric network-metric-groups">
             <p>Group network</p>
@@ -144,6 +129,23 @@ export function GroupBalanceChart({
             ))}
           </ul>
         )}
+        <div className="group-network-action">
+          <button
+            type="button"
+            className="new-group-button"
+            aria-expanded={creating}
+            aria-controls={createPanelId}
+            onClick={onCreateToggle}
+          >
+            {creating ? (
+              <X aria-hidden="true" className="new-group-button-icon" />
+            ) : (
+              <Plus aria-hidden="true" className="new-group-button-icon" />
+            )}
+            <strong>{creating ? "Close" : "New Group"}</strong>
+            <span>{creating ? "Hide form" : "Start a split"}</span>
+          </button>
+        </div>
       </section>
     </section>
   );

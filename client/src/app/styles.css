@@ -2886,7 +2886,7 @@ td.expense {
   position: relative;
   z-index: 6;
   display: grid;
-  grid-template-columns: minmax(19rem, 0.95fr) minmax(25rem, 1.25fr);
+  grid-template-columns: minmax(18rem, 0.7fr) minmax(31rem, 1.6fr);
   gap: clamp(1.25rem, 2.7vw, 3rem);
   align-items: stretch;
 }
@@ -2898,10 +2898,6 @@ td.expense {
   padding-right: clamp(1.25rem, 2.7vw, 3rem);
   border-right: 1px solid
     color-mix(in srgb, var(--card-border) 86%, transparent);
-}
-
-.group-network-summary > .new-group-button {
-  justify-self: start;
 }
 
 .group-network-heading {
@@ -2921,19 +2917,29 @@ td.expense {
 .group-network-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  background: var(--card-background);
 }
 
 .network-metric {
   display: grid;
-  min-height: 8.8rem;
+  min-height: 7.6rem;
   align-content: start;
   gap: 0.35rem;
   padding: 1rem;
-  border: 1px solid var(--card-border);
-  border-radius: 0.9rem;
-  background: var(--card-background);
+  border-right: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
   box-shadow: inset 3px 0 0 color-mix(in srgb, var(--warning) 68%, transparent);
+}
+
+.network-metric:nth-child(even) {
+  border-right: 0;
+}
+
+.network-metric:nth-child(n + 3) {
+  border-bottom: 0;
 }
 
 .network-metric p,
@@ -2965,25 +2971,30 @@ td.expense {
 
 .network-metric-credits {
   background: color-mix(in srgb, var(--warning) 11%, var(--card-background));
-  border-color: color-mix(in srgb, var(--warning) 42%, var(--card-border));
 }
 
 .network-metric-owe {
   background: color-mix(in srgb, var(--expense) 12%, var(--card-background));
-  border-color: color-mix(in srgb, var(--expense) 42%, var(--card-border));
   box-shadow: inset 3px 0 0 color-mix(in srgb, var(--expense) 74%, transparent);
 }
 
 .network-metric-owed {
   background: color-mix(in srgb, var(--income) 12%, var(--card-background));
-  border-color: color-mix(in srgb, var(--income) 42%, var(--card-border));
   box-shadow: inset 3px 0 0 color-mix(in srgb, var(--income) 74%, transparent);
 }
 
 .network-counterparties {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 1rem;
+  min-height: 19.5rem;
   min-width: 0;
+}
+
+.group-network-action {
+  display: flex;
+  justify-content: end;
+  padding-top: 0.25rem;
 }
 
 .group-network .empty-state {
