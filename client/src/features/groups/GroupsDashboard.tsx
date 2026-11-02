@@ -65,8 +65,8 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
           </div>
           <h1 id="groups-title">Shared expenses, signed by all!</h1>
           <p className="lede">
-            Split expenses, track balances, and settle securely via ResContract, with every transaction verified and recorded for
-            transparency.
+            Split expenses, track balances, and settle securely via ResContract,
+            with every transaction verified and recorded for transparency.
           </p>
         </div>
         <WalletChip address={actorAddress} />
@@ -130,8 +130,8 @@ export function GroupsDashboard({ accessToken, actorAddress }: Props) {
                 >
                   <strong>{group.name}</strong>
                   <span>
-                    {group.member_count} members ·{" "}
-                    {group.open_obligation_count} open
+                    {group.member_count} members · {group.open_obligation_count}{" "}
+                    open
                   </span>
                 </button>
               ))}
