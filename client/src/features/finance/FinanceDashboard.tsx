@@ -381,82 +381,84 @@ function PlanningPanel({
           <h2 id="planning-title">Budgets &amp; Commitments</h2>
         </div>
       </div>
-      <div className="planning-scroll">
-        <section className="planning-section" aria-labelledby="budget-title">
-          <h3 id="budget-title">Budgets</h3>
-          {statuses.length === 0 ? (
-            <EmptyState text="No budgets for this month yet." />
-          ) : (
-            <ul
-              ref={budgetListRef}
-              className="budget-list"
-              data-animated={budgetsAnimated ? "true" : "false"}
-            >
-              {statuses.map((budget, index) => (
-                <li
-                  key={budget.budget_id}
-                  data-status={budget.status}
-                  data-bar-color={
-                    (["red", "yellow", "teal"] as const)[index % 3]
-                  }
-                  style={
-                    {
-                      "--budget-fill-delay": `${index * 90}ms`,
-                    } as CSSProperties
-                  }
-                >
-                  <div className="budget-row">
-                    <strong>{budget.category_name}</strong>
-                    <div className="budget-actions">
-                      <span>
-                        {formatUsd(budget.spent.minor_units)} /{" "}
-                        {formatUsd(budget.limit.minor_units)}
-                      </span>
-                      <RecordActionButton
-                        accessibleLabel={`Remove budget ${budget.category_name}`}
-                        onAction={() =>
-                          onAction({
-                            kind: "deactivate-budget",
-                            recordId: budget.budget_id,
-                            label: budget.category_name,
-                          })
-                        }
-                      />
+      <AlwaysVisibleScroll>
+        <div className="planning-scroll">
+          <section className="planning-section" aria-labelledby="budget-title">
+            <h3 id="budget-title">Budgets</h3>
+            {statuses.length === 0 ? (
+              <EmptyState text="No budgets for this month yet." />
+            ) : (
+              <ul
+                ref={budgetListRef}
+                className="budget-list"
+                data-animated={budgetsAnimated ? "true" : "false"}
+              >
+                {statuses.map((budget, index) => (
+                  <li
+                    key={budget.budget_id}
+                    data-status={budget.status}
+                    data-bar-color={
+                      (["red", "yellow", "teal"] as const)[index % 3]
+                    }
+                    style={
+                      {
+                        "--budget-fill-delay": `${index * 90}ms`,
+                      } as CSSProperties
+                    }
+                  >
+                    <div className="budget-row">
+                      <strong>{budget.category_name}</strong>
+                      <div className="budget-actions">
+                        <span>
+                          {formatUsd(budget.spent.minor_units)} /{" "}
+                          {formatUsd(budget.limit.minor_units)}
+                        </span>
+                        <RecordActionButton
+                          accessibleLabel={`Remove budget ${budget.category_name}`}
+                          onAction={() =>
+                            onAction({
+                              kind: "deactivate-budget",
+                              recordId: budget.budget_id,
+                              label: budget.category_name,
+                            })
+                          }
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <progress
-                    max={10_000}
-                    value={Math.min(budget.utilization_basis_points, 10_000)}
-                    aria-label={`${budget.category_name} budget utilization`}
-                  />
-                  <small>
-                    {budget.status === "over_budget"
-                      ? "Over budget"
-                      : budget.status === "near_limit"
-                        ? "Near the limit"
-                        : `${formatUsd(budget.remaining.minor_units)} remaining`}
-                  </small>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        <section
-          className="planning-section"
-          aria-labelledby="commitments-title"
-        >
-          <h3 id="commitments-title">Commitments</h3>
-          {recurring.length === 0 && openObligations.length === 0 ? (
-            <EmptyState text="No recurring entries or group obligations yet." />
-          ) : (
-            <CommitmentList
-              recurring={recurring}
-              obligations={openObligations}
-              onAction={onAction}
-            />
-          )}
-        </section>
-      </div>
+                    <progress
+                      max={10_000}
+                      value={Math.min(budget.utilization_basis_points, 10_000)}
+                      aria-label={`${budget.category_name} budget utilization`}
+                    />
+                    <small>
+                      {budget.status === "over_budget"
+                        ? "Over budget"
+                        : budget.status === "near_limit"
+                          ? "Near the limit"
+                          : `${formatUsd(budget.remaining.minor_units)} remaining`}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <section
+            className="planning-section"
+            aria-labelledby="commitments-title"
+          >
+            <h3 id="commitments-title">Commitments</h3>
+            {recurring.length === 0 && openObligations.length === 0 ? (
+              <EmptyState text="No recurring entries or group obligations yet." />
+            ) : (
+              <CommitmentList
+                recurring={recurring}
+                obligations={openObligations}
+                onAction={onAction}
+              />
+            )}
+          </section>
+        </div>
+      </AlwaysVisibleScroll>
     </section>
   );
 }

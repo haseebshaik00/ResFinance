@@ -1066,6 +1066,11 @@ code {
   min-height: 0;
 }
 
+.planning-panel > .always-visible-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .transactions-panel .table-scroll {
   min-height: 0;
   overflow: visible;
@@ -1073,14 +1078,8 @@ code {
 
 .planning-scroll {
   display: grid;
-  flex: 1 1 auto;
   gap: 1.1rem;
-  min-height: 0;
   padding-right: 0.35rem;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
 }
 
 .planning-section + .planning-section {

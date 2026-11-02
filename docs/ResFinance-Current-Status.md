@@ -111,6 +111,8 @@ Evidence:
 - Aligned Cash flow, Recent Transactions, and Budgets & Commitments to the
   compact Cash flow panel height. The transaction ledger and planning content
   now scroll independently when they exceed their panels.
+- Applied the same persistent amber scroll track and thumb to both the
+  transaction ledger and the Budgets & Commitments panel.
 - Project-owner acceptance on 2026-10-24 closed the remaining Personal Finance
   functionality and presentation tasks for the local-development scope.
 

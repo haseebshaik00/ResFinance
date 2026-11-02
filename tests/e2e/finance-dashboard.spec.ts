@@ -668,10 +668,12 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   await expect(
     page.locator(".transactions-panel .always-visible-scroll-body"),
   ).toHaveCSS("overflow-y", "auto");
-  await expect(page.locator(".planning-panel .planning-scroll")).toHaveCSS(
-    "overflow-y",
-    "auto",
-  );
+  await expect(
+    page.locator(".planning-panel .always-visible-scroll-body"),
+  ).toHaveCSS("overflow-y", "auto");
+  await expect(
+    page.locator(".planning-panel .always-visible-scroll-track"),
+  ).toHaveCount(1);
   await expect(
     page.getByRole("heading", { name: "Budgets & Commitments" }),
   ).toBeVisible();
