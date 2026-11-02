@@ -809,6 +809,115 @@ code {
   color-scheme: light;
 }
 
+.reporting-month-picker {
+  position: relative;
+}
+
+.reporting-month-trigger {
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--control-border);
+  border-radius: 0.72rem;
+  background: var(--control-background);
+  color: var(--page-text);
+  font: inherit;
+  letter-spacing: normal;
+  text-align: left;
+  cursor: pointer;
+}
+
+.reporting-month-trigger:hover,
+.reporting-month-trigger[aria-expanded="true"] {
+  background: var(--control-background-hover);
+}
+
+.reporting-month-trigger-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: 0 0 auto;
+}
+
+.reporting-month-menu {
+  position: absolute;
+  z-index: 15;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: min(20rem, calc(100vw - 2rem));
+  padding: 0.7rem;
+  border: 1px solid var(--control-border);
+  border-radius: 0.85rem;
+  background: var(--popover-background);
+  box-shadow: var(--card-shadow);
+  color: var(--page-text);
+  letter-spacing: normal;
+}
+
+.reporting-month-menu-header,
+.reporting-month-menu-footer {
+  display: flex;
+  align-items: center;
+}
+
+.reporting-month-menu-header {
+  justify-content: space-between;
+  padding: 0 0.15rem 0.6rem;
+}
+
+.reporting-month-menu-header strong {
+  font-size: 0.95rem;
+}
+
+.reporting-month-menu button {
+  min-height: 2.25rem;
+  border: 1px solid transparent;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reporting-month-menu button:hover,
+.reporting-month-menu button:focus-visible {
+  background: var(--control-background-hover);
+}
+
+.reporting-month-menu-header button {
+  width: 2.25rem;
+  padding: 0;
+  font-size: 1.1rem;
+}
+
+.reporting-month-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+}
+
+.reporting-month-grid button.is-selected {
+  border-color: var(--page-accent);
+  background: var(--page-accent);
+  color: #fff;
+}
+
+.reporting-month-menu-footer {
+  justify-content: flex-end;
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--control-border);
+}
+
+.reporting-month-menu-footer button {
+  padding: 0.35rem 0.55rem;
+  color: var(--page-accent);
+}
+
 .form-field select {
   -webkit-appearance: none;
   appearance: none;
@@ -3926,6 +4035,30 @@ td.expense {
   border-color: #32636a;
   background: #182b34;
   color: #bde7e4;
+}
+
+:root[data-theme="dark"] .reporting-month-trigger,
+:root[data-theme="dark"] .reporting-month-menu {
+  border-color: #32636a;
+  background: #182b34;
+  color: #bde7e4;
+}
+
+:root[data-theme="dark"] .reporting-month-trigger:hover,
+:root[data-theme="dark"] .reporting-month-trigger[aria-expanded="true"],
+:root[data-theme="dark"] .reporting-month-menu button:hover,
+:root[data-theme="dark"] .reporting-month-menu button:focus-visible {
+  background: #214851;
+}
+
+:root[data-theme="dark"] .reporting-month-grid button.is-selected {
+  border-color: #bde7e4;
+  background: #32636a;
+  color: #f5f7fb;
+}
+
+:root[data-theme="dark"] .reporting-month-menu-footer {
+  border-top-color: #32636a;
 }
 
 :root[data-theme="dark"] .form-field select {

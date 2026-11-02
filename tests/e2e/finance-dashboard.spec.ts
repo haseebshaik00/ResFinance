@@ -228,6 +228,24 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   await expect(
     page.getByRole("heading", { name: "Your money, in one view!" }),
   ).toBeVisible();
+  const reportingMonth = page.getByRole("button", {
+    name: /Reporting month .*2026/,
+  });
+  await expect(reportingMonth).toHaveCSS("background-color", "rgb(24, 43, 52)");
+  await reportingMonth.click();
+  const reportingMonthMenu = page.getByRole("dialog", {
+    name: "Choose reporting month",
+  });
+  await expect(reportingMonthMenu).toBeVisible();
+  await expect(reportingMonthMenu).toHaveCSS(
+    "background-color",
+    "rgb(24, 43, 52)",
+  );
+  await reportingMonthMenu.getByRole("button", { name: "Oct" }).click();
+  await expect(reportingMonth).toHaveAccessibleName(
+    "Reporting month October 2026",
+  );
+  await expect(reportingMonthMenu).toHaveCount(0);
   await expect(
     page.locator("summary").filter({ hasText: /^Category$/ }),
   ).toHaveCount(0);

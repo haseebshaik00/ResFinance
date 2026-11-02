@@ -1,6 +1,6 @@
 # ResFinance Current Status
 
-Last updated: 2026-10-24
+Last updated: 2026-11-01
 
 ResFinance uses the eight-milestone convention in
 [`milestones/milestones.md`](milestones/milestones.md). Milestones 1–7 are complete for the
@@ -104,6 +104,10 @@ Evidence:
   visible budget-bar fills, an emphasized running-balance path, consistent
   title casing, and reduced-motion handling; expanded the dashboard guide to
   explain monthly review, append-only corrections, and read-only Insights.
+- Replaced the browser-native Reporting month popup with an accessible,
+  keyboard-dismissible in-app month picker. Its dark menu uses the existing
+  teal October-control palette, supports year navigation and a current-month
+  shortcut, and leaves the other dashboard month controls unchanged.
 - Project-owner acceptance on 2026-10-24 closed the remaining Personal Finance
   functionality and presentation tasks for the local-development scope.
 
