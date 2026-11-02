@@ -108,6 +108,9 @@ Evidence:
   keyboard-dismissible in-app month picker. Its dark menu uses the existing
   teal October-control palette, supports year navigation and a current-month
   shortcut, and leaves the other dashboard month controls unchanged.
+- Aligned Cash flow, Recent Transactions, and Budgets & Commitments to the
+  compact Cash flow panel height. The transaction ledger and planning content
+  now scroll independently when they exceed their panels.
 - Project-owner acceptance on 2026-10-24 closed the remaining Personal Finance
   functionality and presentation tasks for the local-development scope.
 

@@ -661,6 +661,17 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
     panels.map((panel) => Math.round(panel.getBoundingClientRect().top)),
   );
   expect(new Set(overviewPanelTopEdges).size).toBe(1);
+  const overviewPanelHeights = await overviewPanels.evaluateAll((panels) =>
+    panels.map((panel) => Math.round(panel.getBoundingClientRect().height)),
+  );
+  expect(new Set(overviewPanelHeights).size).toBe(1);
+  await expect(
+    page.locator(".transactions-panel .always-visible-scroll-body"),
+  ).toHaveCSS("overflow-y", "auto");
+  await expect(page.locator(".planning-panel .planning-scroll")).toHaveCSS(
+    "overflow-y",
+    "auto",
+  );
   await expect(
     page.getByRole("heading", { name: "Budgets & Commitments" }),
   ).toBeVisible();

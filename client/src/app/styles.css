@@ -1036,11 +1036,11 @@ code {
   align-items: stretch;
 }
 
-/* Row height follows the planning panel; cash flow + transactions fill it. */
-.finance-overview-row > .chart-panel,
-.finance-overview-row > .transactions-panel {
-  height: 0;
-  min-height: 100%;
+/* Keep all three overview panels aligned to the Cash flow card's compact height. */
+.finance-overview-row > .overview-panel {
+  height: 27rem;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .chart-panel,
@@ -1073,10 +1073,12 @@ code {
 
 .planning-scroll {
   display: grid;
+  flex: 1 1 auto;
   gap: 1.1rem;
   min-height: 0;
   padding-right: 0.35rem;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
@@ -4101,8 +4103,7 @@ td.expense {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .finance-overview-row > .chart-panel,
-  .finance-overview-row > .transactions-panel {
+  .finance-overview-row > .overview-panel {
     height: auto;
     min-height: 22rem;
   }
@@ -4159,8 +4160,7 @@ td.expense {
       color-mix(in srgb, var(--card-border) 86%, transparent);
   }
 
-  .finance-overview-row > .chart-panel,
-  .finance-overview-row > .transactions-panel {
+  .finance-overview-row > .overview-panel {
     height: auto;
     min-height: 0;
   }
