@@ -1038,7 +1038,7 @@ code {
 
 /* Keep all three overview panels aligned to the Cash flow card's compact height. */
 .finance-overview-row > .overview-panel {
-  height: 27rem;
+  height: 25.5rem;
   min-height: 0;
   overflow: hidden;
 }
