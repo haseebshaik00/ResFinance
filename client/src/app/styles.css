@@ -2370,11 +2370,7 @@ td.expense {
       rgb(107 142 173 / 12%),
       transparent 32rem
     ),
-    radial-gradient(
-      circle at 88% 22%,
-      rgb(232 93 51 / 8%),
-      transparent 30rem
-    ),
+    radial-gradient(circle at 88% 22%, rgb(232 93 51 / 8%), transparent 30rem),
     linear-gradient(145deg, #121c33 0%, #0b1426 52%, #080e1c 100%);
   --page-pattern: url("/patterns/crypto-scatter-dark.svg");
   --page-pattern-size: 28rem;
