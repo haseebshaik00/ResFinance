@@ -353,14 +353,27 @@ test("approves and settles an obligation partially and fully", async ({
   await expect(page.getByText("settled", { exact: true })).toBeVisible();
   await expect(summaryValue(page, "You owe")).toHaveText("$0.00");
   await expect(page.getByText(/non-redeemable, non-monetary/)).toBeVisible();
-  await expect(page.getByText("Data Freshness and Provenance")).toBeVisible();
+  const provenancePanel = page.locator(".groups-dashboard .provenance-panel");
+  await expect(provenancePanel).toHaveCount(1);
+  const provenanceSummary = provenancePanel.locator("summary");
+  await expect(provenanceSummary).toHaveCSS("color", "rgb(242, 189, 90)");
+  await provenanceSummary.click();
+  await expect(
+    page.getByRole("heading", { name: "Group Insights" }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Group Insights" })).toHaveCSS(
+    "color",
+    "rgb(255, 140, 160)",
+  );
   await expect(
     page
       .locator(".group-summary-grid")
       .getByText("Projection", { exact: true }),
   ).toHaveCount(0);
-  await expect(page.getByText(/Projection v5/)).toBeVisible();
-  await expect(page.getByText(/5 encrypted source events/)).toBeVisible();
+  await expect(page.getByText(/Projection v5 rebuilt through/)).toBeVisible();
+  await expect(page.getByText(/5 encrypted source event/)).toBeVisible();
+  await expect(page.getByText("evt-1", { exact: true })).toBeVisible();
+  await expect(page.getByText("evt-5", { exact: true })).toBeVisible();
   await page.screenshot({
     path: "test-results/groups-dashboard.png",
     fullPage: true,

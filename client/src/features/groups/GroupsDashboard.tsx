@@ -1,6 +1,7 @@
 import { CircleHelp, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
+import { AlwaysVisibleScroll } from "../../components/AlwaysVisibleScroll";
 import type { JsonValue } from "../auth/reswallet";
 import { formatUsd, usdToMinorUnits } from "../finance/money";
 import { groupTotals } from "./activity";
@@ -405,14 +406,37 @@ function GroupWorkspace({
         dashboard={dashboard}
       />
 
-      <footer className="provenance-footer">
-        <strong>Data Freshness and Provenance</strong>
-        <span>Projection v{group.provenance.projection_version}</span>
-        <span>
-          {group.provenance.source_event_ids.length} encrypted source events
-        </span>
-        <span>{formatTimestamp(group.provenance.as_of_utc)}</span>
-      </footer>
+      <details className="provenance-panel">
+        <summary>Data Freshness and Provenance</summary>
+        <div>
+          <section
+            className="provenance-column group-provenance"
+            aria-labelledby="group-provenance-title"
+          >
+            <AlwaysVisibleScroll>
+              <h3 id="group-provenance-title">Group Insights</h3>
+              <p className="provenance-oneline">
+                Projection{" "}
+                <strong>v{group.provenance.projection_version}</strong>
+                {group.provenance.as_of_utc === null
+                  ? " has no events yet."
+                  : ` rebuilt through ${new Date(group.provenance.as_of_utc).toLocaleString()}.`}{" "}
+                {group.provenance.source_event_ids.length} encrypted source
+                event(s).
+              </p>
+              {group.provenance.source_event_ids.length > 0 && (
+                <ul className="event-id-list">
+                  {group.provenance.source_event_ids.map((eventId) => (
+                    <li key={eventId}>
+                      <code>{eventId}</code>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </AlwaysVisibleScroll>
+          </section>
+        </div>
+      </details>
     </section>
   );
 }
@@ -788,10 +812,4 @@ function DashboardState({
       <h2>{text}</h2>
     </section>
   );
-}
-
-function formatTimestamp(value: string | null): string {
-  return value === null
-    ? "No events yet"
-    : `Updated ${new Date(value).toLocaleString()}`;
 }

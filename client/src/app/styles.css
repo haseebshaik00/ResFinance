@@ -2254,8 +2254,17 @@ td.expense {
   font-size: 0.95rem;
 }
 
-.finance-dashboard .provenance-column h3 {
+.finance-dashboard .provenance-column h3,
+.groups-dashboard .provenance-column h3 {
   color: var(--expense);
+}
+
+.groups-dashboard .group-provenance {
+  display: flex;
+  flex-direction: column;
+  max-height: 14rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .event-id-list {
