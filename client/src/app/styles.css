@@ -17,6 +17,9 @@
       transparent 34rem
     ),
     linear-gradient(120deg, #d9baff 0%, #c9cef8 48%, #b5def3 100%);
+  --page-pattern: url("/patterns/crypto-scatter-light.svg");
+  --page-pattern-size: 28rem;
+  --page-pattern-opacity: 0.11;
   --card-background: linear-gradient(
     135deg,
     rgb(255 255 255 / 58%),
@@ -65,6 +68,25 @@ body {
   color: var(--page-text);
   background: var(--page-background);
   background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--page-pattern);
+  background-repeat: repeat;
+  background-position: center top;
+  background-size: var(--page-pattern-size);
+  opacity: var(--page-pattern-opacity);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
 }
 
 .shell {
@@ -2338,22 +2360,25 @@ td.expense {
 
 :root[data-theme="dark"] {
   color: #f5f7fb;
-  background: #0d1019;
+  background: #0b1426;
   --page-text: #f5f7fb;
   --page-muted: #9ba4b5;
   --page-accent: #38d1c5;
   --page-background:
     radial-gradient(
       circle at 14% 14%,
-      rgb(38 200 185 / 16%),
+      rgb(107 142 173 / 12%),
       transparent 32rem
     ),
     radial-gradient(
       circle at 88% 22%,
-      rgb(55 154 165 / 10%),
+      rgb(232 93 51 / 8%),
       transparent 30rem
     ),
-    linear-gradient(145deg, #1b202b 0%, #10131e 48%, #0b0c14 100%);
+    linear-gradient(145deg, #121c33 0%, #0b1426 52%, #080e1c 100%);
+  --page-pattern: url("/patterns/crypto-scatter-dark.svg");
+  --page-pattern-size: 28rem;
+  --page-pattern-opacity: 0.14;
   --card-background: linear-gradient(
     135deg,
     rgb(35 44 57 / 62%),
