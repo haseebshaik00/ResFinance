@@ -1103,10 +1103,7 @@ code {
 
 .crypto-top-row {
   display: grid;
-  grid-template-columns: minmax(15rem, 0.9fr) minmax(17rem, 1fr) minmax(
-      23rem,
-      1.35fr
-    );
+  grid-template-columns: minmax(26rem, 1.05fr) minmax(25rem, 1fr);
   gap: 1rem;
   align-items: stretch;
 }
@@ -1193,10 +1190,12 @@ code {
   letter-spacing: -0.04em;
 }
 
-.crypto-summary-card {
-  align-content: start;
-  gap: 1rem;
-  padding: 1.3rem;
+.capital-signals {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--control-border);
 }
 
 .crypto-summary-title {
@@ -1257,8 +1256,9 @@ code {
 }
 
 .capital-card {
+  display: flex;
+  flex-direction: column;
   position: relative;
-  align-content: start;
   gap: 0.7rem;
   overflow: hidden;
   border-color: color-mix(in srgb, var(--page-accent) 34%, var(--card-border));
@@ -4633,20 +4633,7 @@ td.expense {
 
 @media (max-width: 60rem) {
   .crypto-top-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .risk-questionnaire-card {
-    grid-column: 1 / -1;
-  }
-
-  .risk-questionnaire-card .risk-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .risk-questionnaire-card .risk-form .primary-button,
-  .risk-questionnaire-card .risk-form .form-error {
-    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
   }
 }
 

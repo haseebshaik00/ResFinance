@@ -80,9 +80,10 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
         <CapitalScenarioCard
           key={`${month}-${overview.default_capital.minor_units}`}
           defaultCapital={overview.default_capital.minor_units}
+          overview={overview}
+          displayed={displayed}
           dashboard={dashboard}
         />
-        <CryptoIntelligenceSummary overview={overview} displayed={displayed} />
         <RiskQuestionnaire overview={overview} dashboard={dashboard} />
       </section>
 
@@ -226,7 +227,7 @@ function RiskQuestionnaire({
   );
 }
 
-function CryptoIntelligenceSummary({
+function PortfolioSignals({
   overview,
   displayed,
 }: {
@@ -255,10 +256,7 @@ function CryptoIntelligenceSummary({
   ];
 
   return (
-    <article
-      className="metric-card crypto-summary-card"
-      aria-label="Portfolio signals"
-    >
+    <section className="capital-signals" aria-label="Portfolio signals">
       <p className="crypto-summary-title">Portfolio signals</p>
       <div className="crypto-summary-items">
         {summaryItems.map((item) => (
@@ -269,15 +267,19 @@ function CryptoIntelligenceSummary({
           </div>
         ))}
       </div>
-    </article>
+    </section>
   );
 }
 
 function CapitalScenarioCard({
   defaultCapital,
+  overview,
+  displayed,
   dashboard,
 }: {
   defaultCapital: number;
+  overview: CryptoOverview;
+  displayed: PortfolioRecommendation | null | undefined;
   dashboard: ReturnType<typeof useCryptoDashboard>;
 }) {
   const [amount, setAmount] = useState(() =>
@@ -419,6 +421,7 @@ function CapitalScenarioCard({
           </span>
         </p>
       )}
+      <PortfolioSignals overview={overview} displayed={displayed} />
     </article>
   );
 }
