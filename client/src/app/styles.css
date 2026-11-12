@@ -1192,9 +1192,9 @@ code {
 
 .capital-signals {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.55rem;
   margin-top: auto;
-  padding-top: 1rem;
+  padding-top: 0.8rem;
   border-top: 1px solid var(--control-border);
 }
 
@@ -1204,21 +1204,22 @@ code {
 
 .crypto-summary-items {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.65rem;
 }
 
 .crypto-summary-item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.2rem 0.8rem;
-  align-items: baseline;
-  padding-bottom: 0.65rem;
-  border-bottom: 1px solid var(--control-border);
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-right: 0.65rem;
+  border-right: 1px solid var(--control-border);
 }
 
 .crypto-summary-item:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
+  padding-right: 0;
+  border-right: 0;
 }
 
 .crypto-summary-item > span,
@@ -1234,13 +1235,14 @@ code {
 }
 
 .crypto-summary-item strong {
-  font-size: 1.1rem;
+  align-self: auto;
+  font-size: 1.25rem;
   letter-spacing: -0.025em;
-  text-align: right;
+  text-align: left;
 }
 
 .crypto-summary-item small {
-  grid-column: 1 / -1;
+  line-height: 1.35;
 }
 
 .sr-only {
@@ -1928,8 +1930,17 @@ code {
 }
 
 .risk-questionnaire-card .risk-form {
-  grid-template-columns: 1fr;
-  margin-top: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem 0.85rem;
+}
+
+.risk-questionnaire-card .risk-form .primary-button {
+  align-self: end;
+  grid-column: auto;
+}
+
+.risk-questionnaire-card .risk-form .form-error {
+  grid-column: 1 / -1;
 }
 
 .section-heading {
@@ -4837,6 +4848,28 @@ td.expense {
 
   .metric-card {
     min-height: 7.5rem;
+  }
+
+  .risk-questionnaire-card .risk-form,
+  .crypto-summary-items {
+    grid-template-columns: 1fr;
+  }
+
+  .risk-questionnaire-card .risk-form .primary-button {
+    grid-column: 1 / -1;
+  }
+
+  .crypto-summary-item,
+  .crypto-summary-item:last-child {
+    padding-right: 0;
+    padding-bottom: 0.65rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--control-border);
+  }
+
+  .crypto-summary-item:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
   }
 
   .dashboard-header h1 {
