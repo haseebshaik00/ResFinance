@@ -74,36 +74,17 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
       </section>
 
       <section
-        className="summary-grid"
-        aria-label="Crypto Intelligence summary"
+        className="crypto-top-row"
+        aria-label="Crypto Intelligence overview"
       >
         <CapitalScenarioCard
           key={`${month}-${overview.default_capital.minor_units}`}
           defaultCapital={overview.default_capital.minor_units}
           dashboard={dashboard}
         />
-        <Metric
-          label="Risk score"
-          value={overview.risk_profile?.score.toString() ?? "Not set"}
-          note="33 lower risk · 100 growth"
-        />
-        <Metric
-          label="Forecast"
-          value={overview.forecast === null ? "Unavailable" : "15 days"}
-          note={
-            overview.forecast === null
-              ? "No eligible forecast"
-              : `As of ${new Date(overview.forecast.as_of_utc).toLocaleDateString()}`
-          }
-        />
-        <Metric
-          label="Allocation source"
-          value={displayed?.source_kind === "scenario" ? "Scenario" : "Finance"}
-          note="No trades are executed"
-        />
+        <CryptoIntelligenceSummary overview={overview} displayed={displayed} />
+        <RiskQuestionnaire overview={overview} dashboard={dashboard} />
       </section>
-
-      <RiskQuestionnaire overview={overview} dashboard={dashboard} />
 
       {overview.forecast === null ? (
         <section className="panel empty-forecast" role="status">
@@ -189,7 +170,10 @@ function RiskQuestionnaire({
     });
   }
   return (
-    <section className="entry-panel" aria-labelledby="risk-title">
+    <section
+      className="entry-panel risk-questionnaire-card"
+      aria-labelledby="risk-title"
+    >
       <div className="section-heading">
         <div>
           <p className="section-kicker">Your preferences</p>
@@ -239,6 +223,53 @@ function RiskQuestionnaire({
         )}
       </form>
     </section>
+  );
+}
+
+function CryptoIntelligenceSummary({
+  overview,
+  displayed,
+}: {
+  overview: CryptoOverview;
+  displayed: PortfolioRecommendation | null | undefined;
+}) {
+  const summaryItems = [
+    {
+      label: "Risk score",
+      value: overview.risk_profile?.score.toString() ?? "Not set",
+      note: "33 lower risk · 100 growth",
+    },
+    {
+      label: "Forecast",
+      value: overview.forecast === null ? "Unavailable" : "15 days",
+      note:
+        overview.forecast === null
+          ? "No eligible forecast"
+          : `As of ${new Date(overview.forecast.as_of_utc).toLocaleDateString()}`,
+    },
+    {
+      label: "Allocation source",
+      value: displayed?.source_kind === "scenario" ? "Scenario" : "Finance",
+      note: "No trades are executed",
+    },
+  ];
+
+  return (
+    <article
+      className="metric-card crypto-summary-card"
+      aria-label="Portfolio signals"
+    >
+      <p className="crypto-summary-title">Portfolio signals</p>
+      <div className="crypto-summary-items">
+        {summaryItems.map((item) => (
+          <div className="crypto-summary-item" key={item.label}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <small>{item.note}</small>
+          </div>
+        ))}
+      </div>
+    </article>
   );
 }
 
@@ -429,23 +460,6 @@ function AllocationPanel({
   );
 }
 
-function Metric({
-  label,
-  value,
-  note,
-}: {
-  label: string;
-  value: string;
-  note: string;
-}) {
-  return (
-    <article className="metric-card">
-      <p>{label}</p>
-      <strong>{value}</strong>
-      <small>{note}</small>
-    </article>
-  );
-}
 function DashboardState({
   title,
   text,

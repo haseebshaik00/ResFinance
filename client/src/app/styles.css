@@ -1101,6 +1101,16 @@ code {
   gap: 1rem;
 }
 
+.crypto-top-row {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.9fr) minmax(17rem, 1fr) minmax(
+      23rem,
+      1.35fr
+    );
+  gap: 1rem;
+  align-items: stretch;
+}
+
 .metric-card,
 .panel,
 .entry-panel,
@@ -1181,6 +1191,57 @@ code {
   align-self: end;
   font-size: clamp(1.55rem, 3vw, 2.35rem);
   letter-spacing: -0.04em;
+}
+
+.crypto-summary-card {
+  align-content: start;
+  gap: 1rem;
+  padding: 1.3rem;
+}
+
+.crypto-summary-title {
+  color: var(--page-text) !important;
+}
+
+.crypto-summary-items {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.crypto-summary-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem 0.8rem;
+  align-items: baseline;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--control-border);
+}
+
+.crypto-summary-item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.crypto-summary-item > span,
+.crypto-summary-item small {
+  color: var(--page-muted);
+  font-size: 0.72rem;
+}
+
+.crypto-summary-item > span {
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.crypto-summary-item strong {
+  font-size: 1.1rem;
+  letter-spacing: -0.025em;
+  text-align: right;
+}
+
+.crypto-summary-item small {
+  grid-column: 1 / -1;
 }
 
 .sr-only {
@@ -1855,6 +1916,20 @@ code {
 .entry-panel {
   min-width: 0;
   padding: 1.35rem;
+}
+
+.risk-questionnaire-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.risk-questionnaire-card .section-heading {
+  margin-bottom: 0.8rem;
+}
+
+.risk-questionnaire-card .risk-form {
+  grid-template-columns: 1fr;
+  margin-top: auto;
 }
 
 .section-heading {
@@ -4556,10 +4631,30 @@ td.expense {
   }
 }
 
+@media (max-width: 60rem) {
+  .crypto-top-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .risk-questionnaire-card {
+    grid-column: 1 / -1;
+  }
+
+  .risk-questionnaire-card .risk-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .risk-questionnaire-card .risk-form .primary-button,
+  .risk-questionnaire-card .risk-form .form-error {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 52rem) {
   .dashboard-header,
   .dashboard-columns,
   .finance-overview-row,
+  .crypto-top-row,
   .analytics-grid,
   .insights-workspace,
   .provenance-columns,
