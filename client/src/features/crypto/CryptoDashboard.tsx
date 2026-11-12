@@ -4,6 +4,7 @@ import type {
   CryptoOverview,
   PortfolioRecommendation,
 } from "../../lib/api/client";
+import { MonthPicker } from "../../components/MonthPicker";
 import { currentMonth, formatUsd, usdToMinorUnits } from "../finance/money";
 import { CryptoChart } from "./CryptoChart";
 import { useCryptoDashboard } from "./useCryptoDashboard";
@@ -63,14 +64,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
             profile, Finance savings, and an approved 15-day forecast.
           </p>
         </div>
-        <label className="month-control">
-          <span>Savings month</span>
-          <input
-            type="month"
-            value={month}
-            onChange={(event) => setMonth(event.target.value)}
-          />
-        </label>
+        <MonthPicker month={month} onChange={setMonth} label="Savings month" />
       </section>
 
       <section

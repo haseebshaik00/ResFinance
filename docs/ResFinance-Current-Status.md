@@ -193,6 +193,9 @@ Evidence:
   repair, CLARABEL/SCS solving, and a constrained minimum-variance fallback.
 - Delivered the Crypto Intelligence dashboard and fail-closed handling for
   stale, synthetic, corrupted, or unpromoted forecast inputs.
+- Reused the accessible in-app month picker for the Crypto Intelligence
+  savings-month control, keeping the calendar interaction and dark-theme
+  treatment consistent with Personal Finance.
 
 Evidence:
 [`milestones/milestone6-crypto-intelligence-dashboard.md`](milestones/milestone6-crypto-intelligence-dashboard.md).

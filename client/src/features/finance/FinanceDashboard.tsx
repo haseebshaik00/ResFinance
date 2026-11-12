@@ -1,5 +1,5 @@
-import { ArchiveX, CalendarDays, CircleHelp, X } from "lucide-react";
-import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { ArchiveX, CircleHelp, X } from "lucide-react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   Bar,
   BarChart,
@@ -12,6 +12,7 @@ import {
 } from "recharts";
 
 import { AlwaysVisibleScroll } from "../../components/AlwaysVisibleScroll";
+import { MonthPicker } from "../../components/MonthPicker";
 import type { FinanceOverview } from "../../lib/api/client";
 import {
   chartTickStyle,
@@ -28,21 +29,6 @@ import { useFinanceDashboard } from "./useFinanceDashboard";
 import { SmartSavingsInsights } from "../insights/InsightsDashboard";
 
 const BAR_ANIMATION_MS = 850;
-const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-] as const;
-
 interface FinanceDashboardProps {
   accessToken: string;
 }
@@ -165,7 +151,11 @@ export function FinanceDashboard({ accessToken }: FinanceDashboardProps) {
             exact savings amount that will feed future portfolio analysis.
           </p>
         </div>
-        <ReportingMonthPicker month={month} onChange={setMonth} />
+        <MonthPicker
+          month={month}
+          onChange={setMonth}
+          label="Reporting month"
+        />
       </section>
 
       <SummaryCards overview={overview} />
@@ -592,132 +582,6 @@ function CommitmentList({
       ))}
     </ul>
   );
-}
-
-function ReportingMonthPicker({
-  month,
-  onChange,
-}: {
-  month: string;
-  onChange: (month: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [displayedYear, setDisplayedYear] = useState(() => monthYear(month));
-  const rootRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const labelId = useId();
-  const menuId = useId();
-
-  useEffect(() => {
-    if (!open) return;
-    function closeOnOutsidePointer(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    }
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
-      setOpen(false);
-      triggerRef.current?.focus();
-    }
-    document.addEventListener("pointerdown", closeOnOutsidePointer);
-    document.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.removeEventListener("pointerdown", closeOnOutsidePointer);
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [open]);
-
-  function selectMonth(nextMonth: string) {
-    onChange(nextMonth);
-    setOpen(false);
-    window.requestAnimationFrame(() => triggerRef.current?.focus());
-  }
-
-  function toggleMenu() {
-    if (!open) setDisplayedYear(monthYear(month));
-    setOpen((current) => !current);
-  }
-
-  return (
-    <div
-      className="month-control reporting-month-control reporting-month-picker"
-      ref={rootRef}
-    >
-      <span id={labelId}>Reporting month</span>
-      <button
-        ref={triggerRef}
-        className="reporting-month-trigger"
-        type="button"
-        aria-labelledby={`${labelId} ${menuId}-selected`}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-controls={menuId}
-        onClick={toggleMenu}
-      >
-        <span id={`${menuId}-selected`}>{formatReportingMonth(month)}</span>
-        <CalendarDays
-          className="reporting-month-trigger-icon"
-          aria-hidden="true"
-        />
-      </button>
-      {open && (
-        <div
-          id={menuId}
-          className="reporting-month-menu"
-          role="dialog"
-          aria-label="Choose reporting month"
-        >
-          <div className="reporting-month-menu-header">
-            <button
-              type="button"
-              aria-label={`Previous year, ${displayedYear - 1}`}
-              onClick={() => setDisplayedYear((year) => year - 1)}
-            >
-              ←
-            </button>
-            <strong aria-live="polite">{displayedYear}</strong>
-            <button
-              type="button"
-              aria-label={`Next year, ${displayedYear + 1}`}
-              onClick={() => setDisplayedYear((year) => year + 1)}
-            >
-              →
-            </button>
-          </div>
-          <div className="reporting-month-grid">
-            {MONTH_NAMES.map((name, index) => {
-              const value = `${displayedYear}-${String(index + 1).padStart(2, "0")}`;
-              const selected = value === month;
-              return (
-                <button
-                  key={value}
-                  className={selected ? "is-selected" : undefined}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => selectMonth(value)}
-                >
-                  {name.slice(0, 3)}
-                </button>
-              );
-            })}
-          </div>
-          <div className="reporting-month-menu-footer">
-            <button type="button" onClick={() => selectMonth(currentMonth())}>
-              This month
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function monthYear(month: string): number {
-  return Number(month.slice(0, 4));
-}
-
-function formatReportingMonth(month: string): string {
-  const monthIndex = Number(month.slice(5, 7)) - 1;
-  return `${MONTH_NAMES[monthIndex]} ${monthYear(month)}`;
 }
 
 function DashboardGuideDialog({ onClose }: { onClose: () => void }) {

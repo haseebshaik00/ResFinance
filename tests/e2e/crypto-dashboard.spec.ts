@@ -97,6 +97,15 @@ test("shows the promotion gate and records a versioned risk profile", async ({
       name: "No forecast is eligible for portfolio use.",
     }),
   ).toBeVisible();
+  const savingsMonth = page.getByRole("button", { name: /Savings month/ });
+  await savingsMonth.click();
+  const savingsMonthMenu = page.getByRole("dialog", {
+    name: "Choose savings month",
+  });
+  await expect(savingsMonthMenu).toBeVisible();
+  await savingsMonthMenu.getByRole("button", { name: "Oct" }).click();
+  await expect(savingsMonth).toHaveAccessibleName("Savings month October 2026");
+  await expect(savingsMonthMenu).toHaveCount(0);
   await expect(
     page.getByText(/No forecast has passed the required quality checks/),
   ).toBeVisible();
