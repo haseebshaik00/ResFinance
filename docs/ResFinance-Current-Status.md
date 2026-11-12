@@ -214,6 +214,13 @@ Evidence:
   `ubuntu-latest` Ubuntu 26.04 migration dropped the pinned Python toolcache and
   broke Playwright installation. A repository pre-push hook now mirrors CI to
   catch formatting, type, test, build, browser, and security failures locally.
+- Prepared a merge-to-main daily Crypto Intelligence workflow for a dedicated
+  self-hosted macOS ARM64 runner. At 6:00 AM fixed PST it uses the previous PST
+  date as the complete provider cutoff, retains raw research state in
+  ResilientDB, uploads the bounded evidence, and commits one dated JSON record
+  under `config/crypto-intelligence/`. Activation still requires the runner,
+  repository variable, main-branch write policy, and workflow to exist on
+  `main`; no production or cloud deployment is introduced.
 - Kept the original provider-backed candidate rejected. A separately
   predeclared forward candidate tied naive MAE at `0.0529717654`, achieved
   `88.05%` interval coverage, passed the unchanged promotion gate, and produced

@@ -1,0 +1,112 @@
+name: Daily Crypto Intelligence Forward Completion
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+      timezone: "Etc/GMT+8"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-crypto-intelligence-forward-completion
+  cancel-in-progress: false
+
+jobs:
+  forward-completion:
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, macOS, ARM64, resfinance-research]
+    timeout-minutes: 360
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Prepare pinned local runtime
+        env:
+          AUTOMATION_VENV: ${{ vars.RESFINANCE_AUTOMATION_VENV }}
+        run: |
+          if [[ -z "$AUTOMATION_VENV" || ! -x "$AUTOMATION_VENV/bin/python" ]]; then
+            echo "Set RESFINANCE_AUTOMATION_VENV to the prepared Python 3.13 virtual environment." >&2
+            exit 1
+          fi
+          if [[ -L .venv ]]; then
+            rm .venv
+          elif [[ -e .venv ]]; then
+            echo "The Actions workspace already contains a non-symlink .venv." >&2
+            exit 1
+          fi
+          ln -s "$AUTOMATION_VENV" .venv
+          .venv/bin/python --version
+          docker info >/dev/null
+          for container in resfinance-resdb-tools resfinance-api-1; do
+            if [[ "$(docker inspect --format '{{.State.Running}}' "$container")" != "true" ]]; then
+              echo "$container must be running before the scheduled job starts." >&2
+              exit 1
+            fi
+          done
+
+      - name: Run dated forward completion
+        id: forward
+        run: |
+          run_date=$(
+            .venv/bin/python -c \
+              'from scripts.milestone9.run_daily_forward_completion import current_pst_date; print(current_pst_date().isoformat())'
+          )
+          output_path="config/crypto-intelligence/milestone9-forward-completion-${run_date}.json"
+          set +e
+          .venv/bin/python -m scripts.milestone9.run_daily_forward_completion \
+            --run-date "$run_date"
+          forward_exit_code=$?
+          set -e
+          if [[ ! -f "$output_path" ]]; then
+            echo "The forward run did not produce $output_path." >&2
+            exit 1
+          fi
+          echo "run_date=$run_date" >> "$GITHUB_OUTPUT"
+          echo "output_path=$output_path" >> "$GITHUB_OUTPUT"
+          echo "exit_code=$forward_exit_code" >> "$GITHUB_OUTPUT"
+
+      - name: Upload full daily evidence
+        id: artifact
+        if: always() && steps.forward.outputs.output_path != ''
+        continue-on-error: true
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: crypto-intelligence-forward-completion-${{ steps.forward.outputs.run_date }}
+          path: ${{ steps.forward.outputs.output_path }}
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Commit daily evidence to main
+        env:
+          OUTPUT_PATH: ${{ steps.forward.outputs.output_path }}
+          RUN_DATE: ${{ steps.forward.outputs.run_date }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "$OUTPUT_PATH"
+          if git diff --cached --quiet; then
+            echo "No new daily evidence to commit."
+            exit 0
+          fi
+          git commit -m "chore(research): record forward completion $RUN_DATE"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Preserve the forward result
+        env:
+          ARTIFACT_OUTCOME: ${{ steps.artifact.outcome }}
+          FORWARD_EXIT_CODE: ${{ steps.forward.outputs.exit_code }}
+        run: |
+          if [[ "$ARTIFACT_OUTCOME" != "success" ]]; then
+            echo "The daily evidence commit succeeded, but artifact upload failed." >&2
+            exit 1
+          fi
+          if [[ "$FORWARD_EXIT_CODE" != "0" ]]; then
+            echo "Forward completion produced auditable evidence but exited $FORWARD_EXIT_CODE." >&2
+            exit "$FORWARD_EXIT_CODE"
+          fi

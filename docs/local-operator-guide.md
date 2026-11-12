@@ -211,6 +211,83 @@ coverage was `0.8804639578`. Equality satisfies the unchanged no-worse-than-
 naive rule, but it is not predictive outperformance. The immutable promotion
 and snapshot remain research-only and do not execute trades.
 
+## Daily Crypto Intelligence forward completion
+
+The merge-ready workflow
+`.github/workflows/crypto-intelligence-forward-completion.yml` runs at 6:00 AM
+fixed PST (`Etc/GMT+8`, UTC-08:00 year-round). GitHub schedules only workflows
+present on the default branch, so it remains inactive until merged into
+`main`. A manual `workflow_dispatch` is also available from `main`.
+
+The job intentionally uses a dedicated local runner rather than an ephemeral
+GitHub-hosted runner. Forward completion depends on the locally persisted
+ResilientDB volumes, the `resfinance-resdb-tools` container, and the research
+encryption key mounted in `resfinance-api-1`.
+
+### One-time GitHub and runner setup
+
+1. In **Settings → Actions → Runners**, add a repository-level self-hosted
+   macOS ARM64 runner on the ResFinance host. Add the custom label
+   `resfinance-research`, and install the runner as a service so it can accept
+   the 6:00 AM job without an interactive terminal.
+2. Keep this runner dedicated to ResFinance. The repository is public and the
+   runner can reach local Docker state and research key material; never route
+   pull-request jobs or another repository to this label.
+3. Create an Actions repository variable named
+   `RESFINANCE_AUTOMATION_VENV` whose value is the absolute path to a prepared
+   Python 3.13 virtual environment. Install the exact dependency sets into it:
+
+   ```bash
+   python3.13 -m venv /absolute/path/to/resfinance-automation-venv
+   /absolute/path/to/resfinance-automation-venv/bin/python -m pip install \
+     -r requirements/requirements-dev.txt \
+     -r requirements/requirements-milestone0.txt \
+     -r requirements/requirements-api.txt \
+     -r requirements/requirements-ml.txt \
+     -r requirements/requirements-portfolio.txt \
+     -r requirements/requirements-ai.txt
+   ```
+
+4. Start the local lifecycle and leave Docker Desktop, the runner service,
+   `resfinance-resdb-tools`, and `resfinance-api-1` running:
+
+   ```bash
+   .venv/bin/python -m scripts.milestone9.local_handoff start
+   ```
+
+5. Ensure Actions may write repository contents and that the `main` branch
+   policy permits `github-actions[bot]` to push the daily evidence commit. If
+   direct bot pushes are prohibited, the scheduled job will fail closed at the
+   push step until the policy is intentionally changed.
+6. Merge the workflow to `main`, then use **Actions → Daily Crypto Intelligence
+   Forward Completion → Run workflow** once to validate the complete runner,
+   Docker, provider, ResilientDB, artifact-upload, commit, and push path.
+
+### Daily output and failure behavior
+
+At 6:00 AM PST the wrapper selects the previous PST calendar day as the latest
+complete provider cutoff. A run on `2026-11-12` therefore executes the forward
+completion with cutoff `2026-11-11` and writes:
+
+```text
+config/crypto-intelligence/milestone9-forward-completion-2026-11-12.json
+```
+
+The workflow uploads that JSON as a 90-day Actions artifact and commits it to
+`main` with `chore(research): record forward completion YYYY-MM-DD`. It rebases
+onto the latest `main` before pushing, and concurrency control prevents two
+daily runs from overlapping.
+
+Both eligible promotion and immutable-gate rejection evidence are committed so
+the history stays auditable. A rejection is committed and uploaded, then the
+workflow ends failed. An exit that produces no valid evidence fails before any
+commit. Only an exit-zero record with
+`live_forecast_snapshot_published: true` may claim a current snapshot.
+
+Raw provider observations, feature datasets, encrypted model artifacts,
+encryption keys, and forecast records remain in ResilientDB. Only the bounded
+JSON evidence emitted by the checked-in forward-completion runner is committed.
+
 ## Troubleshooting
 
 - `docker-engine: unavailable`: start Docker Desktop and rerun preflight.
