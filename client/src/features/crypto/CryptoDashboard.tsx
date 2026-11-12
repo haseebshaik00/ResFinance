@@ -38,7 +38,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
     return (
       <DashboardState
         title="Building your crypto view…"
-        text="Reading Finance savings, risk preferences, and approved forecast data."
+        text="Reading actual savings, risk preferences, and approved forecast data."
       />
     );
   }
@@ -60,8 +60,8 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           <p className="eyebrow">Risk-aware portfolio</p>
           <h1 id="crypto-title">Savings, translated into choices!</h1>
           <p className="lede">
-            Explore a long-only BTC, ETH, and SOL allocation backed by your risk
-            profile, Finance savings, and an approved 15-day forecast.
+            Explore a BTC, ETH, and SOL portfolio tailored to your savings, risk
+            preferences, and an approved 15-day forecast.
           </p>
         </div>
         <MonthPicker month={month} onChange={setMonth} label="Savings month" />
@@ -74,7 +74,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
         <Metric
           label="Default capital"
           value={formatUsd(overview.default_capital.minor_units)}
-          note="From Finance savings"
+          note="Your Available Savings"
         />
         <Metric
           label="Risk score"
