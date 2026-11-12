@@ -57,7 +57,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
       <section className="dashboard-header" aria-labelledby="crypto-title">
         <div>
           <p className="eyebrow">Risk-aware portfolio</p>
-          <h1 id="crypto-title">Savings, translated into choices.</h1>
+          <h1 id="crypto-title">Savings, translated into choices!</h1>
           <p className="lede">
             Explore a long-only BTC, ETH, and SOL allocation backed by your risk
             profile, Finance savings, and an approved 15-day forecast.
