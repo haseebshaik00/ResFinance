@@ -228,4 +228,25 @@ describe("ResWallet security core", () => {
     await vault.delete();
     expect(await vault.exists()).toBe(false);
   });
+
+  it("stays unlocked while trusted application activity continues", async () => {
+    let now = 1_000_000;
+    const storage = new MemoryStorage();
+    const vault = new ResWallet(storage, {
+      argon2: TEST_ARGON2,
+      clock: () => now,
+      idleTimeoutMs: 5 * 60 * 1000,
+    });
+    await vault.create(PASSWORD, new Uint8Array(32).fill(6));
+
+    for (let minute = 0; minute < 7; minute += 1) {
+      now += 60 * 1000;
+      expect(vault.noteTrustedActivity()).toBe(true);
+      expect(vault.unlocked).toBe(true);
+    }
+
+    now += 5 * 60 * 1000;
+    expect(vault.unlocked).toBe(false);
+    expect(vault.noteTrustedActivity()).toBe(false);
+  });
 });

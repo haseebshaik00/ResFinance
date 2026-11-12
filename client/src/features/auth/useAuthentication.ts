@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   createChallenge,
   createSession,
   logoutSession,
+  refreshSession,
 } from "../../lib/api/client";
 import {
   formatIntentTimestamp,
@@ -15,6 +16,7 @@ import {
   type WalletIdentity,
   type WalletStatus,
 } from "./reswallet";
+import { SessionRenewal, type RenewableSession } from "./sessionRenewal";
 
 export type AuthenticationState =
   | "checking"
@@ -94,21 +96,56 @@ export function useAuthentication(): Authentication {
   );
 
   useEffect(() => {
-    const refreshVisibleWallet = () => void inspectWallet(true);
-    const refreshWhenVisible = () => {
-      if (document.visibilityState === "visible") refreshVisibleWallet();
-    };
-    window.addEventListener("focus", refreshVisibleWallet);
-    document.addEventListener("visibilitychange", refreshWhenVisible);
-    return () => {
-      window.removeEventListener("focus", refreshVisibleWallet);
-      document.removeEventListener("visibilitychange", refreshWhenVisible);
-    };
-  }, [inspectWallet]);
-
-  useEffect(() => {
     void inspectWallet();
   }, [inspectWallet]);
+
+  const applySession = useCallback(
+    (session: RenewableSession) => {
+      setAccessToken(session.access_token);
+      setActorAddress(session.actor_address);
+      transitionTo("authenticated");
+      setMessage(
+        "Wallet challenge approved. Access token is held in memory only.",
+      );
+    },
+    [transitionTo],
+  );
+
+  const returnToLogin = useCallback(() => {
+    setAccessToken(null);
+    setActorAddress(null);
+    void inspectWallet().then(() => {
+      setMessage("Your session expired. Connect ResWallet again.");
+    });
+  }, [inspectWallet]);
+
+  const sessionRenewal = useMemo(
+    () =>
+      new SessionRenewal({
+        refresh: refreshSession,
+        onSession: applySession,
+        onFailure: returnToLogin,
+      }),
+    [applySession, returnToLogin],
+  );
+
+  useEffect(() => () => sessionRenewal.stop(), [sessionRenewal]);
+
+  useEffect(() => {
+    const refreshVisibleState = () => {
+      void inspectWallet(true);
+      void sessionRenewal.refreshIfNeeded().catch(() => undefined);
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") refreshVisibleState();
+    };
+    window.addEventListener("focus", refreshVisibleState);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      window.removeEventListener("focus", refreshVisibleState);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [inspectWallet, sessionRenewal]);
 
   const connect = useCallback(async () => {
     transitionTo("pending");
@@ -148,12 +185,7 @@ export function useAuthentication(): Authentication {
       transitionTo("signing-in");
       setMessage("Approval Received! Signing you in to ResFinance…");
       const session = await createSession(challenge.challenge, intent);
-      setAccessToken(session.access_token);
-      setActorAddress(session.actor_address);
-      transitionTo("authenticated");
-      setMessage(
-        "Wallet challenge approved. Access token is held in memory only.",
-      );
+      sessionRenewal.start(session);
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -167,10 +199,11 @@ export function useAuthentication(): Authentication {
         setMessage(errorMessage);
       }
     }
-  }, [transitionTo]);
+  }, [sessionRenewal, transitionTo]);
 
   const logout = useCallback(async () => {
     if (accessToken === null) return;
+    sessionRenewal.stop();
     try {
       await logoutSession(accessToken);
     } finally {
@@ -183,7 +216,7 @@ export function useAuthentication(): Authentication {
       setActorAddress(null);
       await inspectWallet();
     }
-  }, [accessToken, inspectWallet]);
+  }, [accessToken, inspectWallet, sessionRenewal]);
 
   return {
     state,

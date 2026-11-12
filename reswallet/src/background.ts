@@ -67,6 +67,15 @@ async function handlePageMessage(
   message: unknown,
 ): Promise<void> {
   if (
+    isObject(message) &&
+    message.source === "reswallet-content" &&
+    message.version === 1 &&
+    message.type === "USER_ACTIVITY"
+  ) {
+    if (vault.noteTrustedActivity()) await scheduleAutoLock();
+    return;
+  }
+  if (
     !isObject(message) ||
     message.source !== "resfinance-page" ||
     message.version !== 1

@@ -4,8 +4,37 @@ import {
   deactivateFinanceBudget,
   deactivateFinanceRecurringEntry,
   queryInsights,
+  refreshSession,
   voidFinanceTransaction,
 } from "./client";
+
+describe("refreshSession", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("rotates the session through the HttpOnly refresh cookie boundary", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          access_token: "rotated-token",
+          token_type: "Bearer",
+          expires_at: "2026-11-12T00:10:00Z",
+          actor_address: `0x${"a".repeat(40)}`,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    await expect(refreshSession()).resolves.toMatchObject({
+      access_token: "rotated-token",
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/auth/refresh",
+      expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
+  });
+});
 
 describe("queryInsights", () => {
   afterEach(() => {
