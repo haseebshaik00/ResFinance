@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Check, Pencil, X } from "lucide-react";
 
 import type {
   CryptoOverview,
@@ -251,15 +252,46 @@ function CapitalScenarioCard({
   const [amount, setAmount] = useState(() =>
     minorUnitsToUsdInput(defaultCapital),
   );
+  const [activeCapital, setActiveCapital] = useState(defaultCapital);
+  const [isEditing, setIsEditing] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const amountInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing) {
+      amountInput.current?.focus();
+      amountInput.current?.select();
+    }
+  }, [isEditing]);
+
+  function startEditing() {
+    setAmount(minorUnitsToUsdInput(activeCapital));
+    setValidationError(null);
+    setIsEditing(true);
+  }
+
+  function cancelEditing() {
+    setAmount(minorUnitsToUsdInput(activeCapital));
+    setValidationError(null);
+    setIsEditing(false);
+  }
+
   function submit(event: FormEvent) {
     event.preventDefault();
     try {
       const cents = usdToMinorUnits(amount);
       setValidationError(null);
-      dashboard.scenario.mutate({
-        amount: { currency: "USD", minor_units: cents },
-      });
+      dashboard.scenario.mutate(
+        {
+          amount: { currency: "USD", minor_units: cents },
+        },
+        {
+          onSuccess: (recommendation) => {
+            setActiveCapital(recommendation.capital.minor_units);
+            setIsEditing(false);
+          },
+        },
+      );
     } catch (error) {
       setValidationError(
         error instanceof Error ? error.message : "Enter a valid USD amount.",
@@ -268,48 +300,92 @@ function CapitalScenarioCard({
   }
   return (
     <article
-      className="metric-card capital-card"
+      className={`metric-card capital-card${isEditing ? " is-editing" : ""}`}
       aria-labelledby="capital-title"
     >
-      <p id="capital-title">Default capital</p>
-      <form className="capital-scenario-form" onSubmit={submit}>
-        <label className="capital-amount-field">
-          <span className="sr-only">Scenario amount (USD)</span>
-          <span aria-hidden="true">$</span>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={amount}
-            onChange={(event) => setAmount(event.target.value)}
-          />
-        </label>
-        <button
-          className="capital-scenario-button"
-          type="submit"
-          disabled={dashboard.scenario.isPending}
-        >
-          {dashboard.scenario.isPending ? "Analyzing…" : "Analyze amount"}
-        </button>
-      </form>
-      <small>Your Available Savings · Read-only scenario</small>
-      <p className="capital-disclaimer">
-        Changing this amount never updates your saved Finance data.
-      </p>
-      {dashboard.scenario.isError && (
-        <p className="form-error" role="alert">
-          {dashboard.scenario.error.message}
-        </p>
-      )}
-      {validationError !== null && (
-        <p className="form-error" role="alert">
-          {validationError}
-        </p>
+      <div className="capital-card-heading">
+        <p id="capital-title">Default capital</p>
+        <span className="capital-source">
+          {dashboard.scenario.data === undefined
+            ? "Finance default"
+            : "Scenario active"}
+        </span>
+      </div>
+      {isEditing ? (
+        <form className="capital-scenario-form" onSubmit={submit}>
+          <label className="capital-edit-field">
+            <span className="sr-only">Scenario amount (USD)</span>
+            <span aria-hidden="true">$</span>
+            <input
+              ref={amountInput}
+              type="text"
+              inputMode="decimal"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+            />
+          </label>
+          <p className="capital-edit-hint">
+            Analyze an alternate amount without changing Finance.
+          </p>
+          <div className="capital-actions">
+            <button
+              className="capital-scenario-button"
+              type="submit"
+              disabled={dashboard.scenario.isPending}
+            >
+              <Check aria-hidden="true" size={15} />
+              {dashboard.scenario.isPending ? "Analyzing…" : "Analyze scenario"}
+            </button>
+            <button
+              className="capital-cancel-button"
+              type="button"
+              onClick={cancelEditing}
+              disabled={dashboard.scenario.isPending}
+            >
+              <X aria-hidden="true" size={15} />
+              Cancel
+            </button>
+          </div>
+          {dashboard.scenario.isError && (
+            <p className="form-error" role="alert">
+              {dashboard.scenario.error.message}
+            </p>
+          )}
+          {validationError !== null && (
+            <p className="form-error" role="alert">
+              {validationError}
+            </p>
+          )}
+        </form>
+      ) : (
+        <>
+          <div className="capital-amount-display">
+            <strong>{formatUsd(activeCapital)}</strong>
+            <button
+              className="capital-edit-button"
+              type="button"
+              onClick={startEditing}
+              aria-label="Edit scenario amount"
+              title="Edit scenario amount"
+            >
+              <Pencil aria-hidden="true" size={17} />
+            </button>
+          </div>
+          <small>Your Available Savings · Read-only scenario</small>
+          <p className="capital-disclaimer">
+            Edit the amount to explore a what-if scenario. Finance is never
+            updated.
+          </p>
+        </>
       )}
       {dashboard.scenario.data !== undefined && (
         <p className="scenario-result">
-          Scenario active:{" "}
-          {formatUsd(dashboard.scenario.data.capital.minor_units)}. Your Finance
-          default is unchanged.
+          <Check aria-hidden="true" size={16} />
+          <span>
+            <strong>Scenario active: </strong>
+            {formatUsd(dashboard.scenario.data.capital.minor_units)}. Finance
+            default unchanged.
+          </span>
         </p>
       )}
     </article>

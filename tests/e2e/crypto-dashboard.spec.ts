@@ -77,7 +77,13 @@ test("shows the promotion gate and records a versioned risk profile", async ({
   await expect(
     page.getByRole("heading", { name: "Savings, translated into choices!" }),
   ).toBeVisible();
-  await expect(page.getByLabel("Scenario amount (USD)")).toHaveValue("2700.00");
+  const capitalCard = page.locator(".capital-card");
+  await expect(
+    capitalCard.getByText("$2,700.00", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    capitalCard.getByRole("button", { name: "Edit scenario amount" }),
+  ).toBeVisible();
   await expect(
     page
       .locator(".summary-grid")
@@ -109,10 +115,9 @@ test("shows the promotion gate and records a versioned risk profile", async ({
     page.getByText(/No forecast has passed the required quality checks/),
   ).toBeVisible();
   await expect(page.getByText(/milestone/i)).toHaveCount(0);
-  await expect(page.getByLabel("Scenario amount (USD)")).toHaveValue("2700.00");
   await expect(
-    page.getByText(
-      "Changing this amount never updates your saved Finance data.",
+    capitalCard.getByText(
+      "Edit the amount to explore a what-if scenario. Finance is never updated.",
     ),
   ).toBeVisible();
   await expect(
@@ -297,13 +302,18 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
   await expect(page.getByText("$945.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$405.00", { exact: true })).toBeVisible();
   const capitalCard = page.locator(".capital-card");
+  await capitalCard
+    .getByRole("button", { name: "Edit scenario amount" })
+    .click();
+  await expect(capitalCard).toHaveClass(/is-editing/);
+  await expect(capitalCard.locator(".capital-edit-field")).toBeVisible();
   await capitalCard.getByLabel("Scenario amount (USD)").fill("1234.56");
-  await capitalCard.getByRole("button", { name: "Analyze amount" }).click();
+  await capitalCard.getByRole("button", { name: "Analyze scenario" }).click();
   await expect(
     capitalCard.getByText(/Scenario active: \$1,234.56/),
   ).toBeVisible();
   await expect(
-    capitalCard.getByText("Your Finance default is unchanged.", {
+    capitalCard.getByText("Finance default unchanged.", {
       exact: false,
     }),
   ).toBeVisible();
