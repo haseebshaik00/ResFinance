@@ -193,6 +193,9 @@ Evidence:
   repair, CLARABEL/SCS solving, and a constrained minimum-variance fallback.
 - Delivered the Crypto Intelligence dashboard and fail-closed handling for
   stale, synthetic, corrupted, or unpromoted forecast inputs.
+- Made the price outlook's 15-calendar-day span explicit with daily time-scale
+  spacing, observed-through and forecast-end dates, endpoint values and
+  returns, and an explanation when the P50 median is a no-change forecast.
 - Reused the accessible in-app month picker for the Crypto Intelligence
   savings-month control, keeping the calendar interaction and dark-theme
   treatment consistent with Personal Finance.

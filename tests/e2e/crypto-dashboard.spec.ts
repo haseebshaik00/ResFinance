@@ -187,7 +187,7 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
             expected_return: "0.03",
             probability_up: "0.6",
             p10_return: "-0.05",
-            p50_return: "0.03",
+            p50_return: "0",
             p90_return: "0.1",
           })),
           price_history: priceHistory,
@@ -242,9 +242,34 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
 
   await expect(
     page.getByRole("img", {
-      name: "BTC historical USD prices with 15-day P10, P50, and P90 forecast overlays",
+      name: "BTC historical USD prices with 15-day P10, P50, and P90 forecast overlays ending 29 Oct 2026",
     }),
   ).toBeVisible();
+  await expect(
+    page.getByText("Observed through", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("14 Oct 2026", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("15 calendar days", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Forecast ends", { exact: true })).toBeVisible();
+  await expect(page.getByText("29 Oct 2026", { exact: true })).toBeVisible();
+  await expect(page.getByText("$108.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("0.00%", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(/P50 matches the latest observed price/),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    ),
+  ).toBe(false);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    ),
+  ).toBe(false);
   await expect(
     page.getByRole("heading", { name: "Portfolio allocation" }),
   ).toBeVisible();
