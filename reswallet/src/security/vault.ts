@@ -57,6 +57,13 @@ export class ResWallet {
     return this.#seed !== null;
   }
 
+  noteTrustedActivity(): boolean {
+    this.#lockIfTimedOut();
+    if (this.#seed === null) return false;
+    this.#lastUsedAt = this.#clock();
+    return true;
+  }
+
   async exists(): Promise<boolean> {
     return (await this.#storage.load()) !== null;
   }

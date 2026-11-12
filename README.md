@@ -49,7 +49,10 @@ application services only through the generated `/api/v1` REST client.
 - Apache ResilientDB is the sole persistent application and research database.
 - USD is the only V1 fiat denomination; money uses integer cents.
 - Crypto support is exactly `BTC | ETH | SOL`.
-- ResWallet seeds and private keys never leave the extension.
+- ResWallet seeds and private keys never leave the extension. Its five-minute
+  inactivity lock is extended only by trusted interaction in a visible
+  ResFinance tab, while an authenticated open tab renews its short-lived API
+  access token without restoring login after a reload.
 - ResContract is authoritative for obligations and settlement state.
 - Internal settlement credits are non-redeemable and non-monetary.
 - ResFinance does not transfer fiat or native cryptocurrency, execute trades,
@@ -87,6 +90,19 @@ docs/          Product, architecture, milestone evidence, and development refere
 - [Milestone Evidence](docs/milestones/)
 - [Current milestone status](docs/ResFinance-Current-Status.md)
 - [Repository instructions for coding agents](AGENTS.md)
+
+## Before pushing
+
+GitHub Actions uses a pinned Ubuntu 24.04 runner and commit-pinned action
+revisions so `ubuntu-latest` migrations do not silently change the toolchain.
+Enable the repository's pre-push hook once per clone to run the same backend,
+client, browser, and ResWallet checks before remote CI:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The checks can also be run directly with `./scripts/verify_ci.sh`.
 
 ## Contributors
 

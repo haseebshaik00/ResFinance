@@ -6,6 +6,7 @@ const defaultAddress = `0x${"a".repeat(40)}`;
 export async function prepareWalletLogin(
   page: Page,
   actorAddress = defaultAddress,
+  sessionExpiresAt = "2099-01-01T00:00:00Z",
 ): Promise<void> {
   await page.addInitScript((address) => {
     const identity = {
@@ -94,7 +95,7 @@ export async function prepareWalletLogin(
       body: JSON.stringify({
         access_token: "e2e-access-token",
         token_type: "Bearer",
-        expires_at: "2026-10-14T08:10:00Z",
+        expires_at: sessionExpiresAt,
         actor_address: actorAddress,
       }),
     }),

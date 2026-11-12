@@ -68,6 +68,15 @@ Install the pinned dependency sets, then run the repository checks:
 (cd reswallet && npm ci && npm run check && npm run lint && npm run format:check && npm test && npm run build && npm run security:inspect)
 ```
 
+To run the full CI-equivalent sequence, including Chromium acceptance, use:
+
+```bash
+./scripts/verify_ci.sh
+```
+
+Enable it automatically before each push with
+`git config core.hooksPath .githooks`.
+
 ## Preflight and start
 
 Use deterministic evidence templates without mounting a local language model:

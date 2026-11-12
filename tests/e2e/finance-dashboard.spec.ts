@@ -1180,6 +1180,64 @@ test("keeps the welcome route unauthenticated until ResWallet approval", async (
   });
 });
 
+test("renews an authenticated session before its access token expires", async ({
+  page,
+}) => {
+  const actorAddress = `0x${"a".repeat(40)}`;
+  await prepareWalletLogin(
+    page,
+    actorAddress,
+    new Date(Date.now() + 62_000).toISOString(),
+  );
+  let refreshRequests = 0;
+  await page.route("**/api/v1/auth/refresh", async (route) => {
+    refreshRequests += 1;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        access_token: "e2e-rotated-token",
+        token_type: "Bearer",
+        expires_at: "2099-01-01T00:00:00Z",
+        actor_address: actorAddress,
+      }),
+    });
+  });
+
+  await page.goto("/");
+  await approveWalletLogin(page);
+
+  await expect.poll(() => refreshRequests, { timeout: 5_000 }).toBe(1);
+  await expect(
+    page.locator('.auth-card[data-state="authenticated"]'),
+  ).toBeVisible();
+});
+
+test("returns to wallet login when session renewal fails", async ({ page }) => {
+  const actorAddress = `0x${"a".repeat(40)}`;
+  await prepareWalletLogin(
+    page,
+    actorAddress,
+    new Date(Date.now() + 62_000).toISOString(),
+  );
+  await page.route("**/api/v1/auth/refresh", (route) =>
+    route.fulfill({ status: 401, contentType: "application/json", body: "{}" }),
+  );
+
+  await page.goto("/");
+  await approveWalletLogin(page);
+
+  await expect(
+    page.getByText("Your session expired. Connect ResWallet again."),
+  ).toBeVisible({ timeout: 5_000 });
+  await expect(
+    page.getByRole("button", { name: "Connect Wallet" }),
+  ).toBeEnabled();
+  await expect(
+    page.locator('.auth-card[data-state="authenticated"]'),
+  ).toHaveCount(0);
+});
+
 test("separates the wallet controls before a wallet is created", async ({
   page,
 }) => {
@@ -1452,7 +1510,7 @@ test("updates the ResWallet login guidance after the popup changes wallet state"
       body: JSON.stringify({
         access_token: "e2e-login-token",
         actor_address: `0x${"6".repeat(40)}`,
-        expires_at: "2026-10-21T06:00:00Z",
+        expires_at: "2099-01-01T00:00:00Z",
         token_type: "Bearer",
       }),
     });

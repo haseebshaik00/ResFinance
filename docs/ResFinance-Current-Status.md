@@ -47,6 +47,11 @@ Evidence:
 - Implemented challenge login, memory-only access tokens, HttpOnly refresh
   cookies, ResilientDB-backed session hashes, rotation, replay protection,
   revocation, and logout.
+- Trusted pointer, keyboard, touch, and wheel activity in a visible ResFinance
+  tab now extends the five-minute ResWallet inactivity window without accepting
+  page-generated heartbeats. Open authenticated tabs rotate their access token
+  before expiry through a single-flight refresh; reloads still require explicit
+  wallet approval, and refresh failure returns to the login screen.
 - Opening the local client checks only public ResWallet status. It does not
   restore a dashboard from a refresh cookie: each visit requires an explicit
   **Connect Wallet** selection and fresh ResWallet challenge approval.
@@ -205,6 +210,10 @@ Evidence:
   reset operations; explicit ingestion and reconciliation workers; an operator
   guide; and a continuous real two-wallet Chromium journey over ResWallet,
   FastAPI, four ResilientDB replicas, and ResContract.
+- Pinned CI to Ubuntu 24.04 and commit-pinned Node 24 GitHub actions after the
+  `ubuntu-latest` Ubuntu 26.04 migration dropped the pinned Python toolcache and
+  broke Playwright installation. A repository pre-push hook now mirrors CI to
+  catch formatting, type, test, build, browser, and security failures locally.
 - Kept the original provider-backed candidate rejected. A separately
   predeclared forward candidate tied naive MAE at `0.0529717654`, achieved
   `88.05%` interval coverage, passed the unchanged promotion gate, and produced

@@ -21,7 +21,7 @@ export async function getHealth(signal?: AbortSignal): Promise<HealthResponse> {
 
 type ChallengeResponse =
   paths["/api/v1/auth/challenges"]["post"]["responses"][201]["content"]["application/json"];
-type SessionResponse =
+export type SessionResponse =
   paths["/api/v1/auth/sessions"]["post"]["responses"][201]["content"]["application/json"];
 export type FinanceOverview = components["schemas"]["FinanceOverviewModel"];
 export type CategoryCommand = components["schemas"]["CategoryCommand"];
@@ -78,6 +78,14 @@ export async function createSession(
     headers: jsonHeaders(),
     credentials: "include",
     body: JSON.stringify({ challenge, intent }),
+  });
+}
+
+export async function refreshSession(): Promise<SessionResponse> {
+  return requestJson<SessionResponse>("/api/v1/auth/refresh", {
+    method: "POST",
+    headers: { Accept: "application/json" },
+    credentials: "include",
   });
 }
 

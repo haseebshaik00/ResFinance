@@ -1,4 +1,5 @@
 import { ReconnectingPort } from "./reconnecting-port";
+import { TrustedActivityReporter } from "./trusted-activity";
 
 const pageSource = "resfinance-page";
 const vaultSource = "reswallet";
@@ -32,6 +33,31 @@ const port = new ReconnectingPort(
 );
 
 port.start();
+
+const activityReporter = new TrustedActivityReporter(() => {
+  port.postMessage({
+    source: "reswallet-content",
+    version: 1,
+    type: "USER_ACTIVITY",
+  });
+});
+
+const activityEvents = [
+  "keydown",
+  "pointerdown",
+  "pointermove",
+  "touchstart",
+  "wheel",
+] as const;
+for (const eventType of activityEvents) {
+  window.addEventListener(
+    eventType,
+    (event) => {
+      activityReporter.observe(event, document.visibilityState === "visible");
+    },
+    { capture: true, passive: true },
+  );
+}
 
 window.addEventListener("message", (event: MessageEvent<unknown>) => {
   if (event.source !== window || event.origin !== window.location.origin)
