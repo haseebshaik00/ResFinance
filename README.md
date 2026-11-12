@@ -104,6 +104,12 @@ git config core.hooksPath .githooks
 
 The checks can also be run directly with `./scripts/verify_ci.sh`.
 
+After it is merged to `main` and a dedicated local runner is registered, the
+daily Crypto Intelligence workflow runs at 6:00 AM fixed PST, persists the
+research state in ResilientDB, and commits dated evidence JSON under
+`config/crypto-intelligence/`. Runner setup and failure behavior are documented
+in the [Local Operator Guide](docs/local-operator-guide.md#daily-crypto-intelligence-forward-completion).
+
 ## Contributors
 
 - [Shaik Haseeb Ur Rahman](https://github.com/haseebshaik00)
