@@ -49,8 +49,24 @@ jobs:
             fi
           done
 
+      - name: Detect existing daily evidence
+        id: existing-evidence
+        run: |
+          run_date=$(
+            .venv/bin/python -c \
+              'from scripts.milestone9.run_daily_forward_completion import current_pst_date; print(current_pst_date().isoformat())'
+          )
+          output_path="config/crypto-intelligence/milestone9-forward-completion-${run_date}.json"
+          if git cat-file -e "HEAD:${output_path}" 2>/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Daily evidence already exists: ${output_path}"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run dated forward completion
         id: forward
+        if: steps.existing-evidence.outputs.exists != 'true'
         run: |
           run_date=$(
             .venv/bin/python -c \
@@ -72,7 +88,7 @@ jobs:
 
       - name: Upload full daily evidence
         id: artifact
-        if: always() && steps.forward.outputs.output_path != ''
+        if: always() && steps.existing-evidence.outputs.exists != 'true' && steps.forward.outputs.output_path != ''
         continue-on-error: true
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -82,6 +98,7 @@ jobs:
           retention-days: 90
 
       - name: Commit daily evidence to main
+        if: steps.existing-evidence.outputs.exists != 'true'
         env:
           OUTPUT_PATH: ${{ steps.forward.outputs.output_path }}
           RUN_DATE: ${{ steps.forward.outputs.run_date }}
@@ -98,6 +115,7 @@ jobs:
           git push origin HEAD:main
 
       - name: Preserve the forward result
+        if: steps.existing-evidence.outputs.exists != 'true'
         env:
           ARTIFACT_OUTCOME: ${{ steps.artifact.outcome }}
           FORWARD_EXIT_CODE: ${{ steps.forward.outputs.exit_code }}

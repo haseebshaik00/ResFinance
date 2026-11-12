@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+from scripts.milestone9.dispatch_daily_forward_completion import dispatch_if_due
+from scripts.milestone9.install_daily_forward_catchup import launch_agent_definition
 from scripts.milestone9.run_daily_forward_completion import (
     build_plan,
     current_pst_date,
@@ -99,3 +101,94 @@ def test_daily_run_fails_closed_without_evidence(tmp_path: Path) -> None:
 
     with pytest.raises(RuntimeError, match="did not write"):
         run_daily_forward_completion(plan, runner=runner)
+
+
+def test_catchup_does_not_contact_github_before_fixed_pst_due_time() -> None:
+    result = dispatch_if_due(now=datetime(2026, 11, 12, 13, 59, tzinfo=UTC))
+
+    assert result.status == "not_due"
+    assert result.run_date_pst == date(2026, 11, 12)
+
+
+def test_catchup_dispatches_only_when_today_has_no_evidence_or_existing_run() -> None:
+    captured: list[tuple[str, ...]] = []
+
+    def runner(
+        command: tuple[str, ...],
+        **_: object,
+    ) -> subprocess.CompletedProcess[str]:
+        captured.append(command)
+        if command[1:4] == ("auth", "status", "--hostname"):
+            return subprocess.CompletedProcess(command, 0)
+        if "/commits?" in command[-1]:
+            return subprocess.CompletedProcess(command, 0, stdout="[]")
+        if "/runs?" in command[-1]:
+            return subprocess.CompletedProcess(command, 0, stdout='{"workflow_runs": []}')
+        return subprocess.CompletedProcess(command, 0)
+
+    result = dispatch_if_due(
+        now=datetime(2026, 11, 12, 14, 1, tzinfo=UTC),
+        runner=runner,
+    )
+
+    assert result.status == "dispatched"
+    assert captured[-1] == (
+        "gh",
+        "workflow",
+        "run",
+        "crypto-intelligence-forward-completion.yml",
+        "--repo",
+        "haseebshaik00/ResFinance",
+        "--ref",
+        "main",
+    )
+
+
+def test_catchup_leaves_a_same_day_active_or_completed_workflow_alone() -> None:
+    def runner(
+        command: tuple[str, ...],
+        **_: object,
+    ) -> subprocess.CompletedProcess[str]:
+        if command[1:4] == ("auth", "status", "--hostname"):
+            return subprocess.CompletedProcess(command, 0)
+        if "/commits?" in command[-1]:
+            return subprocess.CompletedProcess(command, 0, stdout="[]")
+        return subprocess.CompletedProcess(
+            command,
+            0,
+            stdout='{"workflow_runs": [{"created_at": "2026-11-12T14:00:00Z"}]}',
+        )
+
+    result = dispatch_if_due(
+        now=datetime(2026, 11, 12, 14, 1, tzinfo=UTC),
+        runner=runner,
+    )
+
+    assert result.status == "workflow_exists"
+
+
+def test_catchup_agent_runs_at_load_and_checks_while_mac_is_awake(tmp_path: Path) -> None:
+    definition = launch_agent_definition(
+        repository_root=Path("/work/ResFinance"),
+        python_executable=Path("/work/ResFinance/.venv/bin/python"),
+        gh_executable=Path("/opt/homebrew/bin/gh"),
+        repository="haseebshaik00/ResFinance",
+        workflow="crypto-intelligence-forward-completion.yml",
+        interval_seconds=300,
+        log_directory=tmp_path,
+    )
+
+    assert definition["RunAtLoad"] is True
+    assert definition["StartInterval"] == 300
+    assert definition["WorkingDirectory"] == "/work/ResFinance"
+    assert definition["ProgramArguments"] == [
+        "/work/ResFinance/.venv/bin/python",
+        "-m",
+        "scripts.milestone9.dispatch_daily_forward_completion",
+        "--repository",
+        "haseebshaik00/ResFinance",
+        "--workflow",
+        "crypto-intelligence-forward-completion.yml",
+        "--gh-executable",
+        "/opt/homebrew/bin/gh",
+    ]

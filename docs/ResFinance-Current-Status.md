@@ -231,6 +231,12 @@ Evidence:
   under `config/crypto-intelligence/`. Activation still requires the runner,
   repository variable, main-branch write policy, and workflow to exist on
   `main`; no production or cloud deployment is introduced.
+- Added a macOS login/wake catch-up dispatcher for the daily workflow. After
+  6:00 AM fixed PST, it queries `main` for the dated evidence and same-day
+  workflow run before dispatching at most one missed job; GitHub Actions still
+  performs the research and evidence commit. The workflow also makes a late
+  duplicate delivery a successful no-op once the dated evidence exists. The
+  dispatcher requires a Keychain-backed GitHub CLI login on the runner account.
 - Kept the original provider-backed candidate rejected. A separately
   predeclared forward candidate tied naive MAE at `0.0529717654`, achieved
   `88.05%` interval coverage, passed the unchanged promotion gate, and produced

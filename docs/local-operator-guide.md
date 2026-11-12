@@ -262,6 +262,42 @@ encryption key mounted in `resfinance-api-1`.
 6. Merge the workflow to `main`, then use **Actions → Daily Crypto Intelligence
    Forward Completion → Run workflow** once to validate the complete runner,
    Docker, provider, ResilientDB, artifact-upload, commit, and push path.
+   At job start, the workflow also detects an evidence file already committed
+   for that fixed-PST date and exits successfully. This prevents a late GitHub
+   schedule from repeating research after the local catch-up dispatcher has
+   already completed the day.
+
+7. Enable missed-run catch-up on the same macOS account. It retains GitHub
+   Actions as the sole process that runs research and writes the evidence
+   commit; the local launcher only dispatches the existing workflow after the
+   fixed-PST due time when GitHub has no evidence or same-day workflow run.
+
+   Authenticate the GitHub CLI once. Its credential is retained by the macOS
+   Keychain; do not put a token in the repository, LaunchAgent plist, shell
+   profile, or log.
+
+   ```bash
+   gh auth login --hostname github.com --web --scopes "repo,workflow"
+   .venv/bin/python -m scripts.milestone9.install_daily_forward_catchup
+   ```
+
+   The installer creates the user LaunchAgent
+   `com.resfinance.daily-forward-catchup`. It runs at login and every five
+   minutes while the Mac is awake. Before 6:00 AM fixed PST it exits without
+   contacting GitHub. After 6:00 AM, it checks `main` for that date's evidence
+   file and for an existing workflow run before dispatching
+   `crypto-intelligence-forward-completion.yml` on `main`.
+
+   This makes a missed 6:00 AM run catch up after a later login or wake without
+   duplicating a scheduled, manual, queued, running, completed, or
+   evidence-producing run. It cannot run while the Mac remains powered off,
+   offline, or unable to run the required Docker services; it catches up after
+   the Mac is usable again. Inspect its logs at:
+
+   ```text
+   ~/Library/Logs/resfinance/daily-forward-catchup.log
+   ~/Library/Logs/resfinance/daily-forward-catchup-error.log
+   ```
 
 ### Daily output and failure behavior
 
@@ -305,6 +341,12 @@ JSON evidence emitted by the checked-in forward-completion runner is committed.
 - Research input error: verify the GDELT file is the approved bounded aggregate
   and retain its SHA-256/provenance. Synthetic fixtures cannot satisfy this
   gate.
+- `GitHub CLI is not authenticated`: run the Keychain-backed `gh auth login`
+  command in the daily catch-up setup above, then rerun the installer.
+- Daily evidence is absent after a wake-up: inspect the catch-up logs, verify
+  the runner service and Docker containers are running, and use the Actions
+  run created by the dispatcher as the auditable failure record. Do not run the
+  forward-completion Python module directly from the LaunchAgent.
 
 Known limitations: local-only topology, personal non-commercial provider
 scope, manual worker scheduling, no trade execution or exchange custody, no
