@@ -68,7 +68,6 @@ test("shows the promotion gate and records a versioned risk profile", async ({
       }),
     });
   });
-
   await page.goto("/crypto");
   await approveWalletLogin(page);
 
@@ -78,7 +77,7 @@ test("shows the promotion gate and records a versioned risk profile", async ({
   await expect(
     page.getByRole("heading", { name: "Savings, translated into choices!" }),
   ).toBeVisible();
-  await expect(page.getByText("$2,700.00", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Scenario amount (USD)")).toHaveValue("2700.00");
   await expect(
     page
       .locator(".summary-grid")
@@ -110,9 +109,15 @@ test("shows the promotion gate and records a versioned risk profile", async ({
     page.getByText(/No forecast has passed the required quality checks/),
   ).toBeVisible();
   await expect(page.getByText(/milestone/i)).toHaveCount(0);
+  await expect(page.getByLabel("Scenario amount (USD)")).toHaveValue("2700.00");
+  await expect(
+    page.getByText(
+      "Changing this amount never updates your saved Finance data.",
+    ),
+  ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Analyze Another Amount" }),
-  ).toBeVisible();
+  ).toHaveCount(0);
 
   await page.getByRole("button", { name: "Save risk profile" }).click();
   await expect(page.getByText("Score 67", { exact: true })).toBeVisible();
@@ -236,6 +241,21 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
       }),
     });
   });
+  await page.route("**/api/v1/crypto/scenarios", async (route) => {
+    expect(route.request().postDataJSON()).toEqual({
+      amount: { currency: "USD", minor_units: 123456 },
+    });
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        capital: { currency: "USD", minor_units: 123456 },
+        source_kind: "scenario",
+        allocations: [],
+        warnings: [],
+      }),
+    });
+  });
 
   await page.goto("/crypto");
   await approveWalletLogin(page);
@@ -276,4 +296,15 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
   await expect(page.getByText("$1,350.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$945.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$405.00", { exact: true })).toBeVisible();
+  const capitalCard = page.locator(".capital-card");
+  await capitalCard.getByLabel("Scenario amount (USD)").fill("1234.56");
+  await capitalCard.getByRole("button", { name: "Analyze amount" }).click();
+  await expect(
+    capitalCard.getByText(/Scenario active: \$1,234.56/),
+  ).toBeVisible();
+  await expect(
+    capitalCard.getByText("Your Finance default is unchanged.", {
+      exact: false,
+    }),
+  ).toBeVisible();
 });

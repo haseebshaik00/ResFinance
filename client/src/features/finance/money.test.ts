@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatUsd, usdToMinorUnits } from "./money";
+import { formatUsd, minorUnitsToUsdInput, usdToMinorUnits } from "./money";
 
 describe("finance money helpers", () => {
   it("parses USD without binary floating point arithmetic", () => {
@@ -18,5 +18,10 @@ describe("finance money helpers", () => {
   it("formats positive and negative integer cents", () => {
     expect(formatUsd(123456)).toBe("$1,234.56");
     expect(formatUsd(-25)).toBe("-$0.25");
+  });
+
+  it("formats non-negative integer cents for an editable USD field", () => {
+    expect(minorUnitsToUsdInput(123456)).toBe("1234.56");
+    expect(minorUnitsToUsdInput(0)).toBe("0.00");
   });
 });

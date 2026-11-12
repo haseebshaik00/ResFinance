@@ -26,6 +26,15 @@ export function formatUsd(minorUnits: number): string {
   return `${sign}$${dollars}.${cents}`;
 }
 
+export function minorUnitsToUsdInput(minorUnits: number): string {
+  if (!Number.isSafeInteger(minorUnits) || minorUnits < 0) {
+    throw new Error("USD cents must be a non-negative safe integer.");
+  }
+  const dollars = Math.floor(minorUnits / 100);
+  const cents = String(minorUnits % 100).padStart(2, "0");
+  return `${dollars}.${cents}`;
+}
+
 export function currentMonth(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;

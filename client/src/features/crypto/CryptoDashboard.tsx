@@ -5,7 +5,12 @@ import type {
   PortfolioRecommendation,
 } from "../../lib/api/client";
 import { MonthPicker } from "../../components/MonthPicker";
-import { currentMonth, formatUsd, usdToMinorUnits } from "../finance/money";
+import {
+  currentMonth,
+  formatUsd,
+  minorUnitsToUsdInput,
+  usdToMinorUnits,
+} from "../finance/money";
 import { CryptoChart } from "./CryptoChart";
 import { useCryptoDashboard } from "./useCryptoDashboard";
 
@@ -71,10 +76,10 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
         className="summary-grid"
         aria-label="Crypto Intelligence summary"
       >
-        <Metric
-          label="Default capital"
-          value={formatUsd(overview.default_capital.minor_units)}
-          note="Your Available Savings"
+        <CapitalScenarioCard
+          key={`${month}-${overview.default_capital.minor_units}`}
+          defaultCapital={overview.default_capital.minor_units}
+          dashboard={dashboard}
         />
         <Metric
           label="Risk score"
@@ -97,10 +102,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
         />
       </section>
 
-      <div className="dashboard-columns">
-        <RiskQuestionnaire overview={overview} dashboard={dashboard} />
-        <ScenarioPanel dashboard={dashboard} />
-      </div>
+      <RiskQuestionnaire overview={overview} dashboard={dashboard} />
 
       {overview.forecast === null ? (
         <section className="panel empty-forecast" role="status">
@@ -239,12 +241,16 @@ function RiskQuestionnaire({
   );
 }
 
-function ScenarioPanel({
+function CapitalScenarioCard({
+  defaultCapital,
   dashboard,
 }: {
+  defaultCapital: number;
   dashboard: ReturnType<typeof useCryptoDashboard>;
 }) {
-  const [amount, setAmount] = useState("1000");
+  const [amount, setAmount] = useState(() =>
+    minorUnitsToUsdInput(defaultCapital),
+  );
   const [validationError, setValidationError] = useState<string | null>(null);
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -261,35 +267,34 @@ function ScenarioPanel({
     }
   }
   return (
-    <section className="entry-panel" aria-labelledby="scenario-title">
-      <p className="section-kicker">
-        {" "}
-        What IF? <em style={{ color: "#d92d20" }}>(Read-only)</em>
-      </p>
-      <h2 id="scenario-title">Analyze Another Amount</h2>
-      <p className="panel-note">
-        Change only this on-screen scenario. Your saved Finance data is never
-        updated.
-      </p>
-      <form className="scenario-form" onSubmit={submit}>
-        <label className="form-field">
-          <span>Scenario amount (USD)</span>
+    <article
+      className="metric-card capital-card"
+      aria-labelledby="capital-title"
+    >
+      <p id="capital-title">Default capital</p>
+      <form className="capital-scenario-form" onSubmit={submit}>
+        <label className="capital-amount-field">
+          <span className="sr-only">Scenario amount (USD)</span>
+          <span aria-hidden="true">$</span>
           <input
-            type="number"
-            min="0.01"
-            step="0.01"
+            type="text"
+            inputMode="decimal"
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
           />
         </label>
         <button
-          className="primary-button"
+          className="capital-scenario-button"
           type="submit"
           disabled={dashboard.scenario.isPending}
         >
           {dashboard.scenario.isPending ? "Analyzing…" : "Analyze amount"}
         </button>
       </form>
+      <small>Your Available Savings · Read-only scenario</small>
+      <p className="capital-disclaimer">
+        Changing this amount never updates your saved Finance data.
+      </p>
       {dashboard.scenario.isError && (
         <p className="form-error" role="alert">
           {dashboard.scenario.error.message}
@@ -307,7 +312,7 @@ function ScenarioPanel({
           default is unchanged.
         </p>
       )}
-    </section>
+    </article>
   );
 }
 
