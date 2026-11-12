@@ -11,7 +11,8 @@ from typing import Literal
 from server.app.domain.crypto import CryptoAsset, canonical_decimal, utc_datetime
 from server.app.domain.events import DomainEvent
 
-RISK_POLICY_VERSION = "risk-questionnaire-v1"
+RISK_POLICY_VERSION = "risk-questionnaire-v2"
+LEGACY_RISK_POLICY_VERSION = "risk-questionnaire-v1"
 PORTFOLIO_POLICY_VERSION = "portfolio-policy-v1"
 FORECAST_HORIZON_DAYS = 15
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -23,27 +24,21 @@ class PortfolioProjectionError(ValueError):
 
 @dataclass(frozen=True)
 class RiskAnswers:
-    time_horizon: int
-    loss_tolerance: int
-    income_stability: int
-    liquidity_need: int
-    investing_experience: int
+    investment_horizon: int
+    risk_tolerance: int
+    liquidity_needs: int
 
     def __post_init__(self) -> None:
         for name, value in self.__dict__.items():
-            if isinstance(value, bool) or not 0 <= value <= 4:
-                raise ValueError(f"{name} must be an integer from zero through four")
+            if isinstance(value, bool) or not 1 <= value <= 3:
+                raise ValueError(f"{name} must be an integer from one through three")
 
     @property
     def score(self) -> int:
-        points = (
-            self.time_horizon
-            + self.loss_tolerance
-            + self.income_stability
-            + (4 - self.liquidity_need)
-            + self.investing_experience
-        )
-        return points * 5
+        # Scores remain whole numbers for the portfolio policy. This is the
+        # nearest-integer form of 100 × (horizon + tolerance + liquidity) / 9.
+        points = self.investment_horizon + self.risk_tolerance + self.liquidity_needs
+        return (100 * points + 4) // 9
 
     def to_dict(self) -> dict[str, int]:
         return dict(self.__dict__)
@@ -73,16 +68,27 @@ def reduce_risk_event(projection: RiskProjection, event: DomainEvent) -> RiskPro
     if event.event_type != "risk.profile-recorded":
         raise PortfolioProjectionError(f"unsupported risk event: {event.event_type}")
     payload = event.payload
+    policy_version = payload.get("policy_version")
+    if policy_version == LEGACY_RISK_POLICY_VERSION:
+        _validate_legacy_risk_payload(payload)
+        # The previous questionnaire cannot be mapped faithfully to the new
+        # three-answer formula. Keep the append-only history, but require a
+        # fresh v2 response before using it for a portfolio recommendation.
+        return RiskProjection(
+            projection_version=event.aggregate_version,
+            profile=None,
+            source_event_ids=(*projection.source_event_ids, event.event_id),
+        )
+    if policy_version != RISK_POLICY_VERSION:
+        raise PortfolioProjectionError("unsupported risk policy version")
     answers_value = payload.get("answers")
     if not isinstance(answers_value, dict):
         raise PortfolioProjectionError("risk answers are invalid")
     try:
         answers = RiskAnswers(
-            time_horizon=_risk_answer(answers_value, "time_horizon"),
-            loss_tolerance=_risk_answer(answers_value, "loss_tolerance"),
-            income_stability=_risk_answer(answers_value, "income_stability"),
-            liquidity_need=_risk_answer(answers_value, "liquidity_need"),
-            investing_experience=_risk_answer(answers_value, "investing_experience"),
+            investment_horizon=_risk_answer(answers_value, "investment_horizon"),
+            risk_tolerance=_risk_answer(answers_value, "risk_tolerance"),
+            liquidity_needs=_risk_answer(answers_value, "liquidity_needs"),
         )
     except ValueError as exc:
         raise PortfolioProjectionError("risk answers are invalid") from exc
@@ -91,8 +97,6 @@ def reduce_risk_event(projection: RiskProjection, event: DomainEvent) -> RiskPro
     score = payload.get("score")
     if score != answers.score:
         raise PortfolioProjectionError("stored risk score does not match its answers")
-    if payload.get("policy_version") != RISK_POLICY_VERSION:
-        raise PortfolioProjectionError("unsupported risk policy version")
     profile = RiskProfile(
         answers=answers,
         score=answers.score,
@@ -105,6 +109,34 @@ def reduce_risk_event(projection: RiskProjection, event: DomainEvent) -> RiskPro
         profile=profile,
         source_event_ids=(*projection.source_event_ids, event.event_id),
     )
+
+
+def _validate_legacy_risk_payload(payload: dict[str, object]) -> None:
+    answers = payload.get("answers")
+    fields = {
+        "time_horizon",
+        "loss_tolerance",
+        "income_stability",
+        "liquidity_need",
+        "investing_experience",
+    }
+    if not isinstance(answers, dict) or set(answers) != fields:
+        raise PortfolioProjectionError("legacy risk answers are invalid")
+    try:
+        values = {name: _risk_answer(answers, name) for name in fields}
+    except ValueError as exc:
+        raise PortfolioProjectionError("legacy risk answers are invalid") from exc
+    if any(isinstance(value, bool) or not 0 <= value <= 4 for value in values.values()):
+        raise PortfolioProjectionError("legacy risk answers are invalid")
+    legacy_score = (
+        values["time_horizon"]
+        + values["loss_tolerance"]
+        + values["income_stability"]
+        + (4 - values["liquidity_need"])
+        + values["investing_experience"]
+    ) * 5
+    if payload.get("score") != legacy_score:
+        raise PortfolioProjectionError("stored legacy risk score does not match its answers")
 
 
 @dataclass(frozen=True)

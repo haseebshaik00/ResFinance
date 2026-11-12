@@ -1832,43 +1832,29 @@
       "RiskAnswersModel": {
         "additionalProperties": false,
         "properties": {
-          "income_stability": {
-            "maximum": 4.0,
-            "minimum": 0.0,
-            "title": "Income Stability",
+          "investment_horizon": {
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Investment Horizon",
             "type": "integer"
           },
-          "investing_experience": {
-            "maximum": 4.0,
-            "minimum": 0.0,
-            "title": "Investing Experience",
+          "liquidity_needs": {
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Liquidity Needs",
             "type": "integer"
           },
-          "liquidity_need": {
-            "maximum": 4.0,
-            "minimum": 0.0,
-            "title": "Liquidity Need",
-            "type": "integer"
-          },
-          "loss_tolerance": {
-            "maximum": 4.0,
-            "minimum": 0.0,
-            "title": "Loss Tolerance",
-            "type": "integer"
-          },
-          "time_horizon": {
-            "maximum": 4.0,
-            "minimum": 0.0,
-            "title": "Time Horizon",
+          "risk_tolerance": {
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Risk Tolerance",
             "type": "integer"
           }
         },
         "required": [
-          "time_horizon",
-          "loss_tolerance",
-          "income_stability",
-          "liquidity_need",
-          "investing_experience"
+          "investment_horizon",
+          "risk_tolerance",
+          "liquidity_needs"
         ],
         "title": "RiskAnswersModel",
         "type": "object"
@@ -1927,7 +1913,7 @@
             "$ref": "#/components/schemas/RiskAnswersModel"
           },
           "policy_version": {
-            "const": "risk-questionnaire-v1",
+            "const": "risk-questionnaire-v2",
             "title": "Policy Version",
             "type": "string"
           },

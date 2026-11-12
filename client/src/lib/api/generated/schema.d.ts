@@ -1116,16 +1116,12 @@ export interface components {
         };
         /** RiskAnswersModel */
         RiskAnswersModel: {
-            /** Income Stability */
-            income_stability: number;
-            /** Investing Experience */
-            investing_experience: number;
-            /** Liquidity Need */
-            liquidity_need: number;
-            /** Loss Tolerance */
-            loss_tolerance: number;
-            /** Time Horizon */
-            time_horizon: number;
+            /** Investment Horizon */
+            investment_horizon: number;
+            /** Liquidity Needs */
+            liquidity_needs: number;
+            /** Risk Tolerance */
+            risk_tolerance: number;
         };
         /** RiskProfileCommand */
         RiskProfileCommand: {
@@ -1154,7 +1150,7 @@ export interface components {
              * Policy Version
              * @constant
              */
-            policy_version: "risk-questionnaire-v1";
+            policy_version: "risk-questionnaire-v2";
             /**
              * Recorded At Utc
              * Format: date-time

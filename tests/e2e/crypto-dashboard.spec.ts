@@ -48,14 +48,12 @@ test("shows the promotion gate and records a versioned risk profile", async ({
         risk_profile: profileSaved
           ? {
               answers: {
-                time_horizon: 2,
-                loss_tolerance: 2,
-                income_stability: 2,
-                liquidity_need: 2,
-                investing_experience: 2,
+                investment_horizon: 2,
+                risk_tolerance: 2,
+                liquidity_needs: 2,
               },
-              score: 50,
-              policy_version: "risk-questionnaire-v1",
+              score: 67,
+              policy_version: "risk-questionnaire-v2",
               source_event_id: "evt_risk_e2e",
               recorded_at_utc: "2026-10-14T08:00:00Z",
             }
@@ -108,7 +106,7 @@ test("shows the promotion gate and records a versioned risk profile", async ({
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Save risk profile" }).click();
-  await expect(page.getByText("Score 50", { exact: true })).toBeVisible();
+  await expect(page.getByText("Score 67", { exact: true })).toBeVisible();
   await page.screenshot({
     path: "test-results/crypto-dashboard.png",
     fullPage: true,
@@ -154,14 +152,12 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
         month: "2026-10",
         risk_profile: {
           answers: {
-            time_horizon: 2,
-            loss_tolerance: 2,
-            income_stability: 2,
-            liquidity_need: 2,
-            investing_experience: 2,
+            investment_horizon: 2,
+            risk_tolerance: 2,
+            liquidity_needs: 2,
           },
-          score: 50,
-          policy_version: "risk-questionnaire-v1",
+          score: 67,
+          policy_version: "risk-questionnaire-v2",
           source_event_id: "evt_risk_e2e",
           recorded_at_utc: "2026-10-14T08:00:00Z",
         },
