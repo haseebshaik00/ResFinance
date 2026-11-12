@@ -185,10 +185,20 @@ Evidence:
   BTC/ETH/SOL optimization, Finance-linked default capital, exact-cent
   allocations, immutable forecast provenance, and non-mutating amount
   scenarios.
+- Simplified the active risk policy to three 1–3 responses—investment horizon,
+  risk tolerance, and liquidity needs—with the documented nine-point score
+  formula. Earlier five-question profiles remain auditable but must be
+  replaced before they can inform a new recommendation.
 - Implemented Ledoit-Wolf covariance, 15-day scaling, positive-semidefinite
   repair, CLARABEL/SCS solving, and a constrained minimum-variance fallback.
 - Delivered the Crypto Intelligence dashboard and fail-closed handling for
   stale, synthetic, corrupted, or unpromoted forecast inputs.
+- Made the price outlook's 15-calendar-day span explicit with daily time-scale
+  spacing, observed-through and forecast-end dates, endpoint values and
+  returns, and an explanation when the P50 median is a no-change forecast.
+- Reused the accessible in-app month picker for the Crypto Intelligence
+  savings-month control, keeping the calendar interaction and dark-theme
+  treatment consistent with Personal Finance.
 
 Evidence:
 [`milestones/milestone6-crypto-intelligence-dashboard.md`](milestones/milestone6-crypto-intelligence-dashboard.md).

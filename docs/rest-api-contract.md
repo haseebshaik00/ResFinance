@@ -103,8 +103,11 @@ Every Group write is append-only, encrypted before ResilientDB, version checked,
   profile, Finance-owned default capital, promoted forecast evidence when
   available, and a constrained portfolio recommendation when every gate passes.
 - `POST /api/v1/crypto/risk-profile` appends an idempotent encrypted
-  `risk-questionnaire-v1` profile event and requires the expected profile
-  version.
+  `risk-questionnaire-v2` profile event and requires the expected profile
+  version. It accepts three required answers from 1 through 3:
+  `investment_horizon`, `risk_tolerance`, and `liquidity_needs`; the score is
+  the nearest whole-number result of `100 × (investment_horizon +
+  risk_tolerance + liquidity_needs) / 9`.
 - `POST /api/v1/crypto/scenarios` returns an isolated allocation for positive
   integer USD cents. It appends no event and carries no Finance savings source.
 

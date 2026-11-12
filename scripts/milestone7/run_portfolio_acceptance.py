@@ -89,13 +89,13 @@ def main() -> int:
         actor_address=actor,
         idempotency_key=f"m7-risk-{suffix}",
         expected_version=0,
-        answers=RiskAnswers(3, 2, 3, 1, 2),
+        answers=RiskAnswers(3, 2, 3),
     )
     duplicate = service.record_risk_profile(
         actor_address=actor,
         idempotency_key=f"m7-risk-{suffix}",
         expected_version=0,
-        answers=RiskAnswers(3, 2, 3, 1, 2),
+        answers=RiskAnswers(3, 2, 3),
     )
     month = now.strftime("%Y-%m")
     before = finance.overview(actor_address=actor, month=month)

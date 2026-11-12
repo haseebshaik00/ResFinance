@@ -14,9 +14,12 @@ fiat or cryptocurrency, or change Finance from a scenario.
 
 ## Implemented behavior
 
-- A five-question `risk-questionnaire-v1` policy produces an integer score from
-  zero through 100. Higher liquidity need reduces the score. Each submitted
-  profile is an encrypted, append-only, idempotent ResilientDB event.
+- A three-question `risk-questionnaire-v2` policy accepts 1 (low) through 3
+  (high) for investment horizon, risk tolerance, and liquidity needs. It uses
+  the nearest whole-number result of `100 × (horizon + tolerance + liquidity) /
+  9`; each submitted profile is an encrypted, append-only, idempotent
+  ResilientDB event. Historical v1 profiles remain in the event stream but
+  require a fresh v2 response before a new portfolio recommendation is made.
 - `portfolio-policy-v1` optimizes only BTC, ETH, and SOL. Weights are long-only,
   sum to one, and respect caps of 80% BTC, 60% ETH, and a score-dependent SOL
   cap from 10% through 35%.

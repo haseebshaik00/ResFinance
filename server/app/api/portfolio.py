@@ -36,11 +36,9 @@ class MoneyModel(BaseModel):
 
 class RiskAnswersModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    time_horizon: int = Field(ge=0, le=4)
-    loss_tolerance: int = Field(ge=0, le=4)
-    income_stability: int = Field(ge=0, le=4)
-    liquidity_need: int = Field(ge=0, le=4)
-    investing_experience: int = Field(ge=0, le=4)
+    investment_horizon: int = Field(ge=1, le=3)
+    risk_tolerance: int = Field(ge=1, le=3)
+    liquidity_needs: int = Field(ge=1, le=3)
 
 
 class RiskProfileCommand(BaseModel):
@@ -64,7 +62,7 @@ class RiskProfileEventResponse(BaseModel):
 class RiskProfileModel(BaseModel):
     answers: RiskAnswersModel
     score: int
-    policy_version: Literal["risk-questionnaire-v1"]
+    policy_version: Literal["risk-questionnaire-v2"]
     source_event_id: str
     recorded_at_utc: datetime
 
@@ -248,7 +246,7 @@ def _risk_response(value: RiskProfile) -> RiskProfileModel:
     return RiskProfileModel(
         answers=RiskAnswersModel(**value.answers.to_dict()),
         score=value.score,
-        policy_version="risk-questionnaire-v1",
+        policy_version="risk-questionnaire-v2",
         source_event_id=value.source_event_id,
         recorded_at_utc=value.recorded_at_utc,
     )

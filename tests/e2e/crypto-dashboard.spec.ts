@@ -48,14 +48,12 @@ test("shows the promotion gate and records a versioned risk profile", async ({
         risk_profile: profileSaved
           ? {
               answers: {
-                time_horizon: 2,
-                loss_tolerance: 2,
-                income_stability: 2,
-                liquidity_need: 2,
-                investing_experience: 2,
+                investment_horizon: 2,
+                risk_tolerance: 2,
+                liquidity_needs: 2,
               },
-              score: 50,
-              policy_version: "risk-questionnaire-v1",
+              score: 67,
+              policy_version: "risk-questionnaire-v2",
               source_event_id: "evt_risk_e2e",
               recorded_at_utc: "2026-10-14T08:00:00Z",
             }
@@ -78,7 +76,7 @@ test("shows the promotion gate and records a versioned risk profile", async ({
     page.getByRole("link", { name: "Crypto Intelligence", exact: true }),
   ).toHaveAttribute("aria-current", "page");
   await expect(
-    page.getByRole("heading", { name: "Savings, translated into choices." }),
+    page.getByRole("heading", { name: "Savings, translated into choices!" }),
   ).toBeVisible();
   await expect(page.getByText("$2,700.00", { exact: true })).toBeVisible();
   await expect(
@@ -99,6 +97,15 @@ test("shows the promotion gate and records a versioned risk profile", async ({
       name: "No forecast is eligible for portfolio use.",
     }),
   ).toBeVisible();
+  const savingsMonth = page.getByRole("button", { name: /Savings month/ });
+  await savingsMonth.click();
+  const savingsMonthMenu = page.getByRole("dialog", {
+    name: "Choose savings month",
+  });
+  await expect(savingsMonthMenu).toBeVisible();
+  await savingsMonthMenu.getByRole("button", { name: "Oct" }).click();
+  await expect(savingsMonth).toHaveAccessibleName("Savings month October 2026");
+  await expect(savingsMonthMenu).toHaveCount(0);
   await expect(
     page.getByText(/No forecast has passed the required quality checks/),
   ).toBeVisible();
@@ -108,7 +115,7 @@ test("shows the promotion gate and records a versioned risk profile", async ({
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Save risk profile" }).click();
-  await expect(page.getByText("Score 50", { exact: true })).toBeVisible();
+  await expect(page.getByText("Score 67", { exact: true })).toBeVisible();
   await page.screenshot({
     path: "test-results/crypto-dashboard.png",
     fullPage: true,
@@ -154,14 +161,12 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
         month: "2026-10",
         risk_profile: {
           answers: {
-            time_horizon: 2,
-            loss_tolerance: 2,
-            income_stability: 2,
-            liquidity_need: 2,
-            investing_experience: 2,
+            investment_horizon: 2,
+            risk_tolerance: 2,
+            liquidity_needs: 2,
           },
-          score: 50,
-          policy_version: "risk-questionnaire-v1",
+          score: 67,
+          policy_version: "risk-questionnaire-v2",
           source_event_id: "evt_risk_e2e",
           recorded_at_utc: "2026-10-14T08:00:00Z",
         },
@@ -182,7 +187,7 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
             expected_return: "0.03",
             probability_up: "0.6",
             p10_return: "-0.05",
-            p50_return: "0.03",
+            p50_return: "0",
             p90_return: "0.1",
           })),
           price_history: priceHistory,
@@ -237,9 +242,34 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
 
   await expect(
     page.getByRole("img", {
-      name: "BTC historical USD prices with 15-day P10, P50, and P90 forecast overlays",
+      name: "BTC historical USD prices with 15-day P10, P50, and P90 forecast overlays ending 29 Oct 2026",
     }),
   ).toBeVisible();
+  await expect(
+    page.getByText("Observed through", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("14 Oct 2026", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("15 calendar days", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Forecast ends", { exact: true })).toBeVisible();
+  await expect(page.getByText("29 Oct 2026", { exact: true })).toBeVisible();
+  await expect(page.getByText("$108.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("0.00%", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(/P50 matches the latest observed price/),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    ),
+  ).toBe(false);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    ),
+  ).toBe(false);
   await expect(
     page.getByRole("heading", { name: "Portfolio allocation" }),
   ).toBeVisible();

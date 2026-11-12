@@ -4,6 +4,7 @@ import type {
   CryptoOverview,
   PortfolioRecommendation,
 } from "../../lib/api/client";
+import { MonthPicker } from "../../components/MonthPicker";
 import { currentMonth, formatUsd, usdToMinorUnits } from "../finance/money";
 import { CryptoChart } from "./CryptoChart";
 import { useCryptoDashboard } from "./useCryptoDashboard";
@@ -11,11 +12,21 @@ import { useCryptoDashboard } from "./useCryptoDashboard";
 type Asset = "BTC" | "ETH" | "SOL";
 const ASSETS: Asset[] = ["BTC", "ETH", "SOL"];
 const QUESTIONS = [
-  ["time_horizon", "Investment time horizon", "Short", "Long"],
-  ["loss_tolerance", "Comfort with temporary losses", "Low", "High"],
-  ["income_stability", "Income stability", "Variable", "Stable"],
-  ["liquidity_need", "Need for near-term access", "Low", "High"],
-  ["investing_experience", "Investing experience", "New", "Experienced"],
+  [
+    "investment_horizon",
+    "Investment Horizon",
+    ["Short-term", "Medium-term", "Long-term"],
+  ],
+  [
+    "risk_tolerance",
+    "Risk Tolerance",
+    ["Prefer safety", "Moderate risk", "High risk"],
+  ],
+  [
+    "liquidity_needs",
+    "Liquidity Needs",
+    ["High need", "Moderate need", "Low need"],
+  ],
 ] as const;
 
 export function CryptoDashboard({ accessToken }: { accessToken: string }) {
@@ -27,7 +38,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
     return (
       <DashboardState
         title="Building your crypto view…"
-        text="Reading Finance savings, risk preferences, and approved forecast data."
+        text="Reading actual savings, risk preferences, and approved forecast data."
       />
     );
   }
@@ -47,20 +58,13 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
       <section className="dashboard-header" aria-labelledby="crypto-title">
         <div>
           <p className="eyebrow">Risk-aware portfolio</p>
-          <h1 id="crypto-title">Savings, translated into choices.</h1>
+          <h1 id="crypto-title">Savings, translated into choices!</h1>
           <p className="lede">
-            Explore a long-only BTC, ETH, and SOL allocation backed by your risk
-            profile, Finance savings, and an approved 15-day forecast.
+            Explore a BTC, ETH, and SOL portfolio tailored to your savings, risk
+            preferences, and an approved 15-day forecast.
           </p>
         </div>
-        <label className="month-control">
-          <span>Savings month</span>
-          <input
-            type="month"
-            value={month}
-            onChange={(event) => setMonth(event.target.value)}
-          />
-        </label>
+        <MonthPicker month={month} onChange={setMonth} label="Savings month" />
       </section>
 
       <section
@@ -70,12 +74,12 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
         <Metric
           label="Default capital"
           value={formatUsd(overview.default_capital.minor_units)}
-          note="From Finance savings"
+          note="Your Available Savings"
         />
         <Metric
           label="Risk score"
           value={overview.risk_profile?.score.toString() ?? "Not set"}
-          note="0 conservative · 100 growth"
+          note="33 lower risk · 100 growth"
         />
         <Metric
           label="Forecast"
@@ -170,11 +174,9 @@ function RiskQuestionnaire({
   const [answers, setAnswers] = useState<
     Record<(typeof QUESTIONS)[number][0], number>
   >({
-    time_horizon: existing?.time_horizon ?? 2,
-    loss_tolerance: existing?.loss_tolerance ?? 2,
-    income_stability: existing?.income_stability ?? 2,
-    liquidity_need: existing?.liquidity_need ?? 2,
-    investing_experience: existing?.investing_experience ?? 2,
+    investment_horizon: existing?.investment_horizon ?? 2,
+    risk_tolerance: existing?.risk_tolerance ?? 2,
+    liquidity_needs: existing?.liquidity_needs ?? 2,
   });
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -197,7 +199,7 @@ function RiskQuestionnaire({
         )}
       </div>
       <form className="risk-form" onSubmit={submit}>
-        {QUESTIONS.map(([key, label, low, high]) => (
+        {QUESTIONS.map(([key, label, options]) => (
           <label className="form-field" key={key}>
             <span>{label}</span>
             <select
@@ -209,11 +211,14 @@ function RiskQuestionnaire({
                 }))
               }
             >
-              {[0, 1, 2, 3, 4].map((value) => (
-                <option value={value} key={value}>
-                  {value} · {scaleLabel(value, low, high)}
-                </option>
-              ))}
+              {options.map((option, index) => {
+                const value = index + 1;
+                return (
+                  <option value={value} key={value}>
+                    {value} · {option}
+                  </option>
+                );
+              })}
             </select>
           </label>
         ))}
@@ -379,12 +384,4 @@ function DashboardState({
       <p>{text}</p>
     </section>
   );
-}
-
-function scaleLabel(value: number, low: string, high: string): string {
-  if (value === 0) return low;
-  if (value === 1) return `Leaning ${low.toLowerCase()}`;
-  if (value === 2) return "Balanced";
-  if (value === 3) return `Leaning ${high.toLowerCase()}`;
-  return high;
 }
