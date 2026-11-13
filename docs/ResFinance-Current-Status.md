@@ -138,8 +138,9 @@ Evidence:
 - Confined Group projection version, encrypted source-event count, and update
   time to the Data Freshness and Provenance footer.
 - Reorganized the Friends & Groups dashboard around a Personal Finance-style
-  hero, summary cards, a collapsible Update the group section, and paged
-  activity tabs with filters. Signing and settlement behavior is unchanged.
+  hero, summary cards, a collapsible Update the group section, and filtered
+  activity tabs that initially show three records and reveal more on demand.
+  Signing and settlement behavior is unchanged.
 - Matched the Friends & Groups hero typography and responsive header layout to
   Personal Finance, and added an accessible in-app guide covering group setup,
   splits, signed approvals, internal-credit settlement, receipts, and the

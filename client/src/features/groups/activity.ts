@@ -1,4 +1,5 @@
-export const ACTIVITY_PAGE_SIZE = 6;
+/** Initial and incremental record count for each Group activity tab. */
+export const ACTIVITY_PAGE_SIZE = 3;
 
 export type ObligationFilter = "action" | "open" | "settled" | "all";
 export type ExpenseFilter = "all" | "mine";

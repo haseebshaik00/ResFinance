@@ -942,9 +942,9 @@ test("pages long expense histories and keeps focus visible", async ({
   await expect(expensesTab).toHaveAttribute("aria-selected", "true");
   const panel = page.locator(".expenses-panel");
   const cards = panel.locator(".expense-card");
-  await expect(cards).toHaveCount(6);
+  await expect(cards).toHaveCount(3);
   await expect(cards.first().getByRole("heading")).toHaveText("Expense 14");
-  await expect(panel.getByText("Showing 6 of 14")).toBeVisible();
+  await expect(panel.getByText("Showing 3 of 14")).toBeVisible();
   const crowded = cards.nth(0);
   const ordinary = cards.nth(1);
   await expect(crowded.getByRole("button", { name: "4 more" })).toBeVisible();
@@ -968,7 +968,11 @@ test("pages long expense histories and keeps focus visible", async ({
   await page.keyboard.press("Escape");
   await expect(others).toHaveCount(0);
 
-  await panel.getByRole("button", { name: "Show 6 more" }).click();
+  await panel.getByRole("button", { name: "Show 3 more" }).click();
+  await expect(cards).toHaveCount(6);
+  await panel.getByRole("button", { name: "Show 3 more" }).click();
+  await expect(cards).toHaveCount(9);
+  await panel.getByRole("button", { name: "Show 3 more" }).click();
   await expect(cards).toHaveCount(12);
   await panel.getByRole("button", { name: "Show 2 more" }).click();
   await expect(cards).toHaveCount(14);
@@ -977,8 +981,8 @@ test("pages long expense histories and keeps focus visible", async ({
   ).toHaveCount(0);
 
   await panel.getByRole("button", { name: /^Paid by you/ }).click();
-  await expect(cards).toHaveCount(6);
-  await expect(panel.getByText("Showing 6 of 7")).toBeVisible();
+  await expect(cards).toHaveCount(3);
+  await expect(panel.getByText("Showing 3 of 7")).toBeVisible();
 
   await expensesTab.focus();
   await page.keyboard.press("ArrowLeft");
