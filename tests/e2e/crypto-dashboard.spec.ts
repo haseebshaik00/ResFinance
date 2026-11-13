@@ -265,6 +265,30 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
   await page.goto("/crypto");
   await approveWalletLogin(page);
 
+  const capitalPanel = page.locator(".capital-card");
+  const riskPanel = page.locator(".risk-questionnaire-card");
+  await expect(capitalPanel).toBeVisible();
+  await expect(riskPanel).toBeVisible();
+  expect(
+    await capitalPanel.evaluate(
+      (element) => getComputedStyle(element, "::before").backgroundColor,
+    ),
+  ).toBe("rgb(79, 126, 168)");
+  expect(
+    await riskPanel.evaluate(
+      (element) => getComputedStyle(element, "::before").backgroundColor,
+    ),
+  ).toBe("rgb(242, 189, 90)");
+  expect(
+    await riskPanel.evaluate(
+      (element) => getComputedStyle(element).backgroundImage,
+    ),
+  ).toContain("radial-gradient");
+  await page.screenshot({
+    path: "test-results/crypto-panels-themed.png",
+    fullPage: false,
+  });
+
   await expect(
     page.getByRole("img", {
       name: "BTC historical USD prices with 15-day P10, P50, and P90 forecast overlays ending 29 Oct 2026",
@@ -295,6 +319,10 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
       () => document.documentElement.scrollWidth > window.innerWidth,
     ),
   ).toBe(false);
+  await page.screenshot({
+    path: "test-results/crypto-panels-themed-mobile.png",
+    fullPage: true,
+  });
   await expect(
     page.getByRole("heading", { name: "Portfolio allocation" }),
   ).toBeVisible();
@@ -317,4 +345,17 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
       exact: false,
     }),
   ).toBeVisible();
+
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.getByRole("button", { name: "Switch to Light Mode" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    ),
+  ).toBe(false);
+  await page.screenshot({
+    path: "test-results/crypto-panels-themed-light.png",
+    fullPage: false,
+  });
 });

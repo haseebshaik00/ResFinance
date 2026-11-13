@@ -1108,6 +1108,57 @@ code {
   align-items: stretch;
 }
 
+.crypto-top-row > .capital-card {
+  --crypto-panel-accent: #4f7ea8;
+}
+
+.crypto-top-row > .risk-questionnaire-card {
+  --crypto-panel-accent: var(--warning);
+}
+
+.crypto-top-row > .capital-card,
+.crypto-top-row > .risk-questionnaire-card {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(
+    in srgb,
+    var(--crypto-panel-accent) 48%,
+    var(--card-border)
+  );
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--crypto-panel-accent) 14%, transparent),
+      transparent 18rem
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(
+        in srgb,
+        var(--crypto-panel-accent) 10%,
+        var(--panel-background)
+      ),
+      var(--panel-background) 64%
+    );
+  box-shadow:
+    0 1.1rem 3rem rgb(78 72 139 / 14%),
+    inset 0 1px 0 var(--card-highlight),
+    inset 3px 0 0
+      color-mix(in srgb, var(--crypto-panel-accent) 72%, transparent);
+}
+
+.crypto-top-row > .capital-card::before,
+.crypto-top-row > .risk-questionnaire-card::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 0.28rem;
+  border-radius: 1.25rem 1.25rem 0 0;
+  background: var(--crypto-panel-accent);
+  content: "";
+}
+
 .metric-card,
 .panel,
 .entry-panel,
@@ -1194,8 +1245,19 @@ code {
   display: grid;
   gap: 0.55rem;
   margin-top: auto;
-  padding-top: 0.8rem;
-  border-top: 1px solid var(--control-border);
+  padding: 0.8rem 0.9rem;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--crypto-panel-accent, var(--page-accent)) 30%,
+      var(--control-border)
+    );
+  border-radius: 0.9rem;
+  background: color-mix(
+    in srgb,
+    var(--crypto-panel-accent, var(--page-accent)) 7%,
+    var(--control-background)
+  );
 }
 
 .crypto-summary-title {
@@ -1260,28 +1322,7 @@ code {
 .capital-card {
   display: flex;
   flex-direction: column;
-  position: relative;
   gap: 0.7rem;
-  overflow: hidden;
-  border-color: color-mix(in srgb, var(--page-accent) 34%, var(--card-border));
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--page-accent) 11%, transparent),
-      transparent 62%
-    ),
-    var(--panel-background);
-}
-
-.capital-card::before {
-  position: absolute;
-  top: 0;
-  left: 1.3rem;
-  width: 3.4rem;
-  height: 0.2rem;
-  border-radius: 0 0 999px 999px;
-  background: var(--page-accent);
-  content: "";
 }
 
 .capital-card-heading {
@@ -1293,10 +1334,23 @@ code {
 
 .capital-source {
   padding: 0.28rem 0.48rem;
-  border: 1px solid color-mix(in srgb, var(--page-accent) 38%, transparent);
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--crypto-panel-accent, var(--page-accent)) 48%,
+      transparent
+    );
   border-radius: 999px;
-  background: color-mix(in srgb, var(--page-accent) 11%, transparent);
-  color: var(--page-accent);
+  background: color-mix(
+    in srgb,
+    var(--crypto-panel-accent, var(--page-accent)) 14%,
+    transparent
+  );
+  color: color-mix(
+    in srgb,
+    var(--crypto-panel-accent, var(--page-accent)) 82%,
+    var(--page-text)
+  );
   font-size: 0.61rem;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -1341,14 +1395,22 @@ code {
   flex: 0 0 auto;
   place-items: center;
   border: 1px solid
-    color-mix(in srgb, var(--page-accent) 46%, var(--control-border));
+    color-mix(
+      in srgb,
+      var(--crypto-panel-accent, var(--page-accent)) 52%,
+      var(--control-border)
+    );
   border-radius: 0.65rem;
   background: color-mix(
     in srgb,
-    var(--page-accent) 12%,
+    var(--crypto-panel-accent, var(--page-accent)) 14%,
     var(--control-background)
   );
-  color: var(--page-accent);
+  color: color-mix(
+    in srgb,
+    var(--crypto-panel-accent, var(--page-accent)) 82%,
+    var(--page-text)
+  );
   cursor: pointer;
   transition:
     transform 160ms ease,
@@ -1356,7 +1418,7 @@ code {
 }
 
 .capital-edit-button:hover {
-  background: var(--page-accent);
+  background: var(--crypto-panel-accent, var(--page-accent));
   color: #fff;
   transform: translateY(-1px);
 }
@@ -1929,14 +1991,53 @@ code {
   margin-bottom: 0.8rem;
 }
 
+.risk-questionnaire-card .section-heading h2 {
+  color: var(--page-text);
+}
+
 .risk-questionnaire-card .risk-form {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.7rem 0.85rem;
 }
 
+.risk-questionnaire-card .form-field {
+  color: color-mix(in srgb, var(--page-muted) 82%, var(--page-text));
+}
+
+.risk-questionnaire-card .form-field select {
+  border-color: color-mix(
+    in srgb,
+    var(--crypto-panel-accent, var(--warning)) 28%,
+    var(--control-border)
+  );
+  background-color: color-mix(
+    in srgb,
+    var(--crypto-panel-accent, var(--warning)) 5%,
+    var(--control-background)
+  );
+}
+
+.risk-questionnaire-card .form-field select:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--crypto-panel-accent, var(--warning)) 9%,
+    var(--control-background-hover)
+  );
+}
+
+.risk-questionnaire-card .form-field select:focus-visible {
+  outline-color: color-mix(
+    in srgb,
+    var(--crypto-panel-accent, var(--warning)) 52%,
+    transparent
+  );
+}
+
 .risk-questionnaire-card .risk-form .primary-button {
   align-self: end;
   grid-column: auto;
+  box-shadow: 0 0.65rem 1.4rem
+    color-mix(in srgb, var(--page-accent) 18%, transparent);
 }
 
 .risk-questionnaire-card .risk-form .form-error {
