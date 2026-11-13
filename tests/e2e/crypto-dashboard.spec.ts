@@ -273,7 +273,7 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
     await capitalPanel.evaluate(
       (element) => getComputedStyle(element, "::before").backgroundColor,
     ),
-  ).toBe("rgb(79, 126, 168)");
+  ).toBe("rgb(255, 140, 160)");
   expect(
     await riskPanel.evaluate(
       (element) => getComputedStyle(element, "::before").backgroundColor,

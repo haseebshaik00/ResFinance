@@ -1109,7 +1109,7 @@ code {
 }
 
 .crypto-top-row > .capital-card {
-  --crypto-panel-accent: #4f7ea8;
+  --crypto-panel-accent: var(--expense);
 }
 
 .crypto-top-row > .risk-questionnaire-card {
