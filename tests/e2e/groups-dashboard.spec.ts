@@ -158,6 +158,16 @@ test("approves and settles an obligation partially and fully", async ({
     groupNetwork.getByRole("button", { name: "New Group" }),
   ).toBeVisible();
   await expect(groupNetwork.locator(".network-metric")).toHaveCount(2);
+  expect(
+    await groupNetwork
+      .locator(".network-metric-groups")
+      .evaluate((element) => getComputedStyle(element).backgroundImage),
+  ).toContain("radial-gradient");
+  expect(
+    await groupNetwork
+      .locator(".network-metric-owe")
+      .evaluate((element) => getComputedStyle(element).backgroundImage),
+  ).toContain("radial-gradient");
   await expect(groupNetwork.getByText("1 group · 1 connection")).toBeVisible();
   await expect(
     groupNetwork.locator(".network-metric-credits strong"),

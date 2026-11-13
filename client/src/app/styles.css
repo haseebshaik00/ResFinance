@@ -3658,14 +3658,30 @@ td.expense {
 }
 
 .network-metric {
+  --network-metric-accent: var(--warning);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.65fr);
   min-height: 8.35rem;
   align-items: stretch;
-  border: 1px solid color-mix(in srgb, var(--warning) 58%, var(--card-border));
-  border-left: 4px solid var(--warning);
+  border: 1px solid
+    color-mix(in srgb, var(--network-metric-accent) 58%, var(--card-border));
+  border-left: 4px solid var(--network-metric-accent);
   border-radius: 1rem;
-  background: color-mix(in srgb, var(--warning) 9%, var(--card-background));
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--network-metric-accent) 14%, transparent),
+      transparent 18rem
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(
+        in srgb,
+        var(--network-metric-accent) 10%,
+        var(--panel-background)
+      ),
+      var(--panel-background) 64%
+    );
 }
 
 .network-metric-primary,
@@ -3709,9 +3725,7 @@ td.expense {
 }
 
 .network-metric-owe {
-  background: color-mix(in srgb, var(--expense) 12%, var(--card-background));
-  border-color: color-mix(in srgb, var(--expense) 58%, var(--card-border));
-  border-left-color: var(--expense);
+  --network-metric-accent: var(--expense);
 }
 
 .network-metric-credits strong {
