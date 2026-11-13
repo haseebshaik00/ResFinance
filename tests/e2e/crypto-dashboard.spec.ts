@@ -279,6 +279,17 @@ test("renders promoted forecast overlays and reconciled allocations", async ({
       (element) => getComputedStyle(element, "::before").backgroundColor,
     ),
   ).toBe("rgb(242, 189, 90)");
+  await expect(capitalPanel.locator(".capital-source")).toHaveCSS(
+    "color",
+    "rgb(70, 214, 189)",
+  );
+  await expect(
+    capitalPanel.getByRole("button", { name: "Edit scenario amount" }),
+  ).toHaveCSS("color", "rgb(242, 189, 90)");
+  await expect(riskPanel.locator(".freshness-pill")).toHaveCSS(
+    "color",
+    "rgb(70, 214, 189)",
+  );
   expect(
     await riskPanel.evaluate(
       (element) => getComputedStyle(element).backgroundImage,

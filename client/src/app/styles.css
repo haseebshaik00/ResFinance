@@ -1261,7 +1261,11 @@ code {
 }
 
 .crypto-summary-title {
-  color: var(--page-text) !important;
+  color: color-mix(
+    in srgb,
+    var(--crypto-panel-accent, var(--page-accent)) 82%,
+    var(--page-text)
+  ) !important;
 }
 
 .crypto-summary-items {
@@ -1332,6 +1336,10 @@ code {
   justify-content: space-between;
 }
 
+.capital-card-heading > #capital-title {
+  color: color-mix(in srgb, var(--expense) 82%, var(--page-text));
+}
+
 .capital-source {
   padding: 0.28rem 0.48rem;
   border: 1px solid
@@ -1356,6 +1364,12 @@ code {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.capital-card .capital-source {
+  border-color: color-mix(in srgb, var(--income) 54%, transparent);
+  background: color-mix(in srgb, var(--income) 14%, transparent);
+  color: var(--income);
 }
 
 .capital-scenario-form {
@@ -1421,6 +1435,17 @@ code {
   background: var(--crypto-panel-accent, var(--page-accent));
   color: #fff;
   transform: translateY(-1px);
+}
+
+.capital-card .capital-edit-button {
+  border-color: color-mix(in srgb, var(--warning) 60%, var(--control-border));
+  background: color-mix(in srgb, var(--warning) 13%, var(--control-background));
+  color: var(--warning);
+}
+
+.capital-card .capital-edit-button:hover {
+  background: var(--warning);
+  color: #281d08;
 }
 
 .capital-edit-button:focus-visible,
@@ -2165,6 +2190,12 @@ code {
   color: var(--page-muted);
   font-size: 0.72rem;
   font-weight: 700;
+}
+
+.risk-questionnaire-card .freshness-pill {
+  border-color: color-mix(in srgb, var(--income) 48%, var(--control-border));
+  background: color-mix(in srgb, var(--income) 10%, transparent);
+  color: var(--income);
 }
 
 .chart-wrap {
