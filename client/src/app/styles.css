@@ -1547,6 +1547,12 @@ code {
   text-transform: none;
 }
 
+.capital-card .capital-disclaimer strong {
+  color: var(--page-text);
+  font-size: inherit;
+  letter-spacing: inherit;
+}
+
 .capital-card .capital-edit-hint {
   margin: 0;
   color: var(--page-muted);

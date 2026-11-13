@@ -81,7 +81,6 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           key={`${month}-${overview.default_capital.minor_units}`}
           defaultCapital={overview.default_capital.minor_units}
           overview={overview}
-          displayed={displayed}
           dashboard={dashboard}
         />
         <RiskQuestionnaire overview={overview} dashboard={dashboard} />
@@ -178,7 +177,7 @@ function RiskQuestionnaire({
       <div className="section-heading">
         <div>
           <p className="section-kicker">Your preferences</p>
-          <h2 id="risk-title">Risk questionnaire</h2>
+          <h2 id="risk-title">Risk Questionnaire</h2>
         </div>
         {overview.risk_profile !== null && (
           <span className="freshness-pill">
@@ -227,13 +226,7 @@ function RiskQuestionnaire({
   );
 }
 
-function PortfolioSignals({
-  overview,
-  displayed,
-}: {
-  overview: CryptoOverview;
-  displayed: PortfolioRecommendation | null | undefined;
-}) {
+function PortfolioSignals({ overview }: { overview: CryptoOverview }) {
   const summaryItems = [
     {
       label: "Risk score",
@@ -249,9 +242,9 @@ function PortfolioSignals({
           : `As of ${new Date(overview.forecast.as_of_utc).toLocaleDateString()}`,
     },
     {
-      label: "Allocation source",
-      value: displayed?.source_kind === "scenario" ? "Scenario" : "Finance",
-      note: "No trades are executed",
+      label: "Portfolio mode",
+      value: "Investment Guidance",
+      note: "Personalized allocation suggestions",
     },
   ];
 
@@ -274,12 +267,10 @@ function PortfolioSignals({
 function CapitalScenarioCard({
   defaultCapital,
   overview,
-  displayed,
   dashboard,
 }: {
   defaultCapital: number;
   overview: CryptoOverview;
-  displayed: PortfolioRecommendation | null | undefined;
   dashboard: ReturnType<typeof useCryptoDashboard>;
 }) {
   const [amount, setAmount] = useState(() =>
@@ -337,11 +328,11 @@ function CapitalScenarioCard({
       aria-labelledby="capital-title"
     >
       <div className="capital-card-heading">
-        <p id="capital-title">Default capital</p>
+        <p id="capital-title">Investment Capital</p>
         <span className="capital-source">
           {dashboard.scenario.data === undefined
-            ? "Finance default"
-            : "Scenario active"}
+            ? "AVAILABLE SAVINGS"
+            : "SCENARIO ACTIVE"}
         </span>
       </div>
       {isEditing ? (
@@ -404,11 +395,9 @@ function CapitalScenarioCard({
               <Pencil aria-hidden="true" size={17} />
             </button>
           </div>
-          <small>Your Available Savings · Read-only scenario</small>
-          <p className="capital-disclaimer">
-            Edit the amount to explore a what-if scenario. Finance is never
-            updated.
-          </p>
+            <p className="capital-disclaimer">
+              Read Only · Edit the amount to explore other scenarios
+            </p>
         </>
       )}
       {dashboard.scenario.data !== undefined && (
@@ -421,7 +410,7 @@ function CapitalScenarioCard({
           </span>
         </p>
       )}
-      <PortfolioSignals overview={overview} displayed={displayed} />
+      <PortfolioSignals overview={overview} />
     </article>
   );
 }
