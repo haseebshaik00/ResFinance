@@ -3662,15 +3662,16 @@ td.expense {
   z-index: 6;
   display: grid;
   grid-template-columns: minmax(30rem, 1.5fr) minmax(21rem, 1fr);
-  gap: clamp(1.25rem, 2.7vw, 3rem);
+  gap: clamp(1rem, 2vw, 2.25rem);
   align-items: stretch;
+  padding: 1.1rem;
 }
 
 .group-network-summary {
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
   align-content: start;
-  padding-right: clamp(1.25rem, 2.7vw, 3rem);
+  padding-right: clamp(1rem, 2vw, 2.25rem);
   border-right: 1px solid
     color-mix(in srgb, var(--card-border) 86%, transparent);
 }
@@ -3691,14 +3692,14 @@ td.expense {
 
 .group-network-metrics {
   display: grid;
-  gap: 0.9rem;
+  gap: 0.7rem;
 }
 
 .network-metric {
   --network-metric-accent: var(--warning);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.65fr);
-  min-height: 8.35rem;
+  min-height: 7rem;
   align-items: stretch;
   border: 1px solid
     color-mix(in srgb, var(--network-metric-accent) 58%, var(--card-border));
@@ -3727,7 +3728,7 @@ td.expense {
   align-content: center;
   gap: 0.35rem;
   min-width: 0;
-  padding: 1.1rem 1.2rem;
+  padding: 0.85rem 1rem;
 }
 
 .network-metric-support {
@@ -3750,7 +3751,7 @@ td.expense {
 .network-metric strong {
   margin-top: 0.15rem;
   color: var(--page-text);
-  font-size: clamp(1.2rem, 1.7vw, 1.75rem);
+  font-size: clamp(1.1rem, 1.5vw, 1.55rem);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
@@ -3776,19 +3777,20 @@ td.expense {
 .network-counterparties {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 1rem;
-  min-height: 19.5rem;
+  gap: 0.7rem;
+  min-height: 16.25rem;
   min-width: 0;
 }
 
 .group-network-action {
   display: flex;
-  padding-top: 0.25rem;
+  padding-top: 0.1rem;
 }
 
 .group-network-action .new-group-button {
   width: 100%;
   max-width: none;
+  padding: 0.65rem 0.85rem;
 }
 
 .group-network .empty-state {
@@ -3797,7 +3799,7 @@ td.expense {
 
 .net-balance-list {
   display: grid;
-  gap: 0.8rem;
+  gap: 0.5rem;
   max-height: 22rem;
   margin: 0;
   padding: 0 0.35rem 0 0;
@@ -3810,9 +3812,9 @@ td.expense {
 .net-balance-row {
   display: grid;
   grid-template-columns: minmax(6rem, 0.56fr) minmax(5rem, 1fr) auto;
-  gap: 0.75rem;
+  gap: 0.6rem;
   align-items: center;
-  min-height: 2.1rem;
+  min-height: 1.75rem;
 }
 
 .net-balance-name {
