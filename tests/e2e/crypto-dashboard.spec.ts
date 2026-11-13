@@ -117,7 +117,7 @@ test("shows the promotion gate and records a versioned risk profile", async ({
   await expect(page.getByText(/milestone/i)).toHaveCount(0);
   await expect(
     capitalCard.getByText(
-      "Edit the amount to explore a what-if scenario. Finance is never updated.",
+      "Read Only · Edit the amount to explore other scenarios",
     ),
   ).toBeVisible();
   await expect(

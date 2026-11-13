@@ -395,9 +395,9 @@ function CapitalScenarioCard({
               <Pencil aria-hidden="true" size={17} />
             </button>
           </div>
-            <p className="capital-disclaimer">
-              Read Only · Edit the amount to explore other scenarios
-            </p>
+          <p className="capital-disclaimer">
+            Read Only · Edit the amount to explore other scenarios
+          </p>
         </>
       )}
       {dashboard.scenario.data !== undefined && (

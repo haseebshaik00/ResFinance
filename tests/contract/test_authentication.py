@@ -22,7 +22,8 @@ from server.app.domain.settlement import SignedIntent
 from server.app.infrastructure.auth_repository import AuthRepository
 from server.app.main import create_app
 
-NOW = datetime(2026, 10, 13, 18, 0, tzinfo=UTC)
+NOW = datetime.now(UTC).replace(microsecond=0)
+CROSS_LANGUAGE_FIXTURE_NOW = datetime(2026, 10, 13, 18, 0, tzinfo=UTC)
 ORIGIN = "https://app.resfinance.local"
 
 
@@ -293,7 +294,7 @@ def test_reswallet_typescript_signature_matches_backend_rfc8785_verifier() -> No
         intent,
         parameters=fixture["parameters"],
         origin=ORIGIN,
-        now=NOW,
+        now=CROSS_LANGUAGE_FIXTURE_NOW,
         policy=IntentPolicy(action="auth.login"),
     )
 
