@@ -404,9 +404,10 @@ function CapitalScenarioCard({
               <Pencil aria-hidden="true" size={17} />
             </button>
           </div>
-          <small>Available savings · Scenario only</small>
+          <small>Your Available Savings · Read-only scenario</small>
           <p className="capital-disclaimer">
-            Explore another amount without changing Finance.
+            Edit the amount to explore a what-if scenario. Finance is never
+            updated.
           </p>
         </>
       )}
