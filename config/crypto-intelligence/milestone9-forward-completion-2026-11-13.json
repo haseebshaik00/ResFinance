@@ -1,0 +1,142 @@
+{
+  "adaptive_calibration": {
+    "conformal_adjustment": [
+      0.0460212752,
+      0.078201659,
+      0.1077080816,
+      0.1313750893,
+      0.1817392111
+    ],
+    "conformal_alpha": 0.2,
+    "grid": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "schema_version": 1,
+    "selected_coefficient": 0.0,
+    "selection_window": {
+      "end": "2025-03-17",
+      "start": "2025-01-02"
+    },
+    "tie_break": "smallest-coefficient",
+    "validation_mae_by_coefficient": {
+      "0.00": 0.0660234615,
+      "0.25": 0.0686894655,
+      "0.50": 0.071892485,
+      "0.75": 0.075633496,
+      "1.00": 0.0798304752
+    }
+  },
+  "adaptive_metrics": {
+    "annualized_sharpe": 0.0,
+    "brier_score": 0.25,
+    "directional_accuracy": 0.495652169,
+    "interval_coverage": 0.8854492903,
+    "interval_mean_width": 0.2180180848,
+    "mae": 0.0522585995,
+    "maximum_drawdown": 0.0,
+    "rmse": 0.0787802935,
+    "sample_count": 1725,
+    "transaction_cost_mean_return": {
+      "0": 0.0,
+      "10": 0.0,
+      "25": 0.0
+    }
+  },
+  "assets": [
+    "BTC",
+    "ETH",
+    "SOL"
+  ],
+  "author_repository_code_copied": false,
+  "completed_at_utc": "2026-11-13T14:48:59.237148Z",
+  "current_cutoff_date": "2026-11-12",
+  "dataset_hash": "3175801176722627b925e8b15d01417c98d101b724f74d3de38403b5552d5889",
+  "dataset_row_count": 7224,
+  "deployment_model_hash": "76d3f95e8a96f06d31f48264dce252a2168378011292f24e626b2e89aafc8d00",
+  "evaluation_protocol": "untouched-forward-holdout-v1",
+  "forecast_as_of_utc": "2026-11-13T00:00:00Z",
+  "forecast_expires_at_utc": "2026-11-15T00:00:00Z",
+  "forecast_horizon_days": 15,
+  "forecast_snapshot_id": "c6f30261d9d8a52c313fb259774d5b0a0d27a64a776f7113b2697edaaad4047e",
+  "forecast_snapshot_record_id": "650a2467ae0f75a6bb8e7dd60d6187bb0f2a01dee2570f8553d14cac2ed2b55c",
+  "forward_holdout": {
+    "embargo_days": 15,
+    "holdout_end": "2026-10-28",
+    "holdout_labels_consumed_once": true,
+    "holdout_sample_count": 1725,
+    "holdout_start": "2025-04-02",
+    "post_holdout_tuning_permitted": false,
+    "predeclared_at_utc": "2026-10-15T00:00:00Z",
+    "train_sample_count": 5094,
+    "training_end": "2024-12-17",
+    "validation_end": "2025-03-17",
+    "validation_sample_count": 225,
+    "validation_start": "2025-01-02"
+  },
+  "live_forecast_snapshot_published": true,
+  "manifest_key": "run:milestone9-forward-b615c85006bb4aff8decbd18b4c1587f:manifest",
+  "naive_metrics": {
+    "annualized_sharpe": 0.0,
+    "brier_score": 0.25,
+    "directional_accuracy": 0.495652169,
+    "interval_coverage": 0.8854492903,
+    "interval_mean_width": 0.2180180848,
+    "mae": 0.0522585995,
+    "maximum_drawdown": 0.0,
+    "rmse": 0.0787802935,
+    "sample_count": 1725,
+    "transaction_cost_mean_return": {
+      "0": 0.0,
+      "10": 0.0,
+      "25": 0.0
+    }
+  },
+  "persistent_database": "Apache ResilientDB LevelDB backend",
+  "promotion_criteria": {
+    "maximum_mae_ratio_to_naive": 1.0,
+    "minimum_interval_coverage": 0.7,
+    "version": "forecast-promotion-v1"
+  },
+  "promotion_event_id": "28f7e0eaa184da4838521844c1a462a0eb2647383455f8b3dd7830b46decdbf8",
+  "promotion_rejected": false,
+  "provider_receipts": [
+    {
+      "attempt_id": "milestone9-forward-7e196f52f4c54c39a0606dce3f327a59-coin-metrics-market",
+      "deduplicated_count": 2040,
+      "inserted_count": 0,
+      "observation_count": 2040,
+      "observation_set_sha256": "0d12b656f389ffb3a15764ff38fa094dbb97f8724911bed99a969d8c22454aee",
+      "provider": "coin-metrics"
+    },
+    {
+      "attempt_id": "milestone9-forward-7e196f52f4c54c39a0606dce3f327a59-coin-metrics-on-chain",
+      "deduplicated_count": 2720,
+      "inserted_count": 0,
+      "observation_count": 2720,
+      "observation_set_sha256": "1f9597410e495ff32796cddfb9030c9c100a01f92c14e98aaecb9ba08b3b1536",
+      "provider": "coin-metrics"
+    },
+    {
+      "attempt_id": "milestone9-forward-7e196f52f4c54c39a0606dce3f327a59-defillama-solana-proxies",
+      "deduplicated_count": 0,
+      "inserted_count": 1360,
+      "observation_count": 1360,
+      "observation_set_sha256": "7781b09c23e1bf59397f0c73676a8238fc963207dd421f4a734f4bfec119ae91",
+      "provider": "defillama"
+    }
+  ],
+  "providers": [
+    "coin-metrics",
+    "defillama",
+    "gdelt"
+  ],
+  "run_id": "milestone9-forward-b615c85006bb4aff8decbd18b4c1587f",
+  "schema_version": 1,
+  "scope": "milestone-9-forward-completion-on-real-resilientdb",
+  "statistical_significance_claim": null,
+  "three_asset_adaptation": true
+}
