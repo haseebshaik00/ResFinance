@@ -1,6 +1,6 @@
 # Phase 2 — Seven-Day Portfolio Recommendation
 
-Status: implemented and exercised locally on 2026-11-14.
+Status: cash-reserve policy v2 implemented and exercised locally on 2026-11-14.
 
 ## Pipeline
 
@@ -9,8 +9,8 @@ Verified Phase 1 v2 manifest + checkpoint + preprocessing
   -> latest completed BTC/ETH/SOL daily observations
   -> seven direct predicted prices and cumulative returns
   -> 365-day Ledoit-Wolf daily covariance × 7
-  -> long-only, fully invested mean-variance optimization
-  -> exact-cent BTC/ETH/SOL recommendation
+  -> long-only mean-variance crypto sleeve plus USD cash reserve
+  -> exact-cent BTC/ETH/SOL and unallocated-USD scenario amounts
 ```
 
 The selected model is read from verified Phase 1 metadata. It is not hardcoded
@@ -20,7 +20,7 @@ original reimplementation.
 
 ## Optimization policy
 
-The fixed v1 objective is:
+The fixed v2 objective is:
 
 ```text
 maximize μᵀw - 5.0 × (wᵀΣ₇w)
@@ -32,15 +32,18 @@ maximize μᵀw - 5.0 × (wᵀΣ₇w)
   over the seven-day horizon.
 - `λ = 5.0`: a fixed, a-priori moderate risk-aversion coefficient. It was not
   tuned on the untouched Phase 1 test period.
-- Constraints: `w >= 0` and `sum(w) = 1` only. There are no coin-specific caps,
-  minimum exposures, shorts, leverage, cash asset, or questionnaire.
+- Constraints: `w >= 0` and `sum(w) <= 1` for BTC/ETH/SOL. The residual
+  `1 - sum(w)` is a USD cash reserve with assumed seven-day return `0` and no
+  crypto covariance. It is unallocated scenario capital, not a stablecoin,
+  custody product, or executed trade. There are no coin-specific caps, minimum
+  exposures, shorts, leverage, or questionnaire.
 - Solvers: CLARABEL, then SCS on the identical objective. If both fail, the API
   returns an explicit error; it does not substitute equal weights or a
   minimum-variance portfolio.
 - Dollar allocations use largest-remainder cent reconciliation and always sum
   exactly to entered capital.
 
-## Actual $1,000 result
+## Historical fully-invested v1 result
 
 Evidence:
 [`../../config/crypto-intelligence/phase2-portfolio-2026-11-14.json`](../../config/crypto-intelligence/phase2-portfolio-2026-11-14.json).
@@ -57,12 +60,27 @@ Evidence:
 - Covariance repair: not required.
 - Forecast status: current at execution, cutoff 2026-11-13 UTC.
 
-The near-zero ETH allocation is the solver result; it is not rounded away at
-the weight layer. Its $1,000 scenario amount rounds to zero cents while all
-asset amounts still reconcile exactly. The negative predicted portfolio return
-is possible because the fully invested risk-penalized objective can prefer a
-lower-variance combination over the asset with the highest predicted return.
-The policy does not compare investing with holding cash.
+That evidence is retained unchanged as the historical fully-invested policy.
+
+## Actual $1,000 cash-reserve v2 result
+
+Evidence:
+[`../../config/crypto-intelligence/phase2-portfolio-cash-v2-2026-11-14.json`](../../config/crypto-intelligence/phase2-portfolio-cash-v2-2026-11-14.json).
+
+| Allocation | Weight | USD amount |
+|---|---:|---:|
+| BTC | 0.00000914% | $0.00 |
+| ETH | 0.00137890% | $0.01 |
+| SOL | 10.11696599% | $101.17 |
+| USD cash reserve | 89.88164597% | $898.82 |
+
+- Predicted portfolio seven-day return: **0.07407351%**.
+- Estimated portfolio seven-day volatility: **0.86066102%**.
+- Solver: CLARABEL, status `optimal`; covariance repair was not required.
+
+The tiny BTC/ETH weights are continuous optimizer outputs. The API preserves
+them, while the UI renders a positive value below one-hundredth of a percent as
+`<0.01%`; cent reconciliation leaves BTC at zero cents and ETH at one cent.
 
 ## API and UI
 
@@ -70,14 +88,16 @@ The policy does not compare investing with holding cash.
   prices, seven daily prices and returns, UTC dates, freshness, and historical
   holdout errors.
 - `POST /api/v1/crypto/recommendations`: positive integer USD cents in;
-  expected returns, weights, exact amounts, solver state, risk estimate,
-  provenance, and warnings out.
+  expected returns, BTC/ETH/SOL sleeve weights and amounts, an unallocated USD
+  cash-reserve weight and amount, solver state, risk estimate, provenance, and
+  warnings out.
 
 The Crypto Intelligence dashboard displays three market cards, an asset
 selector with observed/predicted chart styling and tooltips, one capital input,
-an allocation table and donut, freshness warnings, historical model error, and
-the calculation method. It supports light/dark themes and responsive layouts.
-There is no risk questionnaire or trading action.
+an allocation table and donut that includes cash, freshness warnings,
+historical model error, and the calculation method. It supports light/dark
+themes and responsive layouts. There is no risk questionnaire or trading
+action.
 
 Reproduce the $1,000 calculation:
 

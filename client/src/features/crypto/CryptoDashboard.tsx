@@ -76,7 +76,8 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           <h1 id="crypto-title">Crypto Intelligence</h1>
           <p className="lede">
             Review validation-selected MSPCIFormer forecasts and a transparent,
-            long-only BTC/ETH/SOL allocation. No trades are executed.
+            long-only BTC/ETH/SOL sleeve with an optional USD cash reserve. No
+            trades are executed.
           </p>
         </div>
         <span className={`forecast-status-pill ${forecast.status}`}>
@@ -253,7 +254,8 @@ function RecommendationPanel({
   const percentages = allocations.map((item) => Number(item.weight) * 100);
   const btcEnd = percentages[0] ?? 0;
   const ethEnd = btcEnd + (percentages[1] ?? 0);
-  const gradient = `conic-gradient(#6555a5 0 ${btcEnd}%, #2c9c91 ${btcEnd}% ${ethEnd}%, #d49735 ${ethEnd}% 100%)`;
+  const solEnd = ethEnd + (percentages[2] ?? 0);
+  const gradient = `conic-gradient(#6555a5 0 ${btcEnd}%, #2c9c91 ${btcEnd}% ${ethEnd}%, #d49735 ${ethEnd}% ${solEnd}%, #607184 ${solEnd}% 100%)`;
   return (
     <div className="recommendation-layout">
       <div className="allocation-donut-wrap">
@@ -264,13 +266,18 @@ function RecommendationPanel({
           aria-label={allocations
             .map(
               (item) =>
-                `${item.asset} ${(Number(item.weight) * 100).toFixed(1)} percent, ${formatUsd(item.amount.minor_units)}`,
+                `${item.asset} ${formatAllocationWeight(item.weight)}, ${formatUsd(item.amount.minor_units)}`,
+            )
+            .concat(
+              `USD cash reserve ${formatAllocationWeight(recommendation.cash_reserve.weight)}, ${formatUsd(recommendation.cash_reserve.amount.minor_units)}`,
             )
             .join("; ")}
         >
           <span>
-            <strong>100%</strong>
-            <small>allocated</small>
+            <strong>
+              {formatAllocationWeight(recommendation.crypto_allocation_weight)}
+            </strong>
+            <small>crypto sleeve</small>
           </span>
         </div>
         <span
@@ -295,10 +302,22 @@ function RecommendationPanel({
                   <i className={`asset-dot ${item.asset.toLowerCase()}`} />
                   {item.asset}
                 </th>
-                <td>{(Number(item.weight) * 100).toFixed(2)}%</td>
+                <td>{formatAllocationWeight(item.weight)}</td>
                 <td>{formatUsd(item.amount.minor_units)}</td>
               </tr>
             ))}
+            <tr className="cash-reserve-row">
+              <th>
+                <i className="asset-dot cash" />
+                USD cash reserve
+              </th>
+              <td>
+                {formatAllocationWeight(recommendation.cash_reserve.weight)}
+              </td>
+              <td>
+                {formatUsd(recommendation.cash_reserve.amount.minor_units)}
+              </td>
+            </tr>
           </tbody>
           <tfoot>
             <tr>
@@ -366,7 +385,10 @@ function MethodPanel({ forecast }: { forecast: SevenDayForecast }) {
         </li>
         <li>
           <strong>Allocate</strong>
-          <span>Maximize μᵀw − 5(wᵀΣ₇w), long-only and fully invested.</span>
+          <span>
+            Maximize μᵀw − 5(wᵀΣ₇w), long-only; unallocated capital remains in
+            USD cash.
+          </span>
         </li>
       </ol>
       <div className="method-facts">
@@ -447,4 +469,10 @@ function formatTimestamp(value: string): string {
     timeZone: "UTC",
     timeZoneName: "short",
   }).format(new Date(value));
+}
+
+function formatAllocationWeight(weight: string): string {
+  const percentage = Number(weight) * 100;
+  if (percentage > 0 && percentage < 0.01) return "<0.01%";
+  return `${percentage.toFixed(2)}%`;
 }

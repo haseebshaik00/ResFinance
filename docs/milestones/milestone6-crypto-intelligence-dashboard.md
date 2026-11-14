@@ -13,9 +13,10 @@ validation-selected Phase 1 v2 MSPCIFormer forecast and a simplified
 seven-day mean–variance portfolio. It has one hypothetical USD capital input,
 no questionnaire, no Finance default, and no BTC/ETH/SOL caps. Ledoit-Wolf
 covariance uses 365 aligned daily returns and is scaled by seven; fixed
-`lambda = 5.0`; weights are long-only and sum to one. CLARABEL and SCS may
-solve the same objective, but no alternative portfolio is substituted if both
-fail.
+`lambda = 5.0`; BTC/ETH/SOL weights are long-only and may sum to less than one.
+The remaining scenario amount is an unallocated USD cash reserve, not a
+stablecoin or trade. CLARABEL and SCS may solve the same objective, but no
+alternative portfolio is substituted if both fail.
 
 Active authenticated endpoints:
 
@@ -23,8 +24,8 @@ Active authenticated endpoints:
 - `POST /api/v1/crypto/recommendations`
 
 The active UI has three market cards, a selected-asset seven-day chart, exact
-cent allocation table, donut, freshness and error disclosure, and methodology
-panel. Full evidence and the executed $1,000 result are documented in
+cent crypto-and-cash allocation table, donut, freshness and error disclosure,
+and methodology panel. Full evidence and the executed $1,000 result are documented in
 [`../research/phase2-seven-day-portfolio.md`](../research/phase2-seven-day-portfolio.md).
 The rest of this document preserves the historical 15-day acceptance truth.
 

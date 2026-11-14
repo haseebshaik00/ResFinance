@@ -20,6 +20,7 @@ from server.app.application.phase2_portfolio import (
     Phase2PortfolioService,
 )
 from server.app.domain.phase2_portfolio import (
+    CashReserve,
     ForecastAccuracy,
     Phase2Allocation,
     Phase2Recommendation,
@@ -82,6 +83,12 @@ class AllocationModel(BaseModel):
     amount: MoneyModel
 
 
+class CashReserveModel(BaseModel):
+    label: Literal["USD cash reserve"] = "USD cash reserve"
+    weight: str
+    amount: MoneyModel
+
+
 class ExpectedReturnModel(BaseModel):
     asset: Literal["BTC", "ETH", "SOL"]
     predicted_return_7d: str
@@ -102,8 +109,10 @@ class RecommendationModel(BaseModel):
     covariance_repaired: bool
     solver: str
     solver_status: str
-    policy_version: Literal["phase2-mean-variance-v1"]
+    policy_version: Literal["phase2-mean-variance-cash-v2"]
     allocations: list[AllocationModel]
+    cash_reserve: CashReserveModel
+    crypto_allocation_weight: str
     total_allocation_weight: str
     warnings: list[str]
 
@@ -231,7 +240,12 @@ def _recommendation_response(value: Phase2Recommendation) -> RecommendationModel
         solver_status=value.solver_status,
         policy_version=value.policy_version,
         allocations=[_allocation_response(item) for item in value.allocations],
-        total_allocation_weight=str(sum(Decimal(item.weight) for item in value.allocations)),
+        cash_reserve=_cash_reserve_response(value.cash_reserve),
+        crypto_allocation_weight=str(sum(Decimal(item.weight) for item in value.allocations)),
+        total_allocation_weight=str(
+            sum(Decimal(item.weight) for item in value.allocations)
+            + Decimal(value.cash_reserve.weight)
+        ),
         warnings=list(value.warnings),
     )
 
@@ -239,6 +253,13 @@ def _recommendation_response(value: Phase2Recommendation) -> RecommendationModel
 def _allocation_response(value: Phase2Allocation) -> AllocationModel:
     return AllocationModel(
         asset=value.asset.value,
+        weight=value.weight,
+        amount=MoneyModel(minor_units=value.amount_minor_units),
+    )
+
+
+def _cash_reserve_response(value: CashReserve) -> CashReserveModel:
+    return CashReserveModel(
         weight=value.weight,
         amount=MoneyModel(minor_units=value.amount_minor_units),
     )

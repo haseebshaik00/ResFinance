@@ -232,6 +232,29 @@
         "title": "BudgetStatusModel",
         "type": "object"
       },
+      "CashReserveModel": {
+        "properties": {
+          "amount": {
+            "$ref": "#/components/schemas/MoneyModel"
+          },
+          "label": {
+            "const": "USD cash reserve",
+            "default": "USD cash reserve",
+            "title": "Label",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "string"
+          }
+        },
+        "required": [
+          "weight",
+          "amount"
+        ],
+        "title": "CashReserveModel",
+        "type": "object"
+      },
       "CategoryCommand": {
         "additionalProperties": false,
         "properties": {
@@ -1494,6 +1517,9 @@
           "capital": {
             "$ref": "#/components/schemas/MoneyModel"
           },
+          "cash_reserve": {
+            "$ref": "#/components/schemas/CashReserveModel"
+          },
           "covariance_estimator": {
             "const": "Ledoit-Wolf",
             "title": "Covariance Estimator",
@@ -1506,6 +1532,10 @@
           "covariance_repaired": {
             "title": "Covariance Repaired",
             "type": "boolean"
+          },
+          "crypto_allocation_weight": {
+            "title": "Crypto Allocation Weight",
+            "type": "string"
           },
           "estimated_portfolio_volatility_7d": {
             "title": "Estimated Portfolio Volatility 7D",
@@ -1539,7 +1569,7 @@
             "type": "string"
           },
           "policy_version": {
-            "const": "phase2-mean-variance-v1",
+            "const": "phase2-mean-variance-cash-v2",
             "title": "Policy Version",
             "type": "string"
           },
@@ -1588,6 +1618,8 @@
           "solver_status",
           "policy_version",
           "allocations",
+          "cash_reserve",
+          "crypto_allocation_weight",
           "total_allocation_weight",
           "warnings"
         ],

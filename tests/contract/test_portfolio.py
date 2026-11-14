@@ -48,7 +48,7 @@ class FailedForecastFixture:
         raise ValueError("verified Phase 1 artifact is missing")
 
 
-def test_optimizer_is_long_only_fully_invested_uncapped_and_exact_in_cents() -> None:
+def test_optimizer_allows_a_cash_reserve_and_reconciles_exactly_in_cents() -> None:
     result = optimize_seven_day_portfolio(
         capital_minor_units=100_001,
         expected_returns={
@@ -63,8 +63,14 @@ def test_optimizer_is_long_only_fully_invested_uncapped_and_exact_in_cents() -> 
 
     weights = [Decimal(item.weight) for item in result.allocations]
     assert all(value >= 0 for value in weights)
-    assert abs(sum(weights) - Decimal(1)) <= Decimal("0.00000001")
-    assert sum(item.amount_minor_units for item in result.allocations) == 100_001
+    assert abs(sum(weights) + Decimal(result.cash_reserve.weight) - Decimal(1)) <= Decimal(
+        "0.00000001"
+    )
+    assert (
+        sum(item.amount_minor_units for item in result.allocations)
+        + result.cash_reserve.amount_minor_units
+        == 100_001
+    )
     assert result.solver in {"CLARABEL", "SCS"}
     assert result.solver_status in {"optimal", "optimal_inaccurate"}
     assert Decimal(result.predicted_return_7d) > 0
@@ -90,7 +96,9 @@ def test_singular_covariance_is_repaired_without_changing_the_objective() -> Non
         covariance_lookback_days=365,
     )
     assert result.covariance_repaired
-    assert sum(Decimal(item.weight) for item in result.allocations) == Decimal("1.0000000000")
+    assert sum(Decimal(item.weight) for item in result.allocations) == Decimal("0")
+    assert Decimal(result.cash_reserve.weight) == Decimal("1")
+    assert result.cash_reserve.amount_minor_units == 100_000
 
 
 def test_solver_failures_are_explicit_and_never_substitute_another_portfolio(
@@ -110,16 +118,20 @@ def test_solver_failures_are_explicit_and_never_substitute_another_portfolio(
         )
 
 
-def test_service_warns_for_stale_and_all_negative_forecasts() -> None:
+def test_service_warns_for_stale_forecasts_and_retains_cash_for_negative_forecasts() -> None:
     service = Phase2PortfolioService(
         ForecastFixture(_bundle(status="stale", negative=True)),
         policy=Phase2PortfolioPolicy(risk_aversion=Decimal("5.0"), covariance_lookback_days=365),
     )
     recommendation = service.recommend(capital_minor_units=100_000)
     assert recommendation.forecast_status == "stale"
-    assert any("All predicted" in warning for warning in recommendation.warnings)
+    assert any("cash reserve" in warning.lower() for warning in recommendation.warnings)
     assert any("Forecast window ended" in warning for warning in recommendation.warnings)
-    assert sum(item.amount_minor_units for item in recommendation.allocations) == 100_000
+    assert (
+        sum(item.amount_minor_units for item in recommendation.allocations)
+        + recommendation.cash_reserve.amount_minor_units
+        == 100_000
+    )
     assert recommendation.risk_aversion == "5.0"
 
 
@@ -136,9 +148,7 @@ def test_authenticated_phase2_api_returns_one_snapshot_and_backend_allocations()
     store = MemoryKeyValueStore()
     authentication = auth_service(store)
     service = Phase2PortfolioService(ForecastFixture(_bundle()))
-    client = TestClient(
-        create_app(authentication, phase2_portfolio_service=service)
-    )
+    client = TestClient(create_app(authentication, phase2_portfolio_service=service))
     private_key, identity = wallet()
     challenge_body = challenge(client, identity)
     token = create_session(
@@ -160,15 +170,24 @@ def test_authenticated_phase2_api_returns_one_snapshot_and_backend_allocations()
     assert response.status_code == 200
     body = response.json()
     assert body["forecast_snapshot_id"] == forecast.json()["snapshot_id"]
-    assert sum(item["amount"]["minor_units"] for item in body["allocations"]) == 100_000
-    assert abs(sum(float(item["weight"]) for item in body["allocations"]) - 1) < 1e-8
+    assert (
+        sum(item["amount"]["minor_units"] for item in body["allocations"])
+        + body["cash_reserve"]["amount"]["minor_units"]
+        == 100_000
+    )
+    assert (
+        abs(
+            sum(float(item["weight"]) for item in body["allocations"])
+            + float(body["cash_reserve"]["weight"])
+            - 1
+        )
+        < 1e-8
+    )
     assert body["covariance_lookback_days"] == 365
     assert client.post("/api/v1/crypto/risk-profile", headers=headers, json={}).status_code == 404
 
 
-def _bundle(
-    *, status: str = "current", negative: bool = False
-) -> Phase1ForecastBundle:
+def _bundle(*, status: str = "current", negative: bool = False) -> Phase1ForecastBundle:
     cutoff = datetime(2026, 11, 13, tzinfo=UTC)
     returns = ("-0.01", "-0.02", "-0.03") if negative else ("0.01", "0.02", "0.03")
     current = (Decimal("68000"), Decimal("1900"), Decimal("78"))
@@ -240,9 +259,7 @@ def _prices() -> tuple[HistoricalPrice, ...]:
                 * (
                     Decimal(1)
                     + Decimal(day) * Decimal("0.0005")
-                    + Decimal(asset_index)
-                    * Decimal(day % 7)
-                    * Decimal("0.0001")
+                    + Decimal(asset_index) * Decimal(day % 7) * Decimal("0.0001")
                 )
             ),
         )

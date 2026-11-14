@@ -104,16 +104,19 @@ Every Group write is append-only, encrypted before ResilientDB, version checked,
   returns, UTC forecast dates, freshness, quality checks, run provenance, and
   historical Original/VASA holdout errors.
 - `POST /api/v1/crypto/recommendations` accepts one positive integer-cent USD
-  amount and returns the exact Phase 1 Day-7 returns used, long-only weights,
-  exact-cent amounts, seven-day predicted portfolio return and volatility,
-  covariance policy, solver status, snapshot identity, and warnings.
+  amount and returns the exact Phase 1 Day-7 returns used, long-only crypto
+  sleeve weights, exact-cent BTC/ETH/SOL amounts, an unallocated USD cash
+  reserve, seven-day predicted portfolio return and volatility, covariance
+  policy, solver status, snapshot identity, and warnings.
 
 Forecast records require a v2 Phase 1 manifest whose selected model, checkpoint,
 preprocessing, artifact hashes, and forecast agree. Inference may refresh only
 from that saved bundle and stored completed observations; it never retrains per
 request. Stale forecasts keep their dates and return explicit reasons. The
-portfolio has no questionnaire, asset caps, cash asset, or trading action.
-Solver or provenance failure is explicit and does not produce fallback weights.
+portfolio has no questionnaire, asset caps, or trading action. It may retain
+scenario capital as a USD cash reserve; that reserve is not a crypto asset,
+stablecoin, custody balance, or execution instruction. Solver or provenance
+failure is explicit and does not produce fallback weights.
 
 The historical 15-day overview, risk-profile, and scenario contracts remain in
 repository history/evidence but are not mounted by the active API.

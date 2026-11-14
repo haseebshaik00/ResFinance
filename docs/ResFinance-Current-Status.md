@@ -208,19 +208,22 @@ earlier 15-day questionnaire/capped workflow remains immutable legacy evidence.
   dates remain visibly stale.
 - Implemented fixed `lambda = 5.0` mean–variance optimization using raw Day-7
   predicted returns and 365 aligned daily returns with Ledoit-Wolf covariance
-  scaled by seven. Constraints are only nonnegative weights summing to one;
-  there are no asset caps, minimums, leverage, shorts, or questionnaire.
+  scaled by seven. BTC/ETH/SOL weights are nonnegative and may sum to less than
+  one; the exact residual is an unallocated USD cash reserve with zero assumed
+  seven-day return. There are no asset caps, minimums, leverage, shorts, or
+  questionnaire.
 - CLARABEL and SCS solve the same objective. Total solver failure is explicit;
-  there is no equal-weight or minimum-variance substitution. Weights and USD
-  cents reconcile to 100% and the exact entered capital.
+  there is no equal-weight or minimum-variance substitution. Crypto and cash
+  USD cents reconcile to 100% and the exact entered capital.
 - Replaced the active Crypto Intelligence page with BTC/ETH/SOL overview cards,
   actual-versus-predicted seven-day charts, one USD capital input, an allocation
   donut/table, model error, provenance, freshness warnings, methodology, and
   responsive light/dark presentation. No trading control exists.
-- The executed $1,000 result is 94.66994278% BTC ($946.70), 0.00013708% ETH
-  ($0.00), and 5.32992014% SOL ($53.30), with -0.01279048% predicted return and
-  6.17001808% estimated seven-day volatility. Evidence is in
-  [`config/crypto-intelligence/phase2-portfolio-2026-11-14.json`](../config/crypto-intelligence/phase2-portfolio-2026-11-14.json).
+- The executed v2 $1,000 result retains $898.82 (89.88164597%) as unallocated
+  USD cash, assigns $101.17 (10.11696599%) to SOL, $0.01 to ETH, and $0.00 to
+  BTC after cent reconciliation. It has 0.07407351% predicted return and
+  0.86066102% estimated seven-day volatility. Evidence is in
+  [`config/crypto-intelligence/phase2-portfolio-cash-v2-2026-11-14.json`](../config/crypto-intelligence/phase2-portfolio-cash-v2-2026-11-14.json).
 
 Evidence:
 [`milestones/milestone6-crypto-intelligence-dashboard.md`](milestones/milestone6-crypto-intelligence-dashboard.md).

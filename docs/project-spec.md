@@ -105,9 +105,11 @@ selection.
 ### Phase 5 - Portfolio Optimization + Full Local Integration
 
 Combine raw predicted Day-7 returns with a 365-day Ledoit-Wolf covariance
-estimate scaled to seven days. Use fixed-lambda, long-only, fully invested
-mean–variance optimization with no coin caps or questionnaire, and integrate
-the result into the local dashboard. Deployment remains separately deferred.
+estimate scaled to seven days. Use fixed-lambda, long-only mean–variance
+optimization for the BTC/ETH/SOL sleeve with an optional unallocated USD cash
+reserve; do not force full crypto allocation. There are no coin caps or
+questionnaire. Integrate the result into the local dashboard. Deployment
+remains separately deferred.
 
 ### Final local delivery gate — Milestone 7: Deliverables — Cross-dashboard Integration & Local Handoff
 

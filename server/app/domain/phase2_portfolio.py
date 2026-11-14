@@ -10,7 +10,7 @@ from typing import Literal
 from server.app.domain.crypto import CryptoAsset, canonical_decimal, utc_datetime
 
 FORECAST_HORIZON_DAYS = 7
-PHASE2_POLICY_VERSION = "phase2-mean-variance-v1"
+PHASE2_POLICY_VERSION = "phase2-mean-variance-cash-v2"
 
 
 @dataclass(frozen=True)
@@ -37,9 +37,7 @@ class SevenDayAssetForecast:
             "predicted_daily_returns",
             tuple(canonical_decimal(value) for value in self.predicted_daily_returns),
         )
-        object.__setattr__(
-            self, "predicted_return_7d", canonical_decimal(self.predicted_return_7d)
-        )
+        object.__setattr__(self, "predicted_return_7d", canonical_decimal(self.predicted_return_7d))
         calculated = Decimal(self.predicted_prices[-1]) / Decimal(self.current_price) - Decimal(1)
         if abs(calculated - Decimal(self.predicted_return_7d)) > Decimal("0.00000002"):
             raise ValueError("seven-day return is inconsistent with the Day-7 price")
@@ -158,6 +156,21 @@ class Phase2Allocation:
 
 
 @dataclass(frozen=True)
+class CashReserve:
+    """USD deliberately left outside the experimental crypto sleeve."""
+
+    weight: str
+    amount_minor_units: int
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "weight", canonical_decimal(self.weight))
+        if not Decimal(0) <= Decimal(self.weight) <= Decimal(1):
+            raise ValueError("cash reserve weight must be between zero and one")
+        if isinstance(self.amount_minor_units, bool) or self.amount_minor_units < 0:
+            raise ValueError("cash reserve amount must be nonnegative integer cents")
+
+
+@dataclass(frozen=True)
 class Phase2Recommendation:
     capital_minor_units: int
     forecast_snapshot_id: str
@@ -173,8 +186,9 @@ class Phase2Recommendation:
     covariance_repaired: bool
     solver: str
     solver_status: str
-    policy_version: Literal["phase2-mean-variance-v1"]
+    policy_version: Literal["phase2-mean-variance-cash-v2"]
     allocations: tuple[Phase2Allocation, ...]
+    cash_reserve: CashReserve
     warnings: tuple[str, ...]
 
 

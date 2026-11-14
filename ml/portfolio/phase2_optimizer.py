@@ -10,7 +10,7 @@ import numpy as np
 from sklearn.covariance import LedoitWolf
 
 from server.app.domain.crypto import CryptoAsset
-from server.app.domain.phase2_portfolio import HistoricalPrice, Phase2Allocation
+from server.app.domain.phase2_portfolio import CashReserve, HistoricalPrice, Phase2Allocation
 
 ASSETS: tuple[CryptoAsset, ...] = tuple(CryptoAsset)
 
@@ -18,6 +18,7 @@ ASSETS: tuple[CryptoAsset, ...] = tuple(CryptoAsset)
 @dataclass(frozen=True)
 class Phase2OptimizationResult:
     allocations: tuple[Phase2Allocation, ...]
+    cash_reserve: CashReserve
     predicted_return_7d: str
     estimated_volatility_7d: str
     solver: str
@@ -54,7 +55,10 @@ def optimize_seven_day_portfolio(
     objective = cp.Maximize(
         expected @ weights - float(risk_aversion) * cp.quad_form(weights, covariance)
     )
-    problem = cp.Problem(objective, [weights >= 0, cp.sum(weights) == 1])
+    # Cash is the residual USD amount. It has a zero seven-day return and no
+    # crypto covariance, so it need not be added to the covariance matrix.
+    # The inequality deliberately permits a partial crypto allocation.
+    problem = cp.Problem(objective, [weights >= 0, cp.sum(weights) <= 1])
     failures: list[str] = []
     solver = ""
     for candidate in ("CLARABEL", "SCS"):
@@ -70,9 +74,10 @@ def optimize_seven_day_portfolio(
     if not solver or weights.value is None:
         raise ValueError("portfolio optimization failed: " + "; ".join(failures))
 
-    normalized = _normalize_long_only(np.asarray(weights.value, dtype=np.float64))
-    amounts = _reconcile_cents(capital_minor_units, normalized)
-    weight_strings = _reconciled_weight_strings(normalized)
+    crypto_weights = _validate_crypto_weights(np.asarray(weights.value, dtype=np.float64))
+    all_weights = np.append(crypto_weights, max(0.0, 1.0 - float(crypto_weights.sum())))
+    amounts = _reconcile_cents(capital_minor_units, all_weights)
+    weight_strings = _reconciled_weight_strings(all_weights)
     allocations = tuple(
         Phase2Allocation(
             asset=asset,
@@ -81,12 +86,14 @@ def optimize_seven_day_portfolio(
         )
         for index, asset in enumerate(ASSETS)
     )
-    portfolio_return = float(expected @ normalized)
-    portfolio_variance = float(normalized @ covariance @ normalized)
+    cash_reserve = CashReserve(weight=weight_strings[-1], amount_minor_units=amounts[-1])
+    portfolio_return = float(expected @ crypto_weights)
+    portfolio_variance = float(crypto_weights @ covariance @ crypto_weights)
     if portfolio_variance < -1e-12:
         raise ValueError("optimized covariance produced negative portfolio variance")
     return Phase2OptimizationResult(
         allocations=allocations,
+        cash_reserve=cash_reserve,
         predicted_return_7d=_decimal(portfolio_return, 10),
         estimated_volatility_7d=_decimal(float(np.sqrt(max(portfolio_variance, 0.0))), 10),
         solver=solver,
@@ -96,9 +103,7 @@ def optimize_seven_day_portfolio(
     )
 
 
-def _aligned_daily_returns(
-    history: tuple[HistoricalPrice, ...], lookback_days: int
-) -> np.ndarray:
+def _aligned_daily_returns(history: tuple[HistoricalPrice, ...], lookback_days: int) -> np.ndarray:
     prices: dict[CryptoAsset, dict[str, Decimal]] = {asset: {} for asset in ASSETS}
     for point in history:
         prices[point.asset][point.observed_date_utc.isoformat()] = Decimal(point.price_usd)
@@ -110,10 +115,7 @@ def _aligned_daily_returns(
         )
     common_days = common_days[-required_prices:]
     rows = [
-        [
-            float(prices[asset][current] / prices[asset][previous] - Decimal(1))
-            for asset in ASSETS
-        ]
+        [float(prices[asset][current] / prices[asset][previous] - Decimal(1)) for asset in ASSETS]
         for previous, current in zip(common_days, common_days[1:], strict=False)
     ]
     result = np.asarray(rows, dtype=np.float64)
@@ -130,16 +132,19 @@ def _nearest_psd(matrix: np.ndarray) -> tuple[np.ndarray, bool]:
     return vectors @ np.diag(clipped) @ vectors.T, repaired
 
 
-def _normalize_long_only(values: np.ndarray) -> np.ndarray:
+def _validate_crypto_weights(values: np.ndarray) -> np.ndarray:
     if values.shape != (len(ASSETS),) or not np.isfinite(values).all():
         raise ValueError("solver returned invalid portfolio weights")
     result = np.maximum(values, 0.0)
+    # Both supported conic solvers can return sub-nanoscopic positive values
+    # for an optimum at zero. They are neither economically meaningful nor
+    # representable as USD cents.
+    result[result < 5e-9] = 0.0
     total = float(result.sum())
-    if total <= 0:
-        raise ValueError("solver returned an empty portfolio")
-    result /= total
-    if np.any(result < -1e-10) or abs(float(result.sum()) - 1.0) > 1e-9:
+    if np.any(result < -1e-10) or total > 1.0 + 1e-8:
         raise ValueError("portfolio weights are infeasible")
+    if total > 1.0:
+        result /= total
     return result
 
 
@@ -147,9 +152,7 @@ def _reconcile_cents(capital: int, weights: np.ndarray) -> tuple[int, ...]:
     exact = [Decimal(capital) * Decimal(str(float(weight))) for weight in weights]
     amounts = [int(value.to_integral_value(rounding=ROUND_FLOOR)) for value in exact]
     remainder = capital - sum(amounts)
-    order = sorted(
-        range(len(exact)), key=lambda index: exact[index] - amounts[index], reverse=True
-    )
+    order = sorted(range(len(exact)), key=lambda index: exact[index] - amounts[index], reverse=True)
     for index in order[:remainder]:
         amounts[index] += 1
     if sum(amounts) != capital:
@@ -162,6 +165,10 @@ def _decimal(value: float, places: int) -> str:
 
 
 def _reconciled_weight_strings(weights: np.ndarray) -> tuple[str, ...]:
+    """Round crypto weights, then assign the exact residual to USD cash."""
+
+    if weights.shape != (len(ASSETS) + 1,) or not np.isfinite(weights).all():
+        raise ValueError("allocation weights are invalid")
     quantum = Decimal("0.0000000001")
     rounded = [Decimal(str(float(value))).quantize(quantum) for value in weights[:-1]]
     final = (Decimal(1) - sum(rounded)).quantize(quantum)

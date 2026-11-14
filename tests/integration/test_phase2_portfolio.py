@@ -77,12 +77,18 @@ def test_phase1_v2_artifacts_feed_the_seven_day_optimizer_without_retraining() -
     assert not bundle.forecast.refreshed_from_checkpoint
     assert len(bundle.price_history) == 430 * 3
 
-    recommendation = Phase2PortfolioService(repository).recommend(
-        capital_minor_units=100_000
-    )
+    recommendation = Phase2PortfolioService(repository).recommend(capital_minor_units=100_000)
     assert recommendation.forecast_snapshot_id == bundle.forecast.snapshot_id
-    assert sum(item.amount_minor_units for item in recommendation.allocations) == 100_000
-    assert sum(float(item.weight) for item in recommendation.allocations) == 1.0
+    assert (
+        sum(item.amount_minor_units for item in recommendation.allocations)
+        + recommendation.cash_reserve.amount_minor_units
+        == 100_000
+    )
+    assert (
+        sum(float(item.weight) for item in recommendation.allocations)
+        + float(recommendation.cash_reserve.weight)
+        == 1.0
+    )
 
 
 def test_historical_three_model_evidence_remains_byte_for_byte_unchanged() -> None:
@@ -99,9 +105,7 @@ def _observations(days: int) -> list[ProviderObservation]:
     for offset in range(days):
         observed = datetime.combine(start + timedelta(days=offset), datetime.min.time(), UTC)
         for asset_index, asset in enumerate(CryptoAsset):
-            price = 100 * (asset_index + 1) * math.exp(
-                offset * (0.0008 + asset_index * 0.0001)
-            )
+            price = 100 * (asset_index + 1) * math.exp(offset * (0.0008 + asset_index * 0.0001))
             result.append(
                 ProviderObservation(
                     asset=asset,

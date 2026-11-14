@@ -128,12 +128,14 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/v1/crypto/recommendations", async (route) => {
     const capital = route.request().postDataJSON().capital
       .minor_units as number;
-    const weights = [0.4, 0.35, 0.25];
+    const weights = [0.24, 0.21, 0.15];
+    const cashWeight = 0.4;
     const amounts = [
       Math.round(capital * weights[0]),
       Math.round(capital * weights[1]),
     ];
-    amounts.push(capital - amounts[0] - amounts[1]);
+    amounts.push(Math.round(capital * weights[2]));
+    const cashAmount = capital - amounts[0] - amounts[1] - amounts[2];
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -155,12 +157,18 @@ test.beforeEach(async ({ page }) => {
         covariance_repaired: false,
         solver: "CLARABEL",
         solver_status: "optimal",
-        policy_version: "phase2-mean-variance-v1",
+        policy_version: "phase2-mean-variance-cash-v2",
         allocations: ["BTC", "ETH", "SOL"].map((asset, index) => ({
           asset,
           weight: weights[index].toString(),
           amount: { currency: "USD", minor_units: amounts[index] },
         })),
+        cash_reserve: {
+          label: "USD cash reserve",
+          weight: cashWeight.toString(),
+          amount: { currency: "USD", minor_units: cashAmount },
+        },
+        crypto_allocation_weight: "0.6",
         total_allocation_weight: "1.0",
         warnings: [
           "Experimental research output: predicted returns are uncertain.",
@@ -194,16 +202,19 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.getByRole("heading", { name: "Portfolio Allocation" }),
   ).toBeVisible();
+  await expect(page.getByText("$240.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$210.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$150.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$400.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("$350.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("$250.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("USD cash reserve", { exact: true })).toBeVisible();
   await expect(page.getByText("Risk Questionnaire")).toHaveCount(0);
   await expect(page.getByText(/15-day/i)).toHaveCount(0);
 
   await page.getByLabel("Investment Capital (USD)").fill("2000.00");
+  await expect(page.getByText("$480.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$420.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$300.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$800.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("$700.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("$500.00", { exact: true })).toBeVisible();
 
   expect(
     await page.evaluate(

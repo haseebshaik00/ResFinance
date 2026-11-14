@@ -26,7 +26,7 @@ def parser() -> argparse.ArgumentParser:
     value.add_argument(
         "--policy-config",
         type=Path,
-        default=Path("config/crypto-intelligence/phase2-portfolio-v1.json"),
+        default=Path("config/crypto-intelligence/phase2-portfolio-cash-v2.json"),
     )
     value.add_argument("--docker", type=Path, default=Path("docker"))
     value.add_argument("--docker-host")
@@ -80,7 +80,7 @@ def main() -> int:
     forecast = service.forecast()
     recommendation = service.recommend(capital_minor_units=args.capital_cents)
     document = {
-        "schema_version": 1,
+        "schema_version": 2,
         "scope": "Milestone 6 local non-commercial research recommendation",
         "forecast": {
             "snapshot_id": forecast.snapshot_id,
@@ -116,10 +116,12 @@ def main() -> int:
                 }
                 for item in recommendation.allocations
             ],
+            "cash_reserve": {
+                "weight": recommendation.cash_reserve.weight,
+                "amount_minor_units": recommendation.cash_reserve.amount_minor_units,
+            },
             "predicted_portfolio_return_7d": recommendation.predicted_portfolio_return_7d,
-            "estimated_portfolio_volatility_7d": (
-                recommendation.estimated_portfolio_volatility_7d
-            ),
+            "estimated_portfolio_volatility_7d": (recommendation.estimated_portfolio_volatility_7d),
             "risk_aversion": recommendation.risk_aversion,
             "covariance_lookback_days": recommendation.covariance_lookback_days,
             "covariance_estimator": recommendation.covariance_estimator,

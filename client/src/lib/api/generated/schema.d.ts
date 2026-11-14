@@ -500,6 +500,18 @@ export interface components {
             /** Utilization Basis Points */
             utilization_basis_points: number;
         };
+        /** CashReserveModel */
+        CashReserveModel: {
+            amount: components["schemas"]["MoneyModel"];
+            /**
+             * Label
+             * @default USD cash reserve
+             * @constant
+             */
+            label: "USD cash reserve";
+            /** Weight */
+            weight: string;
+        };
         /** CategoryCommand */
         CategoryCommand: {
             /** Category Id */
@@ -958,6 +970,7 @@ export interface components {
             /** Allocations */
             allocations: components["schemas"]["AllocationModel"][];
             capital: components["schemas"]["MoneyModel"];
+            cash_reserve: components["schemas"]["CashReserveModel"];
             /**
              * Covariance Estimator
              * @constant
@@ -967,6 +980,8 @@ export interface components {
             covariance_lookback_days: number;
             /** Covariance Repaired */
             covariance_repaired: boolean;
+            /** Crypto Allocation Weight */
+            crypto_allocation_weight: string;
             /** Estimated Portfolio Volatility 7D */
             estimated_portfolio_volatility_7d: string;
             /** Expected Returns 7D */
@@ -986,7 +1001,7 @@ export interface components {
              * Policy Version
              * @constant
              */
-            policy_version: "phase2-mean-variance-v1";
+            policy_version: "phase2-mean-variance-cash-v2";
             /** Predicted Portfolio Return 7D */
             predicted_portfolio_return_7d: string;
             /** Risk Aversion */

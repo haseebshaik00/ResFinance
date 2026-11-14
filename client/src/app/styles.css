@@ -2554,6 +2554,15 @@ code {
   background: var(--sol-color);
 }
 
+.asset-dot.cash {
+  background: #607184;
+}
+
+.cash-reserve-row th,
+.cash-reserve-row td {
+  color: var(--muted);
+}
+
 .allocation-table tfoot th,
 .allocation-table tfoot td {
   border-bottom: 0;
