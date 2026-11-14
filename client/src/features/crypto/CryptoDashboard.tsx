@@ -1,453 +1,417 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Check, Pencil, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle, FlaskConical, ShieldCheck } from "lucide-react";
 
 import type {
-  CryptoOverview,
   PortfolioRecommendation,
+  SevenDayForecast,
 } from "../../lib/api/client";
-import { MonthPicker } from "../../components/MonthPicker";
-import {
-  currentMonth,
-  formatUsd,
-  minorUnitsToUsdInput,
-  usdToMinorUnits,
-} from "../finance/money";
+import { formatUsd, usdToMinorUnits } from "../finance/money";
 import { CryptoChart } from "./CryptoChart";
+import {
+  formatForecastDate,
+  formatForecastPrice,
+  formatForecastReturn,
+} from "./forecastChart";
 import { useCryptoDashboard } from "./useCryptoDashboard";
 
 type Asset = "BTC" | "ETH" | "SOL";
 const ASSETS: Asset[] = ["BTC", "ETH", "SOL"];
-const QUESTIONS = [
-  [
-    "investment_horizon",
-    "Investment Horizon",
-    ["Short-term", "Medium-term", "Long-term"],
-  ],
-  [
-    "risk_tolerance",
-    "Risk Tolerance",
-    ["Prefer safety", "Moderate risk", "High risk"],
-  ],
-  [
-    "liquidity_needs",
-    "Liquidity Needs",
-    ["High need", "Moderate need", "Low need"],
-  ],
-] as const;
+const ASSET_NAMES: Record<Asset, string> = {
+  BTC: "Bitcoin",
+  ETH: "Ethereum",
+  SOL: "Solana",
+};
 
 export function CryptoDashboard({ accessToken }: { accessToken: string }) {
-  const [month, setMonth] = useState(currentMonth());
+  const dashboard = useCryptoDashboard(accessToken);
   const [asset, setAsset] = useState<Asset>("BTC");
-  const dashboard = useCryptoDashboard(accessToken, month);
+  const [capital, setCapital] = useState("1000.00");
+  const [capitalError, setCapitalError] = useState<string | null>(null);
+  const snapshotId = dashboard.forecast.data?.snapshot_id;
 
-  if (dashboard.overview.isPending) {
+  useEffect(() => {
+    if (snapshotId === undefined) return;
+    const timer = window.setTimeout(() => {
+      try {
+        const minorUnits = usdToMinorUnits(capital);
+        if (minorUnits <= 0)
+          throw new Error("Investment capital must be greater than zero.");
+        setCapitalError(null);
+        dashboard.recommendation.mutate({
+          capital: { currency: "USD", minor_units: minorUnits },
+        });
+      } catch (error) {
+        setCapitalError(
+          error instanceof Error ? error.message : "Enter a valid USD amount.",
+        );
+      }
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [capital, snapshotId]);
+
+  if (dashboard.forecast.isPending) {
     return (
       <DashboardState
-        title="Building your crypto view…"
-        text="Reading actual savings, risk preferences, and approved forecast data."
+        title="Loading seven-day research forecast…"
+        text="Verifying the selected MSPCIFormer model, immutable artifacts, and latest completed UTC market data."
       />
     );
   }
-  if (dashboard.overview.isError) {
+  if (dashboard.forecast.isError) {
     return (
       <DashboardState
         title="Crypto Intelligence is unavailable."
-        text={dashboard.overview.error.message}
+        text={dashboard.forecast.error.message}
         error
       />
     );
   }
-  const overview = dashboard.overview.data;
-  const displayed = dashboard.scenario.data ?? overview.recommendation;
+
+  const forecast = dashboard.forecast.data;
   return (
-    <div className="finance-dashboard crypto-dashboard">
+    <div className="finance-dashboard crypto-dashboard phase2-dashboard">
       <section className="dashboard-header" aria-labelledby="crypto-title">
         <div>
-          <p className="eyebrow">Risk-aware portfolio</p>
-          <h1 id="crypto-title">Savings, translated into choices!</h1>
+          <p className="eyebrow">Experimental · Seven-day outlook</p>
+          <h1 id="crypto-title">Crypto Intelligence</h1>
           <p className="lede">
-            Explore a BTC, ETH, and SOL portfolio tailored to your savings, risk
-            preferences, and an approved 15-day forecast.
+            Review validation-selected MSPCIFormer forecasts and a transparent,
+            long-only BTC/ETH/SOL allocation. No trades are executed.
           </p>
         </div>
-        <MonthPicker month={month} onChange={setMonth} label="Savings month" />
+        <span className={`forecast-status-pill ${forecast.status}`}>
+          {forecast.status === "current" ? (
+            <ShieldCheck size={17} />
+          ) : (
+            <AlertTriangle size={17} />
+          )}
+          {forecast.status === "current"
+            ? "Current forecast"
+            : "Stale forecast"}
+        </span>
+      </section>
+
+      {forecast.stale_reasons.length > 0 && (
+        <section className="phase2-warning" role="alert">
+          <AlertTriangle aria-hidden="true" size={20} />
+          <div>
+            <strong>Forecast freshness warning</strong>
+            {forecast.stale_reasons.map((reason) => (
+              <p key={reason}>{reason}</p>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <MarketOverview forecast={forecast} />
+
+      <section
+        className="panel phase2-outlook"
+        aria-labelledby="forecast-chart-title"
+      >
+        <div className="section-heading compact">
+          <div>
+            <p className="section-kicker">Current observation + model output</p>
+            <h2 id="forecast-chart-title">Seven-Day Price Outlook</h2>
+          </div>
+          <div className="asset-switcher" aria-label="Chart asset">
+            {ASSETS.map((value) => (
+              <button
+                key={value}
+                className={value === asset ? "active" : ""}
+                type="button"
+                onClick={() => setAsset(value)}
+              >
+                {value}
+              </button>
+            ))}
+          </div>
+        </div>
+        <CryptoChart forecast={forecast} asset={asset} />
+        <p className="panel-note">
+          Solid marker: observed cutoff price. Dashed line: seven future model
+          predictions, not realized prices.
+        </p>
       </section>
 
       <section
-        className="crypto-top-row"
-        aria-label="Crypto Intelligence overview"
+        className="panel phase2-portfolio"
+        aria-labelledby="allocation-title"
       >
-        <CapitalScenarioCard
-          key={`${month}-${overview.default_capital.minor_units}`}
-          defaultCapital={overview.default_capital.minor_units}
-          overview={overview}
-          dashboard={dashboard}
-        />
-        <RiskQuestionnaire overview={overview} dashboard={dashboard} />
+        <div className="section-heading">
+          <div>
+            <p className="section-kicker">Mean–variance recommendation</p>
+            <h2 id="allocation-title">Portfolio Allocation</h2>
+          </div>
+          <label className="investment-capital-field">
+            <span>Investment Capital (USD)</span>
+            <span className="capital-input-shell">
+              <span aria-hidden="true">$</span>
+              <input
+                aria-label="Investment Capital (USD)"
+                inputMode="decimal"
+                value={capital}
+                onChange={(event) => setCapital(event.target.value)}
+              />
+            </span>
+          </label>
+        </div>
+        {capitalError !== null && (
+          <p className="form-error" role="alert">
+            {capitalError}
+          </p>
+        )}
+        {dashboard.recommendation.isError && (
+          <p className="form-error" role="alert">
+            {dashboard.recommendation.error.message}
+          </p>
+        )}
+        {dashboard.recommendation.isPending && (
+          <p className="panel-note" role="status">
+            Calculating the portfolio…
+          </p>
+        )}
+        {dashboard.recommendation.data !== undefined &&
+          capitalError === null && (
+            <RecommendationPanel
+              recommendation={dashboard.recommendation.data}
+            />
+          )}
       </section>
 
-      {overview.forecast === null ? (
-        <section className="panel empty-forecast" role="status">
-          <p className="section-kicker">Forecast unavailable</p>
-          <h2>No forecast is eligible for portfolio use.</h2>
-          <p>
-            No forecast has passed the required quality checks. Portfolio
-            analysis will remain unavailable until one qualifies.
-          </p>
-        </section>
-      ) : (
-        <section className="panel" aria-labelledby="forecast-chart-title">
-          <div className="section-heading compact">
-            <div>
-              <p className="section-kicker">Observed + forecast interval</p>
-              <h2 id="forecast-chart-title">Price outlook</h2>
-            </div>
-            <div className="asset-switcher" aria-label="Chart asset">
-              {ASSETS.map((value) => (
-                <button
-                  key={value}
-                  className={value === asset ? "active" : ""}
-                  type="button"
-                  onClick={() => setAsset(value)}
-                >
-                  {value}
-                </button>
-              ))}
-            </div>
-          </div>
-          <CryptoChart overview={overview} asset={asset} />
-          <p className="panel-note">
-            The P10–P90 range represents model uncertainty, not a guarantee.
-          </p>
-        </section>
-      )}
-
-      {displayed !== null && displayed !== undefined && (
-        <AllocationPanel recommendation={displayed} />
-      )}
-      <details className="provenance-panel">
-        <summary>Data Freshness and Provenance</summary>
-        <div>
-          <p>
-            Formula <code>{overview.savings_formula_version}</code>; Finance
-            calculation <code>{overview.savings_calculation_id}</code>{" "}
-            references {overview.savings_source_event_ids.length} immutable
-            event(s).
-          </p>
-          {overview.forecast !== null && (
-            <p>
-              Forecast <code>{overview.forecast.snapshot_id}</code> is
-              authorized by promotion event{" "}
-              <code>{overview.forecast.promotion_event_id}</code>.
-            </p>
-          )}
-        </div>
-      </details>
+      <MethodPanel forecast={forecast} />
     </div>
   );
 }
 
-function RiskQuestionnaire({
-  overview,
-  dashboard,
-}: {
-  overview: CryptoOverview;
-  dashboard: ReturnType<typeof useCryptoDashboard>;
-}) {
-  const existing = overview.risk_profile?.answers;
-  const [answers, setAnswers] = useState<
-    Record<(typeof QUESTIONS)[number][0], number>
-  >({
-    investment_horizon: existing?.investment_horizon ?? 2,
-    risk_tolerance: existing?.risk_tolerance ?? 2,
-    liquidity_needs: existing?.liquidity_needs ?? 2,
-  });
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    dashboard.riskProfile.mutate({
-      idempotencyKey: crypto.randomUUID(),
-      body: { answers, expected_version: overview.risk_projection_version },
-    });
-  }
+function MarketOverview({ forecast }: { forecast: SevenDayForecast }) {
   return (
     <section
-      className="entry-panel risk-questionnaire-card"
-      aria-labelledby="risk-title"
+      className="phase2-market-section"
+      aria-labelledby="market-overview-title"
     >
-      <div className="section-heading">
+      <div className="section-heading compact">
         <div>
-          <p className="section-kicker">Your preferences</p>
-          <h2 id="risk-title">Risk Questionnaire</h2>
+          <p className="section-kicker">BTC · ETH · SOL</p>
+          <h2 id="market-overview-title">Crypto Market Overview</h2>
         </div>
-        {overview.risk_profile !== null && (
-          <span className="freshness-pill">
-            Score {overview.risk_profile.score}
-          </span>
-        )}
-      </div>
-      <form className="risk-form" onSubmit={submit}>
-        {QUESTIONS.map(([key, label, options]) => (
-          <label className="form-field" key={key}>
-            <span>{label}</span>
-            <select
-              value={answers[key]}
-              onChange={(event) =>
-                setAnswers((current) => ({
-                  ...current,
-                  [key]: Number(event.target.value),
-                }))
-              }
-            >
-              {options.map((option, index) => {
-                const value = index + 1;
-                return (
-                  <option value={value} key={value}>
-                    {value} · {option}
-                  </option>
-                );
-              })}
-            </select>
-          </label>
-        ))}
-        <button
-          className="primary-button"
-          type="submit"
-          disabled={dashboard.riskProfile.isPending}
-        >
-          {dashboard.riskProfile.isPending ? "Saving…" : "Save risk profile"}
-        </button>
-        {dashboard.riskProfile.isError && (
-          <p className="form-error" role="alert">
-            {dashboard.riskProfile.error.message}
-          </p>
-        )}
-      </form>
-    </section>
-  );
-}
-
-function PortfolioSignals({ overview }: { overview: CryptoOverview }) {
-  const summaryItems = [
-    {
-      label: "Risk score",
-      value: overview.risk_profile?.score.toString() ?? "Not set",
-      note: "33 lower risk · 100 growth",
-    },
-    {
-      label: "Forecast",
-      value: overview.forecast === null ? "Unavailable" : "15 days",
-      note:
-        overview.forecast === null
-          ? "No eligible forecast"
-          : `As of ${new Date(overview.forecast.as_of_utc).toLocaleDateString()}`,
-    },
-    {
-      label: "Portfolio mode",
-      value: "Investment Guidance",
-      note: "Personalized allocation suggestions",
-    },
-  ];
-
-  return (
-    <section className="capital-signals" aria-label="Portfolio signals">
-      <p className="crypto-summary-title">Portfolio signals</p>
-      <div className="crypto-summary-items">
-        {summaryItems.map((item) => (
-          <div className="crypto-summary-item" key={item.label}>
-            <span>{item.label}</span>
-            <strong>{item.value}</strong>
-            <small>{item.note}</small>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function CapitalScenarioCard({
-  defaultCapital,
-  overview,
-  dashboard,
-}: {
-  defaultCapital: number;
-  overview: CryptoOverview;
-  dashboard: ReturnType<typeof useCryptoDashboard>;
-}) {
-  const [amount, setAmount] = useState(() =>
-    minorUnitsToUsdInput(defaultCapital),
-  );
-  const [activeCapital, setActiveCapital] = useState(defaultCapital);
-  const [isEditing, setIsEditing] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const amountInput = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (isEditing) {
-      amountInput.current?.focus();
-      amountInput.current?.select();
-    }
-  }, [isEditing]);
-
-  function startEditing() {
-    setAmount(minorUnitsToUsdInput(activeCapital));
-    setValidationError(null);
-    setIsEditing(true);
-  }
-
-  function cancelEditing() {
-    setAmount(minorUnitsToUsdInput(activeCapital));
-    setValidationError(null);
-    setIsEditing(false);
-  }
-
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    try {
-      const cents = usdToMinorUnits(amount);
-      setValidationError(null);
-      dashboard.scenario.mutate(
-        {
-          amount: { currency: "USD", minor_units: cents },
-        },
-        {
-          onSuccess: (recommendation) => {
-            setActiveCapital(recommendation.capital.minor_units);
-            setIsEditing(false);
-          },
-        },
-      );
-    } catch (error) {
-      setValidationError(
-        error instanceof Error ? error.message : "Enter a valid USD amount.",
-      );
-    }
-  }
-  return (
-    <article
-      className={`metric-card capital-card${isEditing ? " is-editing" : ""}`}
-      aria-labelledby="capital-title"
-    >
-      <div className="capital-card-heading">
-        <p id="capital-title">Investment Capital</p>
-        <span className="capital-source">
-          {dashboard.scenario.data === undefined
-            ? "AVAILABLE SAVINGS"
-            : "SCENARIO ACTIVE"}
-        </span>
-      </div>
-      {isEditing ? (
-        <form className="capital-scenario-form" onSubmit={submit}>
-          <label className="capital-edit-field">
-            <span className="sr-only">Scenario amount (USD)</span>
-            <span aria-hidden="true">$</span>
-            <input
-              ref={amountInput}
-              type="text"
-              inputMode="decimal"
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-            />
-          </label>
-          <p className="capital-edit-hint">
-            Analyze an alternate amount without changing Finance.
-          </p>
-          <div className="capital-actions">
-            <button
-              className="capital-scenario-button"
-              type="submit"
-              disabled={dashboard.scenario.isPending}
-            >
-              <Check aria-hidden="true" size={15} />
-              {dashboard.scenario.isPending ? "Analyzing…" : "Analyze scenario"}
-            </button>
-            <button
-              className="capital-cancel-button"
-              type="button"
-              onClick={cancelEditing}
-              disabled={dashboard.scenario.isPending}
-            >
-              <X aria-hidden="true" size={15} />
-              Cancel
-            </button>
-          </div>
-          {dashboard.scenario.isError && (
-            <p className="form-error" role="alert">
-              {dashboard.scenario.error.message}
-            </p>
-          )}
-          {validationError !== null && (
-            <p className="form-error" role="alert">
-              {validationError}
-            </p>
-          )}
-        </form>
-      ) : (
-        <>
-          <div className="capital-amount-display">
-            <strong>{formatUsd(activeCapital)}</strong>
-            <button
-              className="capital-edit-button"
-              type="button"
-              onClick={startEditing}
-              aria-label="Edit scenario amount"
-              title="Edit scenario amount"
-            >
-              <Pencil aria-hidden="true" size={17} />
-            </button>
-          </div>
-          <p className="capital-disclaimer">
-            Read Only · Edit the amount to explore other scenarios
-          </p>
-        </>
-      )}
-      {dashboard.scenario.data !== undefined && (
-        <p className="scenario-result">
-          <Check aria-hidden="true" size={16} />
-          <span>
-            <strong>Scenario active: </strong>
-            {formatUsd(dashboard.scenario.data.capital.minor_units)}. Finance
-            default unchanged.
-          </span>
+        <p className="forecast-timestamps">
+          Generated {formatTimestamp(forecast.generated_at_utc)}
+          <br />
+          Market cutoff{" "}
+          {formatForecastDate(forecast.market_data_cutoff_utc.slice(0, 10))}
         </p>
-      )}
-      <PortfolioSignals overview={overview} />
-    </article>
+      </div>
+      <div className="phase2-market-grid">
+        {forecast.assets.map((item) => {
+          const change = Number(item.predicted_return_7d);
+          return (
+            <article
+              className={`phase2-market-card ${change >= 0 ? "positive" : "negative"}`}
+              key={item.asset}
+            >
+              <div>
+                <span>{item.asset}</span>
+                <small>{ASSET_NAMES[item.asset]}</small>
+              </div>
+              <dl>
+                <div>
+                  <dt>Observed</dt>
+                  <dd>{formatForecastPrice(Number(item.current_price))}</dd>
+                </div>
+                <div>
+                  <dt>Predicted Day 7</dt>
+                  <dd>
+                    {formatForecastPrice(Number(item.predicted_prices[6]))}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Predicted 7-day return</dt>
+                  <dd>{formatForecastReturn(change)}</dd>
+                </div>
+              </dl>
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
-function AllocationPanel({
+function RecommendationPanel({
   recommendation,
 }: {
   recommendation: PortfolioRecommendation;
 }) {
+  const allocations = useMemo(
+    () =>
+      [...recommendation.allocations].sort(
+        (a, b) => ASSETS.indexOf(a.asset) - ASSETS.indexOf(b.asset),
+      ),
+    [recommendation.allocations],
+  );
+  const percentages = allocations.map((item) => Number(item.weight) * 100);
+  const btcEnd = percentages[0] ?? 0;
+  const ethEnd = btcEnd + (percentages[1] ?? 0);
+  const gradient = `conic-gradient(#6555a5 0 ${btcEnd}%, #2c9c91 ${btcEnd}% ${ethEnd}%, #d49735 ${ethEnd}% 100%)`;
   return (
-    <section className="panel" aria-labelledby="allocation-title">
-      <div className="section-heading compact">
-        <div>
-          <p className="section-kicker">Constrained recommendation</p>
-          <h2 id="allocation-title">Portfolio allocation</h2>
+    <div className="recommendation-layout">
+      <div className="allocation-donut-wrap">
+        <div
+          className="allocation-donut"
+          style={{ background: gradient }}
+          role="img"
+          aria-label={allocations
+            .map(
+              (item) =>
+                `${item.asset} ${(Number(item.weight) * 100).toFixed(1)} percent, ${formatUsd(item.amount.minor_units)}`,
+            )
+            .join("; ")}
+        >
+          <span>
+            <strong>100%</strong>
+            <small>allocated</small>
+          </span>
+        </div>
+        <span
+          className={`forecast-status-pill ${recommendation.forecast_status}`}
+        >
+          {recommendation.forecast_status} inputs
+        </span>
+      </div>
+      <div className="allocation-table-wrap">
+        <table className="allocation-table">
+          <thead>
+            <tr>
+              <th>Asset</th>
+              <th>Allocation</th>
+              <th>Investment</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allocations.map((item) => (
+              <tr key={item.asset}>
+                <th>
+                  <i className={`asset-dot ${item.asset.toLowerCase()}`} />
+                  {item.asset}
+                </th>
+                <td>{(Number(item.weight) * 100).toFixed(2)}%</td>
+                <td>{formatUsd(item.amount.minor_units)}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th>Total</th>
+              <td>
+                {(Number(recommendation.total_allocation_weight) * 100).toFixed(
+                  2,
+                )}
+                %
+              </td>
+              <td>{formatUsd(recommendation.capital.minor_units)}</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div className="portfolio-metrics">
+          <span>
+            <small>Predicted portfolio return</small>
+            <strong>
+              {formatForecastReturn(
+                Number(recommendation.predicted_portfolio_return_7d),
+              )}
+            </strong>
+          </span>
+          <span>
+            <small>Estimated 7-day volatility</small>
+            <strong>
+              {formatForecastReturn(
+                Number(recommendation.estimated_portfolio_volatility_7d),
+              )}
+            </strong>
+          </span>
         </div>
       </div>
-      <div className="allocation-grid">
-        {recommendation.allocations.map((item) => (
-          <article key={item.asset}>
-            <span>{item.asset}</span>
-            <strong>{formatUsd(item.amount.minor_units)}</strong>
-            <small>
-              {(Number(item.weight) * 100).toFixed(1)}% · cap{" "}
-              {(Number(item.cap) * 100).toFixed(0)}%
-            </small>
-            <div className="allocation-track">
-              <i style={{ width: `${Number(item.weight) * 100}%` }} />
-            </div>
-          </article>
-        ))}
-      </div>
       {recommendation.warnings.map((warning) => (
-        <p className="panel-note" key={warning}>
+        <p className="panel-note recommendation-warning" key={warning}>
           {warning}
         </p>
       ))}
+    </div>
+  );
+}
+
+function MethodPanel({ forecast }: { forecast: SevenDayForecast }) {
+  return (
+    <section className="panel phase2-method" aria-labelledby="method-title">
+      <div className="section-heading compact">
+        <div>
+          <p className="section-kicker">Transparent methodology</p>
+          <h2 id="method-title">How Recommendations Are Calculated</h2>
+        </div>
+        <FlaskConical aria-hidden="true" size={28} />
+      </div>
+      <ol className="method-steps">
+        <li>
+          <strong>Forecast</strong>
+          <span>Validation-selected MSPCIFormer predicts Days 1–7.</span>
+        </li>
+        <li>
+          <strong>Return</strong>
+          <span>Day-7 price ÷ observed price − 1.</span>
+        </li>
+        <li>
+          <strong>Risk</strong>
+          <span>Ledoit–Wolf daily covariance over 365 days, scaled ×7.</span>
+        </li>
+        <li>
+          <strong>Allocate</strong>
+          <span>Maximize μᵀw − 5(wᵀΣ₇w), long-only and fully invested.</span>
+        </li>
+      </ol>
+      <div className="method-facts">
+        <span>
+          Model <strong>{forecast.model_name}</strong>
+        </span>
+        <span>
+          Horizon <strong>Seven days</strong>
+        </span>
+        <span>
+          Status <strong>Experimental</strong>
+        </span>
+        <span>
+          Execution <strong>No trades</strong>
+        </span>
+      </div>
+      <details className="accuracy-panel">
+        <summary>Historical model accuracy and provenance</summary>
+        <div className="accuracy-grid">
+          {forecast.accuracy.map((item) => (
+            <article key={item.model_key}>
+              <strong>
+                {item.model_key === "original-mspciformer"
+                  ? "Original MSPCIFormer"
+                  : "VASA-MSPCIFormer"}
+              </strong>
+              <span>
+                Holdout MAPE {formatForecastReturn(Number(item.mape))}
+              </span>
+              <span>
+                7-day return MAE{" "}
+                {formatForecastReturn(Number(item.return_7d_mae))}
+              </span>
+              <span>
+                Directional accuracy{" "}
+                {formatForecastReturn(Number(item.directional_accuracy))}
+              </span>
+            </article>
+          ))}
+        </div>
+        <p>
+          Run <code>{forecast.run_id}</code> · Model{" "}
+          <code>{forecast.model_version}</code>
+        </p>
+      </details>
     </section>
   );
 }
@@ -471,4 +435,16 @@ function DashboardState({
       <p>{text}</p>
     </section>
   );
+}
+
+function formatTimestamp(value: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+  }).format(new Date(value));
 }

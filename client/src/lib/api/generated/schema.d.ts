@@ -72,15 +72,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/crypto/overview": {
+    "/api/v1/crypto/forecast": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Overview */
-        get: operations["overview_api_v1_crypto_overview_get"];
+        /** Forecast */
+        get: operations["forecast_api_v1_crypto_forecast_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -89,7 +89,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/crypto/risk-profile": {
+    "/api/v1/crypto/recommendations": {
         parameters: {
             query?: never;
             header?: never;
@@ -98,25 +98,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Record Risk Profile */
-        post: operations["record_risk_profile_api_v1_crypto_risk_profile_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/crypto/scenarios": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Analyze Scenario */
-        post: operations["analyze_scenario_api_v1_crypto_scenarios_post"];
+        /** Recommendation */
+        post: operations["recommendation_api_v1_crypto_recommendations_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -451,8 +434,6 @@ export interface components {
              * @enum {string}
              */
             asset: "BTC" | "ETH" | "SOL";
-            /** Cap */
-            cap: string;
             /** Weight */
             weight: string;
         };
@@ -463,16 +444,14 @@ export interface components {
              * @enum {string}
              */
             asset: "BTC" | "ETH" | "SOL";
-            /** Expected Return */
-            expected_return: string;
-            /** P10 Return */
-            p10_return: string;
-            /** P50 Return */
-            p50_return: string;
-            /** P90 Return */
-            p90_return: string;
-            /** Probability Up */
-            probability_up: string;
+            /** Current Price */
+            current_price: string;
+            /** Predicted Daily Returns */
+            predicted_daily_returns: string[];
+            /** Predicted Prices */
+            predicted_prices: string[];
+            /** Predicted Return 7D */
+            predicted_return_7d: string;
         };
         /** BudgetCommand */
         BudgetCommand: {
@@ -606,26 +585,6 @@ export interface components {
             /** Owner Display Name */
             owner_display_name: string;
         };
-        /** CryptoOverviewModel */
-        CryptoOverviewModel: {
-            default_capital: components["schemas"]["MoneyModel"];
-            forecast: components["schemas"]["ForecastSnapshotModel"] | null;
-            /** Month */
-            month: string;
-            recommendation: components["schemas"]["RecommendationModel"] | null;
-            risk_profile: components["schemas"]["RiskProfileModel"] | null;
-            /** Risk Projection Version */
-            risk_projection_version: number;
-            /** Savings Calculation Id */
-            savings_calculation_id: string;
-            /**
-             * Savings Formula Version
-             * @constant
-             */
-            savings_formula_version: "finance-savings-v1";
-            /** Savings Source Event Ids */
-            savings_source_event_ids: string[];
-        };
         /** DeactivateBudgetCommand */
         DeactivateBudgetCommand: {
             /** Expected Version */
@@ -670,6 +629,16 @@ export interface components {
              */
             topic: "savings" | "budgets" | "obligations" | "crypto" | "general";
         };
+        /** ExpectedReturnModel */
+        ExpectedReturnModel: {
+            /**
+             * Asset
+             * @enum {string}
+             */
+            asset: "BTC" | "ETH" | "SOL";
+            /** Predicted Return 7D */
+            predicted_return_7d: string;
+        };
         /** FinanceOverviewModel */
         FinanceOverviewModel: {
             /** Budgets */
@@ -685,44 +654,25 @@ export interface components {
             /** Transactions */
             transactions: components["schemas"]["TransactionModel"][];
         };
-        /** ForecastSnapshotModel */
-        ForecastSnapshotModel: {
+        /** ForecastAccuracyModel */
+        ForecastAccuracyModel: {
+            /** Btc Day 7 Mae Usd */
+            btc_day_7_mae_usd: string;
+            /** Directional Accuracy */
+            directional_accuracy: string;
+            /** Eth Day 7 Mae Usd */
+            eth_day_7_mae_usd: string;
+            /** Mape */
+            mape: string;
             /**
-             * As Of Utc
-             * Format: date-time
+             * Model Key
+             * @enum {string}
              */
-            as_of_utc: string;
-            /** Dataset Hash */
-            dataset_hash: string;
-            /**
-             * Expires At Utc
-             * Format: date-time
-             */
-            expires_at_utc: string;
-            /** Forecasts */
-            forecasts: components["schemas"]["AssetForecastModel"][];
-            /**
-             * Horizon Days
-             * @constant
-             */
-            horizon_days: 15;
-            /** Model Hash */
-            model_hash: string;
-            /**
-             * Model Name
-             * @constant
-             */
-            model_name: "adaptive-gating";
-            /** Price History */
-            price_history: components["schemas"]["PricePointModel"][];
-            /** Promotion Event Id */
-            promotion_event_id: string;
-            /** Run Id */
-            run_id: string;
-            /** Scope */
-            scope: string;
-            /** Snapshot Id */
-            snapshot_id: string;
+            model_key: "original-mspciformer" | "vasa-mspciformer";
+            /** Return 7D Mae */
+            return_7d_mae: string;
+            /** Sol Day 7 Mae Usd */
+            sol_day_7_mae_usd: string;
         };
         /** FundCreditsCommand */
         FundCreditsCommand: {
@@ -990,23 +940,6 @@ export interface components {
             /** Source Event Id */
             source_event_id: string;
         };
-        /** PricePointModel */
-        PricePointModel: {
-            /**
-             * Asset
-             * @enum {string}
-             */
-            asset: "BTC" | "ETH" | "SOL";
-            /**
-             * Observed At Utc
-             * Format: date-time
-             */
-            observed_at_utc: string;
-            /** Price Usd */
-            price_usd: string;
-            /** Source Record Id */
-            source_record_id: string;
-        };
         /** ProvenanceModel */
         ProvenanceModel: {
             /** As Of Utc */
@@ -1016,39 +949,54 @@ export interface components {
             /** Source Event Ids */
             source_event_ids: string[];
         };
+        /** RecommendationCommand */
+        RecommendationCommand: {
+            capital: components["schemas"]["MoneyModel"];
+        };
         /** RecommendationModel */
         RecommendationModel: {
             /** Allocations */
             allocations: components["schemas"]["AllocationModel"][];
             capital: components["schemas"]["MoneyModel"];
+            /**
+             * Covariance Estimator
+             * @constant
+             */
+            covariance_estimator: "Ledoit-Wolf";
+            /** Covariance Lookback Days */
+            covariance_lookback_days: number;
             /** Covariance Repaired */
             covariance_repaired: boolean;
-            /** Fallback Used */
-            fallback_used: boolean;
+            /** Estimated Portfolio Volatility 7D */
+            estimated_portfolio_volatility_7d: string;
+            /** Expected Returns 7D */
+            expected_returns_7d: components["schemas"]["ExpectedReturnModel"][];
             /** Forecast Snapshot Id */
             forecast_snapshot_id: string;
+            /**
+             * Forecast Status
+             * @enum {string}
+             */
+            forecast_status: "current" | "stale";
+            /** Model Key */
+            model_key: string;
+            /** Model Version */
+            model_version: string;
             /**
              * Policy Version
              * @constant
              */
-            policy_version: "portfolio-policy-v1";
-            /** Promotion Event Id */
-            promotion_event_id: string;
-            /** Risk Profile Event Id */
-            risk_profile_event_id: string;
-            /** Risk Score */
-            risk_score: number;
-            /** Savings Calculation Id */
-            savings_calculation_id: string | null;
-            /** Savings Source Event Ids */
-            savings_source_event_ids: string[];
+            policy_version: "phase2-mean-variance-v1";
+            /** Predicted Portfolio Return 7D */
+            predicted_portfolio_return_7d: string;
+            /** Risk Aversion */
+            risk_aversion: string;
             /** Solver */
             solver: string;
-            /**
-             * Source Kind
-             * @enum {string}
-             */
-            source_kind: "finance_savings" | "scenario";
+            /** Solver Status */
+            solver_status: string;
+            /** Total Allocation Weight */
+            total_allocation_weight: string;
             /** Warnings */
             warnings: string[];
         };
@@ -1114,53 +1062,6 @@ export interface components {
              */
             starts_on: string;
         };
-        /** RiskAnswersModel */
-        RiskAnswersModel: {
-            /** Investment Horizon */
-            investment_horizon: number;
-            /** Liquidity Needs */
-            liquidity_needs: number;
-            /** Risk Tolerance */
-            risk_tolerance: number;
-        };
-        /** RiskProfileCommand */
-        RiskProfileCommand: {
-            answers: components["schemas"]["RiskAnswersModel"];
-            /** Expected Version */
-            expected_version: number;
-        };
-        /** RiskProfileEventResponse */
-        RiskProfileEventResponse: {
-            /** Deduplicated */
-            deduplicated: boolean;
-            /** Event Id */
-            event_id: string;
-            /**
-             * Occurred At Utc
-             * Format: date-time
-             */
-            occurred_at_utc: string;
-            /** Projection Version */
-            projection_version: number;
-        };
-        /** RiskProfileModel */
-        RiskProfileModel: {
-            answers: components["schemas"]["RiskAnswersModel"];
-            /**
-             * Policy Version
-             * @constant
-             */
-            policy_version: "risk-questionnaire-v2";
-            /**
-             * Recorded At Utc
-             * Format: date-time
-             */
-            recorded_at_utc: string;
-            /** Score */
-            score: number;
-            /** Source Event Id */
-            source_event_id: string;
-        };
         /** SavingsModel */
         SavingsModel: {
             actual: components["schemas"]["MoneyModel"];
@@ -1175,10 +1076,6 @@ export interface components {
             projected: components["schemas"]["MoneyModel"];
             /** Source Event Ids */
             source_event_ids: string[];
-        };
-        /** ScenarioCommand */
-        ScenarioCommand: {
-            amount: components["schemas"]["MoneyModel"];
         };
         /** SessionRequest */
         SessionRequest: {
@@ -1210,6 +1107,59 @@ export interface components {
             /** Expected Version */
             expected_version: number;
             intent: components["schemas"]["server__app__api__groups__SignedIntentModel"];
+        };
+        /** SevenDayForecastModel */
+        SevenDayForecastModel: {
+            /** Accuracy */
+            accuracy: components["schemas"]["ForecastAccuracyModel"][];
+            /** Assets */
+            assets: components["schemas"]["AssetForecastModel"][];
+            /** Forecast Dates Utc */
+            forecast_dates_utc: string[];
+            /**
+             * Generated At Utc
+             * Format: date-time
+             */
+            generated_at_utc: string;
+            /** Manifest Key */
+            manifest_key: string;
+            /**
+             * Market Data Cutoff Utc
+             * Format: date-time
+             */
+            market_data_cutoff_utc: string;
+            /**
+             * Model Key
+             * @enum {string}
+             */
+            model_key: "original-mspciformer" | "vasa-mspciformer";
+            /** Model Name */
+            model_name: string;
+            /** Model Version */
+            model_version: string;
+            /** Quality Checks */
+            quality_checks: {
+                [key: string]: unknown;
+            };
+            /** Refreshed From Checkpoint */
+            refreshed_from_checkpoint: boolean;
+            /**
+             * Research Status
+             * @default experimental
+             * @constant
+             */
+            research_status: "experimental";
+            /** Run Id */
+            run_id: string;
+            /** Snapshot Id */
+            snapshot_id: string;
+            /** Stale Reasons */
+            stale_reasons: string[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "current" | "stale";
         };
         /** TransactionCommand */
         TransactionCommand: {
@@ -1521,11 +1471,9 @@ export interface operations {
             };
         };
     };
-    overview_api_v1_crypto_overview_get: {
+    forecast_api_v1_crypto_forecast_get: {
         parameters: {
-            query: {
-                month: string;
-            };
+            query?: never;
             header?: {
                 Authorization?: string | null;
                 Origin?: string | null;
@@ -1542,7 +1490,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CryptoOverviewModel"];
+                    "application/json": components["schemas"]["SevenDayForecastModel"];
                 };
             };
             /** @description Validation Error */
@@ -1556,56 +1504,20 @@ export interface operations {
             };
         };
     };
-    record_risk_profile_api_v1_crypto_risk_profile_post: {
-        parameters: {
-            query?: never;
-            header: {
-                "Idempotency-Key": string;
-                Authorization?: string | null;
-                Origin?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RiskProfileCommand"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RiskProfileEventResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    analyze_scenario_api_v1_crypto_scenarios_post: {
+    recommendation_api_v1_crypto_recommendations_post: {
         parameters: {
             query?: never;
             header?: {
                 Authorization?: string | null;
                 Origin?: string | null;
+                Referer?: string | null;
             };
             path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ScenarioCommand"];
+                "application/json": components["schemas"]["RecommendationCommand"];
             };
         };
         responses: {

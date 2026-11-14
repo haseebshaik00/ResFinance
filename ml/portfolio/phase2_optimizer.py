@@ -1,0 +1,170 @@
+# mypy: disable-error-code="import-untyped,attr-defined,no-untyped-call,no-any-return"
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from decimal import ROUND_FLOOR, Decimal
+
+import cvxpy as cp
+import numpy as np
+from sklearn.covariance import LedoitWolf
+
+from server.app.domain.crypto import CryptoAsset
+from server.app.domain.phase2_portfolio import HistoricalPrice, Phase2Allocation
+
+ASSETS: tuple[CryptoAsset, ...] = tuple(CryptoAsset)
+
+
+@dataclass(frozen=True)
+class Phase2OptimizationResult:
+    allocations: tuple[Phase2Allocation, ...]
+    predicted_return_7d: str
+    estimated_volatility_7d: str
+    solver: str
+    solver_status: str
+    covariance_repaired: bool
+    covariance_observation_count: int
+
+
+def optimize_seven_day_portfolio(
+    *,
+    capital_minor_units: int,
+    expected_returns: dict[CryptoAsset, Decimal],
+    price_history: tuple[HistoricalPrice, ...],
+    risk_aversion: Decimal,
+    covariance_lookback_days: int,
+) -> Phase2OptimizationResult:
+    if isinstance(capital_minor_units, bool) or capital_minor_units <= 0:
+        raise ValueError("investment capital must be positive integer USD cents")
+    if set(expected_returns) != set(ASSETS):
+        raise ValueError("expected returns must contain exactly BTC, ETH, and SOL")
+    if not risk_aversion.is_finite() or risk_aversion <= 0:
+        raise ValueError("risk aversion must be positive")
+    if covariance_lookback_days < 30:
+        raise ValueError("covariance lookback must be at least 30 days")
+
+    daily_returns = _aligned_daily_returns(price_history, covariance_lookback_days)
+    covariance = LedoitWolf().fit(daily_returns).covariance_ * 7.0
+    covariance, repaired = _nearest_psd(covariance)
+    expected = np.asarray([float(expected_returns[asset]) for asset in ASSETS], dtype=np.float64)
+    if not np.isfinite(expected).all():
+        raise ValueError("expected returns must be finite")
+
+    weights = cp.Variable(len(ASSETS))
+    objective = cp.Maximize(
+        expected @ weights - float(risk_aversion) * cp.quad_form(weights, covariance)
+    )
+    problem = cp.Problem(objective, [weights >= 0, cp.sum(weights) == 1])
+    failures: list[str] = []
+    solver = ""
+    for candidate in ("CLARABEL", "SCS"):
+        try:
+            problem.solve(solver=candidate)
+        except cp.SolverError as exc:
+            failures.append(f"{candidate}: {exc}")
+            continue
+        if problem.status in {cp.OPTIMAL, cp.OPTIMAL_INACCURATE} and weights.value is not None:
+            solver = candidate
+            break
+        failures.append(f"{candidate}: status {problem.status}")
+    if not solver or weights.value is None:
+        raise ValueError("portfolio optimization failed: " + "; ".join(failures))
+
+    normalized = _normalize_long_only(np.asarray(weights.value, dtype=np.float64))
+    amounts = _reconcile_cents(capital_minor_units, normalized)
+    weight_strings = _reconciled_weight_strings(normalized)
+    allocations = tuple(
+        Phase2Allocation(
+            asset=asset,
+            weight=weight_strings[index],
+            amount_minor_units=amounts[index],
+        )
+        for index, asset in enumerate(ASSETS)
+    )
+    portfolio_return = float(expected @ normalized)
+    portfolio_variance = float(normalized @ covariance @ normalized)
+    if portfolio_variance < -1e-12:
+        raise ValueError("optimized covariance produced negative portfolio variance")
+    return Phase2OptimizationResult(
+        allocations=allocations,
+        predicted_return_7d=_decimal(portfolio_return, 10),
+        estimated_volatility_7d=_decimal(float(np.sqrt(max(portfolio_variance, 0.0))), 10),
+        solver=solver,
+        solver_status=str(problem.status),
+        covariance_repaired=repaired,
+        covariance_observation_count=len(daily_returns),
+    )
+
+
+def _aligned_daily_returns(
+    history: tuple[HistoricalPrice, ...], lookback_days: int
+) -> np.ndarray:
+    prices: dict[CryptoAsset, dict[str, Decimal]] = {asset: {} for asset in ASSETS}
+    for point in history:
+        prices[point.asset][point.observed_date_utc.isoformat()] = Decimal(point.price_usd)
+    common_days = sorted(set.intersection(*(set(values) for values in prices.values())))
+    required_prices = lookback_days + 1
+    if len(common_days) < required_prices:
+        raise ValueError(
+            f"at least {required_prices} aligned price days are required for covariance"
+        )
+    common_days = common_days[-required_prices:]
+    rows = [
+        [
+            float(prices[asset][current] / prices[asset][previous] - Decimal(1))
+            for asset in ASSETS
+        ]
+        for previous, current in zip(common_days, common_days[1:], strict=False)
+    ]
+    result = np.asarray(rows, dtype=np.float64)
+    if result.shape != (lookback_days, len(ASSETS)) or not np.isfinite(result).all():
+        raise ValueError("aligned covariance inputs are invalid")
+    return result
+
+
+def _nearest_psd(matrix: np.ndarray) -> tuple[np.ndarray, bool]:
+    symmetric = (matrix + matrix.T) / 2.0
+    values, vectors = np.linalg.eigh(symmetric)
+    repaired = bool(np.any(values < 1e-10))
+    clipped = np.maximum(values, 1e-10)
+    return vectors @ np.diag(clipped) @ vectors.T, repaired
+
+
+def _normalize_long_only(values: np.ndarray) -> np.ndarray:
+    if values.shape != (len(ASSETS),) or not np.isfinite(values).all():
+        raise ValueError("solver returned invalid portfolio weights")
+    result = np.maximum(values, 0.0)
+    total = float(result.sum())
+    if total <= 0:
+        raise ValueError("solver returned an empty portfolio")
+    result /= total
+    if np.any(result < -1e-10) or abs(float(result.sum()) - 1.0) > 1e-9:
+        raise ValueError("portfolio weights are infeasible")
+    return result
+
+
+def _reconcile_cents(capital: int, weights: np.ndarray) -> tuple[int, ...]:
+    exact = [Decimal(capital) * Decimal(str(float(weight))) for weight in weights]
+    amounts = [int(value.to_integral_value(rounding=ROUND_FLOOR)) for value in exact]
+    remainder = capital - sum(amounts)
+    order = sorted(
+        range(len(exact)), key=lambda index: exact[index] - amounts[index], reverse=True
+    )
+    for index in order[:remainder]:
+        amounts[index] += 1
+    if sum(amounts) != capital:
+        raise ValueError("allocation amounts do not reconcile to capital")
+    return tuple(amounts)
+
+
+def _decimal(value: float, places: int) -> str:
+    return format(Decimal(str(value)).quantize(Decimal(1).scaleb(-places)), "f")
+
+
+def _reconciled_weight_strings(weights: np.ndarray) -> tuple[str, ...]:
+    quantum = Decimal("0.0000000001")
+    rounded = [Decimal(str(float(value))).quantize(quantum) for value in weights[:-1]]
+    final = (Decimal(1) - sum(rounded)).quantize(quantum)
+    if final < 0:
+        raise ValueError("rounded portfolio weights are infeasible")
+    return tuple(format(value, "f") for value in (*rounded, final))

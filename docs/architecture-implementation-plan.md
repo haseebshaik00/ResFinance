@@ -228,15 +228,18 @@ The contract is authoritative for obligation and settlement state. Finance is up
 Research direction as of 2026-11-14:
 
 - New forecasting experiments use MSPCIFormer as the sole base architecture.
-- Phase 1 is an isolated market-price-only seven-day experiment comparing
-  persistence, a clean-room original reimplementation, and VASA scale
-  aggregation. Sentiment, news/social inputs, on-chain features, source gating,
-  equal source fusion, and multi-source ablations are excluded.
+- Active Phase 1 is a market-price-only seven-day experiment comparing a
+  clean-room original reimplementation and VASA scale aggregation. Historical
+  v1 persistence evidence remains immutable but persistence is not an active
+  model. Sentiment, news/social inputs, on-chain features, source gating, equal
+  source fusion, and multi-source ablations are excluded.
 - The prior three-source 15-day pipeline, its Gurgul comparison, promotion
-  events, forecast snapshots, and dashboard/portfolio integration remain
-  immutable legacy runtime evidence until a separately reviewed Phase 2.
+  events, snapshots, questionnaire, and capped portfolio remain immutable
+  legacy evidence. The active dashboard now uses the separately versioned
+  seven-day Phase 2 path.
 - Actual Phase 1 architecture, results, and limitations are documented in
-  [`research/mspciformer-vasa-phase1.md`](research/mspciformer-vasa-phase1.md).
+  [`research/mspciformer-vasa-phase1-v2.md`](research/mspciformer-vasa-phase1-v2.md)
+  and [`research/phase2-seven-day-portfolio.md`](research/phase2-seven-day-portfolio.md).
 
 The following V1 description records the existing legacy runtime architecture;
 it is not the input contract for the new Phase 1 experiment.
@@ -408,12 +411,25 @@ Feasibility implementations are narrow, disposable spikes unless the platform fo
 
 ### Milestone 6: Crypto Intelligence — Risk & Portfolio Dashboard
 
-**Status:** complete for local development and synthetic acceptance; evidence is recorded in [`milestones/milestone6-crypto-intelligence-dashboard.md`](milestones/milestone6-crypto-intelligence-dashboard.md). No forecast is available to the normal runtime until a Milestone 5 model passes promotion.
+**Status:** complete for the current local seven-day research workflow; legacy
+15-day acceptance remains recorded in
+[`milestones/milestone6-crypto-intelligence-dashboard.md`](milestones/milestone6-crypto-intelligence-dashboard.md).
 
-- Implement questionnaire scoring, policy versioning, CVXPY optimization, fallback behavior, forecasts, chart overlays, allocations, and non-mutating scenarios.
-- Connect the default amount to Finance savings through an immutable source event ID.
+- Read the validation-selected Phase 1 model and checkpoint from verified v2
+  research metadata and refresh only by inference when newer completed
+  observations already exist.
+- Apply fixed-lambda seven-day mean-variance optimization with 365-day
+  Ledoit-Wolf covariance, no asset caps, long-only/full-investment constraints,
+  explicit solver status, and no alternative-objective fallback.
+- Expose one hypothetical USD capital input, exact-cent allocations, current or
+  stale forecast status, historical errors, an asset-selectable seven-day
+  chart, and a no-trading warning. The current flow has no questionnaire and
+  does not mutate Finance.
 
-**Acceptance:** weights satisfy every constraint, dollar allocations reconcile to the input amount, stale forecasts are rejected, and scenarios leave Finance unchanged.
+**Acceptance:** weights are nonnegative and sum to one, dollar allocations
+reconcile to the input amount, prediction/covariance horizons are both seven
+days, stale forecasts are labeled, artifact/solver failures are explicit, and
+no trading or Finance mutation occurs.
 
 ### Milestone 7: Deliverables — Cross-dashboard Integration & Local Handoff
 

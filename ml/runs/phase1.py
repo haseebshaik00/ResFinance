@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import json
 import statistics
-import time
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -31,7 +30,6 @@ from ml.evaluation.phase1 import (
     fit_model_epochs,
     forecast,
     metric_report,
-    naive_prices,
     summarize_scale_weights,
     train_model,
     variability,
@@ -215,19 +213,7 @@ def run_phase1_research(
         name: torch.stack(values).mean(dim=0) for name, values in ensemble_predictions.items()
     }
     weights = {name: torch.stack(values).mean(dim=0) for name, values in ensemble_weights.items()}
-    holdout_metrics: dict[str, Any] = {
-        "naive-persistence": metric_report(
-            naive_prices(sequences, test_indices),
-            sequences.targets[test_indices],
-            sequences.origin_prices[test_indices],
-            volatility=sequences.volatility[test_indices],
-        )
-    }
-    holdout_metrics["naive-persistence"]["parameter_count"] = 0
-    holdout_metrics["naive-persistence"]["latency_ms_per_forecast"] = {
-        "mean": _naive_latency(sequences, test_indices),
-        "standard_deviation": 0.0,
-    }
+    holdout_metrics: dict[str, Any] = {}
     for name in models:
         report = metric_report(
             ensemble[name],
@@ -253,7 +239,7 @@ def run_phase1_research(
         config=config,
         selected_lookback=selected_lookback,
     )
-    latest_forecast, checkpoint = _latest_forecast(
+    latest_forecast, checkpoint, preprocessing = _latest_forecast(
         history,
         sequences,
         selected_model=selected_model,
@@ -265,7 +251,8 @@ def run_phase1_research(
     )
 
     metrics_document = {
-        "schema_version": 1,
+        "schema_version": 2,
+        "active_models": list(models),
         "directional_accuracy_definition": (
             "Mean equality of sign(predicted day-d price minus previous predicted price) and "
             "sign(actual day-d price minus previous actual price); Day 1 uses the observed "
@@ -311,6 +298,7 @@ def run_phase1_research(
         "data-manifest.json": _json_bytes(data_manifest),
         "experiment-config.json": _json_bytes(config_document),
         "deployment-checkpoint.json": checkpoint,
+        "deployment-preprocessing.json": preprocessing,
         **evaluation_checkpoints,
         **{name: content.encode("utf-8") for name, content in figures.items()},
     }
@@ -319,7 +307,7 @@ def run_phase1_research(
     }
     provenance = _provenance(Path.cwd())
     manifest: dict[str, object] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "run_id": run_id,
         "purpose": "phase-1-market-only-mspciformer-vasa-research",
         "generated_at_utc": _utc(generated_at_utc),
@@ -348,6 +336,9 @@ def run_phase1_research(
         },
         "selected_volatility_lookback_days": selected_lookback,
         "selected_latest_forecast_model": selected_model,
+        "active_models": list(models),
+        "comparison_protocol": "original-mspciformer-versus-vasa-only",
+        "historical_naive_evidence_rewritten": False,
         "artifact_hashes": artifact_hashes,
         "author_repository_code_copied": False,
         "author_repository_reference_commit": "6c0970462aa0412b2c664fefdbabc71cc17fb775",
@@ -481,7 +472,7 @@ def _latest_forecast(
     trained_epochs: list[int],
     generated_at_utc: datetime,
     config: Phase1Config,
-) -> tuple[dict[str, object], bytes]:
+) -> tuple[dict[str, object], bytes, bytes]:
     all_indices = torch.arange(len(sequences.origin_dates), dtype=torch.long)
     final_training_origin = int(sequences.origin_indices[-1])
     standardizer = fit_price_standardizer(history, through_index=final_training_origin)
@@ -529,14 +520,14 @@ def _latest_forecast(
             ],
         }
     document: dict[str, object] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "model": (
             "VASA-MSPCIFormer"
             if selected_aggregation is ScaleAggregation.VOLATILITY_ADAPTIVE
             else "Original MSPCIFormer reimplementation"
         ),
         "model_key": selected_model,
-        "model_version": "phase1-market-only-v1",
+        "model_version": "phase1-market-only-v2",
         "forecast_horizon_days": FORECAST_DAYS,
         "generated_at_utc": _utc(generated_at_utc),
         "market_data_cutoff_utc": f"{last_date.isoformat()}T00:00:00Z",
@@ -553,7 +544,20 @@ def _latest_forecast(
         "research_only": True,
     }
     checkpoint = deterministic_checkpoint(model, model_config=model_config(model))
-    return document, checkpoint
+    preprocessing = _json_bytes(
+        {
+            "schema_version": 1,
+            "lookback": config.lookback,
+            "volatility_lookback": selected_lookback,
+            "price_log_mean": [round(float(value), 16) for value in standardizer.mean],
+            "price_log_scale": [round(float(value), 16) for value in standardizer.scale],
+            "volatility_mean": [round(float(value), 16) for value in volatility_mean],
+            "volatility_scale": [round(float(value), 16) for value in volatility_scale],
+            "fitted_through_utc": f"{standardizer.fitted_through.isoformat()}T00:00:00Z",
+            "selected_model": selected_model,
+        }
+    )
+    return document, checkpoint, preprocessing
 
 
 def _predictions_document(
@@ -582,13 +586,10 @@ def _predictions_document(
 def _relative_comparisons(metrics: dict[str, Any]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for asset in ASSETS:
-        naive = float(metrics["naive-persistence"]["by_asset"][asset.value]["day_7_mae_usd"])
         original = float(metrics["original-mspciformer"]["by_asset"][asset.value]["day_7_mae_usd"])
         vasa = float(metrics["vasa-mspciformer"]["by_asset"][asset.value]["day_7_mae_usd"])
         result[asset.value] = {
             "vasa_vs_original_day_7_mae_percent": _improvement(original, vasa),
-            "vasa_vs_naive_day_7_mae_percent": _improvement(naive, vasa),
-            "original_vs_naive_day_7_mae_percent": _improvement(naive, original),
         }
     return result
 
@@ -606,7 +607,7 @@ def _evidence(
 ) -> dict[str, object]:
     holdout = metrics["holdout"]
     comparison: dict[str, object] = {}
-    for name in ("naive-persistence", "original-mspciformer", "vasa-mspciformer"):
+    for name in ("original-mspciformer", "vasa-mspciformer"):
         comparison[name] = {
             "btc_day_7_mae_usd": holdout[name]["by_asset"]["BTC"]["day_7_mae_usd"],
             "eth_day_7_mae_usd": holdout[name]["by_asset"]["ETH"]["day_7_mae_usd"],
@@ -616,7 +617,7 @@ def _evidence(
             "mape": holdout[name]["aggregate"]["mape"],
         }
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "completed_at_utc": _utc(generated_at_utc),
         "scope": "Milestone 5 Phase 1 local non-commercial provider-data research",
         "run_id": run_id,
@@ -634,10 +635,12 @@ def _evidence(
         "selected_latest_forecast_model": metrics["selected_latest_forecast_model"],
         "comparison": comparison,
         "relative_comparisons": metrics["relative_comparisons"],
+        "active_models": ["original-mspciformer", "vasa-mspciformer"],
+        "historical_naive_evidence_preserved": True,
         "latest_forecast": latest,
         "artifact_hashes": artifact_hashes,
         "full_artifacts_persisted_in_resilientdb": True,
-        "portfolio_or_frontend_changed": False,
+        "portfolio_integration_ready": True,
         "author_repository_code_copied": False,
         "exact_paper_reproduction": False,
     }
@@ -730,7 +733,6 @@ def _horizon_error_svg(metrics: dict[str, Any]) -> str:
     width, height = 900, 640
     parts = [_svg_start(width, height, "Per-horizon mean absolute percentage error")]
     colors = {
-        "naive-persistence": "#6b7280",
         "original-mspciformer": "#2563eb",
         "vasa-mspciformer": "#eab308",
     }
@@ -755,7 +757,7 @@ def _horizon_error_svg(metrics: dict[str, Any]) -> str:
                 x = 75 + horizon * 120
                 y = top + 120 - value / maximum * 110
                 points.append(f"{x:.2f},{y:.2f}")
-                if name == "naive-persistence":
+                if name == "original-mspciformer":
                     parts.append(
                         f'<text x="{x - 4}" y="{top + 148}" font-size="11">D{horizon + 1}</text>'
                     )
@@ -766,13 +768,12 @@ def _horizon_error_svg(metrics: dict[str, Any]) -> str:
     parts.append(
         _legend(
             {
-                "Naive": colors["naive-persistence"],
                 "Original": colors["original-mspciformer"],
                 "VASA": colors["vasa-mspciformer"],
             },
-            610,
+            665,
             25,
-            spacing=90,
+            spacing=100,
         )
     )
     parts.append("</g></svg>")
@@ -848,14 +849,6 @@ def _matrix_row(values: Tensor) -> list[float]:
 
 def _improvement(reference: float, candidate: float) -> float:
     return round((reference - candidate) / reference * 100.0, 6) if reference else 0.0
-
-
-def _naive_latency(sequences: MarketSequences, indices: Tensor) -> float:
-    repetitions = 1000
-    started = time.perf_counter_ns()
-    for _ in range(repetitions):
-        naive_prices(sequences, indices[:1])
-    return round((time.perf_counter_ns() - started) / repetitions / 1_000_000, 10)
 
 
 def _json_bytes(value: object) -> bytes:

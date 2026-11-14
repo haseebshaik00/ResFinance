@@ -179,40 +179,48 @@ Evidence:
   conditioned scale weights on trailing volatility but slightly degraded
   untouched Day-7 MAE for all three assets versus the original reimplementation.
   Validation selected the original model for the separate research-only latest
-  seven-day forecast; no result entered the legacy promotion, dashboard, or
-  portfolio path.
+  seven-day forecast.
 - Persisted the raw Coin Metrics archive and all predictions, metrics,
   checkpoints, figures, configuration, and latest forecast in ResilientDB.
   Bounded evidence is recorded in
-  [`config/crypto-intelligence/phase1-vasa-2026-11-14.json`](../config/crypto-intelligence/phase1-vasa-2026-11-14.json),
-  with the complete report in
-  [`research/mspciformer-vasa-phase1.md`](research/mspciformer-vasa-phase1.md).
+  [`config/crypto-intelligence/phase1-vasa-2026-11-14.json`](../config/crypto-intelligence/phase1-vasa-2026-11-14.json).
+  That v1 evidence remains byte-for-byte preserved. The active v2 run removes
+  naive persistence from registration, evaluation, plots, selection, and UI
+  metadata while retaining the same Original-versus-VASA conclusion. Its new
+  manifest is `phase1-run:phase1-vasa-v2-f07de01b517d4304823d07bb11a28b1b:manifest`,
+  with bounded evidence in
+  [`config/crypto-intelligence/phase1-vasa-v2-2026-11-14.json`](../config/crypto-intelligence/phase1-vasa-v2-2026-11-14.json)
+  and the report in
+  [`research/mspciformer-vasa-phase1-v2.md`](research/mspciformer-vasa-phase1-v2.md).
 
 Evidence:
 [`milestones/milestone5-crypto-intelligence-research.md`](milestones/milestone5-crypto-intelligence-research.md).
 
 ## Milestone 6: Crypto Intelligence — Risk & Portfolio Dashboard
 
-**Status:** Complete for local development.
+**Status:** Complete for the active local seven-day research workflow. The
+earlier 15-day questionnaire/capped workflow remains immutable legacy evidence.
 
-- Delivered the versioned risk questionnaire, constrained long-only
-  BTC/ETH/SOL optimization, Finance-linked default capital, exact-cent
-  allocations, immutable forecast provenance, and non-mutating amount
-  scenarios.
-- Simplified the active risk policy to three 1–3 responses—investment horizon,
-  risk tolerance, and liquidity needs—with the documented nine-point score
-  formula. Earlier five-question profiles remain auditable but must be
-  replaced before they can inform a new recommendation.
-- Implemented Ledoit-Wolf covariance, 15-day scaling, positive-semidefinite
-  repair, CLARABEL/SCS solving, and a constrained minimum-variance fallback.
-- Delivered the Crypto Intelligence dashboard and fail-closed handling for
-  stale, synthetic, corrupted, or unpromoted forecast inputs.
-- Made the price outlook's 15-calendar-day span explicit with daily time-scale
-  spacing, observed-through and forecast-end dates, endpoint values and
-  returns, and an explanation when the P50 median is a no-change forecast.
-- Reused the accessible in-app month picker for the Crypto Intelligence
-  savings-month control, keeping the calendar interaction and dark-theme
-  treatment consistent with Personal Finance.
+- Connected the verified validation-selected Phase 1 v2 checkpoint and saved
+  preprocessing to a seven-day forecast API. A request reuses the checkpoint;
+  it never retrains. Newer stored completed observations can trigger
+  inference-only refresh, while unavailable inputs fail explicitly and old
+  dates remain visibly stale.
+- Implemented fixed `lambda = 5.0` mean–variance optimization using raw Day-7
+  predicted returns and 365 aligned daily returns with Ledoit-Wolf covariance
+  scaled by seven. Constraints are only nonnegative weights summing to one;
+  there are no asset caps, minimums, leverage, shorts, or questionnaire.
+- CLARABEL and SCS solve the same objective. Total solver failure is explicit;
+  there is no equal-weight or minimum-variance substitution. Weights and USD
+  cents reconcile to 100% and the exact entered capital.
+- Replaced the active Crypto Intelligence page with BTC/ETH/SOL overview cards,
+  actual-versus-predicted seven-day charts, one USD capital input, an allocation
+  donut/table, model error, provenance, freshness warnings, methodology, and
+  responsive light/dark presentation. No trading control exists.
+- The executed $1,000 result is 94.66994278% BTC ($946.70), 0.00013708% ETH
+  ($0.00), and 5.32992014% SOL ($53.30), with -0.01279048% predicted return and
+  6.17001808% estimated seven-day volatility. Evidence is in
+  [`config/crypto-intelligence/phase2-portfolio-2026-11-14.json`](../config/crypto-intelligence/phase2-portfolio-2026-11-14.json).
 
 Evidence:
 [`milestones/milestone6-crypto-intelligence-dashboard.md`](milestones/milestone6-crypto-intelligence-dashboard.md).

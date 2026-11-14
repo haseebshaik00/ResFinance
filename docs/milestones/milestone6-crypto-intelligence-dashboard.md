@@ -6,13 +6,35 @@
 Status: Complete for local development and synthetic acceptance. Cloud, production,
 trading, custody, and investment-performance claims remain out of scope.
 
+## Active seven-day workflow (2026-11-14)
+
+The active application supersedes the dashboard behavior below with the
+validation-selected Phase 1 v2 MSPCIFormer forecast and a simplified
+seven-day mean–variance portfolio. It has one hypothetical USD capital input,
+no questionnaire, no Finance default, and no BTC/ETH/SOL caps. Ledoit-Wolf
+covariance uses 365 aligned daily returns and is scaled by seven; fixed
+`lambda = 5.0`; weights are long-only and sum to one. CLARABEL and SCS may
+solve the same objective, but no alternative portfolio is substituted if both
+fail.
+
+Active authenticated endpoints:
+
+- `GET /api/v1/crypto/forecast`
+- `POST /api/v1/crypto/recommendations`
+
+The active UI has three market cards, a selected-asset seven-day chart, exact
+cent allocation table, donut, freshness and error disclosure, and methodology
+panel. Full evidence and the executed $1,000 result are documented in
+[`../research/phase2-seven-day-portfolio.md`](../research/phase2-seven-day-portfolio.md).
+The rest of this document preserves the historical 15-day acceptance truth.
+
 ## Purpose
 
 Milestone 6 turns the versioned Finance savings result into an evidence-bound,
 risk-aware BTC/ETH/SOL portfolio analysis. It does not execute trades, transfer
 fiat or cryptocurrency, or change Finance from a scenario.
 
-## Implemented behavior
+## Historical 15-day implemented behavior
 
 - A three-question `risk-questionnaire-v2` policy accepts 1 (low) through 3
   (high) for investment horizon, risk tolerance, and liquidity needs. It uses
@@ -64,7 +86,7 @@ Milestone 7 later promoted a separate provider-backed forward candidate under
 the unchanged criteria and published the first eligible normal-runtime
 snapshot; it did not retroactively promote the Milestone 5 smoke candidate.
 
-## API surface
+## Historical API surface
 
 - `GET /api/v1/crypto/overview?month=YYYY-MM`
 - `POST /api/v1/crypto/risk-profile` with `Idempotency-Key`

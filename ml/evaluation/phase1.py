@@ -244,10 +244,6 @@ def metric_report(
     }
 
 
-def naive_prices(sequences: MarketSequences, indices: Tensor) -> Tensor:
-    return sequences.origin_prices[indices].unsqueeze(1).expand(-1, FORECAST_DAYS, -1)
-
-
 def summarize_scale_weights(weights: Tensor, volatility: Tensor) -> dict[str, Any]:
     if weights.ndim != 3 or weights.shape[:2] != volatility.shape:
         raise ValueError("scale weights and volatility shapes are inconsistent")

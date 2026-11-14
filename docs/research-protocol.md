@@ -77,15 +77,35 @@ The completion run must report per-model forward metrics, the chosen coefficient
 
 The new forecasting research direction uses MSPCIFormer as its sole base paper
 and isolates sentiment, on-chain inputs, adaptive source gating, equal source
-fusion, multi-source ablations, portfolio optimization, and frontend behavior
-from the experiment. Historical multimodal runs and the approved 15-day runtime
-path remain immutable legacy evidence.
+fusion, and multi-source ablations. Historical multimodal and 15-day runs
+remain immutable legacy evidence.
 
 The declared Phase 1 protocol uses Coin Metrics daily BTC/ETH/SOL closing
 prices, a direct seven-day price path, five trailing input days, patch scales 4
 and 5, training-only log-price normalization, a validation-selected trailing
 volatility lookback, a seven-day embargo, an untouched chronological holdout,
-three expanding walk-forward folds, and seeds 2025/2026/2027. Model B and Model
-C differ only by VASA's zero-initialized `1 -> 8 -> 2` volatility adjustment to
-the learned scale logits. Full details and actual results are in
-[`research/mspciformer-vasa-phase1.md`](research/mspciformer-vasa-phase1.md).
+three expanding walk-forward folds, and seeds 2025/2026/2027. The two active
+models differ only by VASA's zero-initialized `1 -> 8 -> 2` volatility
+adjustment to the learned scale logits. Naive persistence appeared in the
+historical v1 run but is absent from active registration, evaluation, plots,
+selection, and UI metadata. Full current details and actual results are in
+[`research/mspciformer-vasa-phase1-v2.md`](research/mspciformer-vasa-phase1-v2.md).
+
+The validation-selected checkpoint and saved preprocessing parameters may be
+used for inference-only refreshes when newer completed daily observations are
+already available. A portfolio request must not retrain the model. Failed
+artifact restoration or inference is explicit; no zero-return fallback is
+permitted. Forecasts that cannot reach the latest completed UTC day retain
+their original dates and are labeled stale.
+
+## Phase 2 seven-day portfolio protocol
+
+Phase 2 reads raw cumulative Day-7 returns from one verified Phase 1 snapshot
+and applies a fixed mean–variance policy. Ledoit-Wolf covariance uses the
+latest 365 aligned daily returns available at the forecast cutoff and is
+multiplied by seven. The objective is `mu^T w - 5.0(w^T Sigma_7 w)`, subject
+only to nonnegative weights summing to one. There are no asset caps, minimums,
+cash allocation, risk questionnaire, leverage, or short positions. CLARABEL
+and SCS solve the identical objective; total solver failure is returned rather
+than replaced by another portfolio. Exact-cent reconciliation affects dollar
+amounts, not weights.

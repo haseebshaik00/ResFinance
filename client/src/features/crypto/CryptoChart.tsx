@@ -1,180 +1,121 @@
-import {
-  ColorType,
-  createChart,
-  LineSeries,
-  type IChartApi,
-  type Time,
-} from "lightweight-charts";
-import { useEffect, useMemo, useRef } from "react";
-
-import type { CryptoOverview } from "../../lib/api/client";
-import {
-  buildForecastPath,
-  forecastEndDate,
-  formatForecastDate,
-  formatForecastPrice,
-  formatForecastReturn,
-} from "./forecastChart";
+import type { SevenDayForecast } from "../../lib/api/client";
+import { formatForecastDate, formatForecastPrice } from "./forecastChart";
 
 type Asset = "BTC" | "ETH" | "SOL";
 
+const WIDTH = 800;
+const HEIGHT = 320;
+const MARGIN = { top: 24, right: 28, bottom: 48, left: 92 };
+
 export function CryptoChart({
-  overview,
+  forecast,
   asset,
 }: {
-  overview: CryptoOverview;
+  forecast: SevenDayForecast;
   asset: Asset;
 }) {
-  const container = useRef<HTMLDivElement>(null);
-  const snapshot = overview.forecast;
-  const historical = useMemo(
-    () =>
-      snapshot?.price_history
-        .filter((point) => point.asset === asset)
-        .map((point) => ({
-          time: point.observed_at_utc.slice(0, 10) as Time,
-          value: Number(point.price_usd),
-        })) ?? [],
-    [asset, snapshot],
-  );
-  const forecast = useMemo(
-    () => snapshot?.forecasts.find((item) => item.asset === asset),
-    [asset, snapshot],
-  );
-  const last = historical.at(-1);
-  const endDate =
-    snapshot === null || last === undefined
-      ? null
-      : forecastEndDate(String(last.time), snapshot.horizon_days);
+  const selected = forecast.assets.find((item) => item.asset === asset);
+  if (selected === undefined) return null;
 
-  useEffect(() => {
-    if (
-      container.current === null ||
-      snapshot === null ||
-      last === undefined ||
-      forecast === undefined ||
-      endDate === null
+  const cutoff = forecast.market_data_cutoff_utc.slice(0, 10);
+  const dates = [cutoff, ...forecast.forecast_dates_utc];
+  const prices = [
+    Number(selected.current_price),
+    ...selected.predicted_prices.map(Number),
+  ];
+  const minimum = Math.min(...prices);
+  const maximum = Math.max(...prices);
+  const padding = Math.max((maximum - minimum) * 0.18, maximum * 0.002);
+  const low = minimum - padding;
+  const high = maximum + padding;
+  const plotWidth = WIDTH - MARGIN.left - MARGIN.right;
+  const plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
+  const point = (value: number, index: number) => ({
+    x: MARGIN.left + (index / 7) * plotWidth,
+    y: MARGIN.top + ((high - value) / (high - low)) * plotHeight,
+  });
+  const points = prices.map(point);
+  const forecastPath = points
+    .map(
+      ({ x, y }, index) =>
+        `${index === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`,
     )
-      return;
-    const host = container.current;
-    const chart: IChartApi = createChart(host, {
-      width: host.clientWidth,
-      height: 310,
-      layout: {
-        background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#73809a",
-      },
-      grid: {
-        vertLines: { color: "rgba(115, 128, 154, 0.12)" },
-        horzLines: { color: "rgba(115, 128, 154, 0.12)" },
-      },
-      rightPriceScale: { borderVisible: false },
-      timeScale: { borderVisible: false },
-    });
-    if (historical.length > 0) {
-      const historyLine = chart.addSeries(LineSeries, {
-        color: "#6555a5",
-        lineWidth: 3,
-        title: `${asset} observed`,
-      });
-      historyLine.setData(historical);
-      const overlays = [
-        ["p10_return", "#d16d7f", "P10"],
-        ["p50_return", "#2c9c91", "P50"],
-        ["p90_return", "#d49735", "P90"],
-      ] as const;
-      overlays.forEach(([field, color, title]) => {
-        const line = chart.addSeries(LineSeries, {
-          color,
-          lineWidth: 2,
-          lineStyle: 2,
-          title,
-        });
-        const points = buildForecastPath({
-          startDate: String(last.time),
-          endDate,
-          startValue: last.value,
-          endpointReturn: Number(forecast[field]),
-        }).map((point) => ({ ...point, time: point.time as Time }));
-        line.setData(points);
-      });
-      chart.timeScale().fitContent();
-    }
-    const resize = new ResizeObserver(() => {
-      chart.applyOptions({ width: host.clientWidth });
-    });
-    resize.observe(host);
-    return () => {
-      resize.disconnect();
-      chart.remove();
+    .join(" ");
+  const grid = Array.from({ length: 5 }, (_, index) => {
+    const ratio = index / 4;
+    return {
+      y: MARGIN.top + ratio * plotHeight,
+      value: high - ratio * (high - low),
     };
-  }, [endDate, forecast, historical, last, snapshot]);
-
-  if (
-    snapshot === null ||
-    last === undefined ||
-    forecast === undefined ||
-    endDate === null
-  ) {
-    return null;
-  }
-
-  const lastObservedDate = String(last.time);
-  const p50Return = Number(forecast.p50_return);
-  const values = [
-    ["P10", forecast.p10_return],
-    ["P50", forecast.p50_return],
-    ["P90", forecast.p90_return],
-  ] as const;
+  });
 
   return (
-    <div className="forecast-chart-frame">
+    <div className="phase2-chart-frame">
       <div
-        className="forecast-window"
-        aria-label={`${snapshot.horizon_days}-day forecast interval from ${formatForecastDate(lastObservedDate)} through ${formatForecastDate(endDate)}`}
+        className="phase2-chart"
+        role="img"
+        aria-label={`${asset} observed price on ${formatForecastDate(cutoff)} and seven predicted daily USD prices through ${formatForecastDate(dates.at(-1) ?? cutoff)}`}
       >
-        <span className="forecast-window-date">
-          <small>Observed through</small>
-          <strong>{formatForecastDate(lastObservedDate)}</strong>
+        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} aria-hidden="true">
+          {grid.map((line) => (
+            <g key={line.y}>
+              <line
+                className="forecast-grid-line"
+                x1={MARGIN.left}
+                x2={WIDTH - MARGIN.right}
+                y1={line.y}
+                y2={line.y}
+              />
+              <text
+                className="forecast-axis-label"
+                x={MARGIN.left - 12}
+                y={line.y + 4}
+              >
+                {compactUsd(line.value)}
+              </text>
+            </g>
+          ))}
+          <path className="forecast-line" d={forecastPath} />
+          {points.map(({ x, y }, index) => (
+            <g key={dates[index]}>
+              <circle
+                className={
+                  index === 0 ? "forecast-point observed" : "forecast-point"
+                }
+                cx={x}
+                cy={y}
+                r={index === 0 ? 6 : 4}
+              >
+                <title>
+                  {`${formatForecastDate(dates[index] ?? cutoff)} · ${index === 0 ? "Observed" : `Predicted Day ${index}`} · ${formatForecastPrice(prices[index] ?? 0)}`}
+                </title>
+              </circle>
+              <text className="forecast-x-label" x={x} y={HEIGHT - 20}>
+                {index === 0 ? "Current" : `D${index}`}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+      <div className="chart-legend" aria-label="Chart legend">
+        <span>
+          <i className="observed" />
+          Observed cutoff price
         </span>
-        <span className="forecast-window-span">
-          <span aria-hidden="true" />
-          <strong>{snapshot.horizon_days} calendar days</strong>
-          <span aria-hidden="true" />
-        </span>
-        <span className="forecast-window-date forecast-window-end">
-          <small>Forecast ends</small>
-          <strong>{formatForecastDate(endDate)}</strong>
+        <span>
+          <i className="predicted" />
+          MSPCIFormer prediction
         </span>
       </div>
-      <div
-        className="crypto-chart"
-        ref={container}
-        role="img"
-        aria-label={`${asset} historical USD prices with ${snapshot.horizon_days}-day P10, P50, and P90 forecast overlays ending ${formatForecastDate(endDate)}`}
-      />
-      <dl className="forecast-values" aria-label={`${asset} forecast values`}>
-        {values.map(([label, rawReturn]) => {
-          const returnValue = Number(rawReturn);
-          return (
-            <div
-              className={`forecast-value forecast-value-${label}`}
-              key={label}
-            >
-              <dt>{label}</dt>
-              <dd>{formatForecastPrice(last.value * (1 + returnValue))}</dd>
-              <dd>{formatForecastReturn(returnValue)}</dd>
-            </div>
-          );
-        })}
-      </dl>
-      {p50Return === 0 && (
-        <p className="forecast-median-note">
-          <strong>P50 matches the latest observed price</strong> because the
-          approved model's median {snapshot.horizon_days}-day return is 0.00%.
-          It is a no-change forecast, not another observed price.
-        </p>
-      )}
     </div>
   );
+}
+
+function compactUsd(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 1,
+  }).format(value);
 }

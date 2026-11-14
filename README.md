@@ -14,18 +14,18 @@ The canonical eight-milestone convention is defined in [`docs/milestones/milesto
 ## Product journey
 
 ```text
-Earn → Spend → Split → Settle → Update Finance → Calculate Savings → Explore BTC/ETH/SOL → Forecast → Assess Risk → Build Portfolio
+Earn → Spend → Split → Settle → Update Finance → Explore BTC/ETH/SOL → Forecast 7 Days → Allocate a Scenario Amount
 ```
 
 A user connects ResWallet, manages personal finances, splits expenses with
-friends, approves contractual settlements, and uses the resulting savings as
-the default amount for a risk-aware crypto portfolio analysis.
+friends, approves contractual settlements, and can separately enter a
+hypothetical USD amount for an experimental seven-day crypto allocation.
 
 ## Product areas
 
 | Personal Finance | Friends & Groups | Crypto Intelligence |
 | --- | --- | --- |
-| <ul><li>Record income, expenses, budgets, and recurring items with a fixed, direction-aware category catalog.</li><li>Track contract-confirmed receivables and payables from shared expenses.</li><li>Review any period with an in-app, keyboard-accessible Reporting month picker.</li><li>Keep Cash flow, transactions, and planning panels aligned while long records scroll with matching visible rails.</li><li>View cash-flow summaries, budget alerts, and actual or projected savings.</li><li>Receive practical, evidence-linked Smart Savings Insights.</li><li>Preserve append-only audit history through compensating corrections.</li></ul> | <ul><li>Create groups and add shared expenses, choosing which members share each expense and splitting it equally or by exact amounts.</li><li>Require each participant to approve or reject obligations with ResWallet.</li><li>Settle with internal, non-redeemable credits and immutable receipts.</li><li>Reflect confirmed obligations and settlements back into Personal Finance.</li></ul> | <ul><li>Analyze <strong>BTC, ETH, and SOL only</strong> using point-in-time market, sentiment, and on-chain data.</li><li>Choose a savings month with the same accessible in-app calendar used by Personal Finance.</li><li>Review eligible forecasts with uncertainty, freshness, and provenance.</li><li>Complete a risk questionnaire and receive an explainable long-only portfolio.</li><li>Reconcile integer-cent allocations exactly to Finance savings or a separate non-mutating scenario amount.</li></ul> |
+| <ul><li>Record income, expenses, budgets, and recurring items with a fixed, direction-aware category catalog.</li><li>Track contract-confirmed receivables and payables from shared expenses.</li><li>Review any period with an in-app, keyboard-accessible Reporting month picker.</li><li>Keep Cash flow, transactions, and planning panels aligned while long records scroll with matching visible rails.</li><li>View cash-flow summaries, budget alerts, and actual or projected savings.</li><li>Receive practical, evidence-linked Smart Savings Insights.</li><li>Preserve append-only audit history through compensating corrections.</li></ul> | <ul><li>Create groups and add shared expenses, choosing which members share each expense and splitting it equally or by exact amounts.</li><li>Require each participant to approve or reject obligations with ResWallet.</li><li>Settle with internal, non-redeemable credits and immutable receipts.</li><li>Reflect confirmed obligations and settlements back into Personal Finance.</li></ul> | <ul><li>Analyze <strong>BTC, ETH, and SOL only</strong> from completed daily market prices.</li><li>Review validation-selected MSPCIFormer Days 1–7 prices, returns, freshness, provenance, and historical errors.</li><li>Enter one hypothetical USD capital amount.</li><li>Receive a long-only, fully invested mean–variance allocation with no coin caps or risk questionnaire.</li><li>Reconcile integer-cent allocations exactly without executing trades or changing Finance.</li></ul> |
 
 ## Architecture
 
@@ -84,7 +84,9 @@ docs/          Product, architecture, milestone evidence, and development refere
 - [REST API Contract](docs/rest-api-contract.md)
 - [Security Contract](docs/security.md)
 - [Research Protocol](docs/research-protocol.md)
-- [MSPCIFormer VASA Phase 1 research report](docs/research/mspciformer-vasa-phase1.md)
+- [Historical MSPCIFormer VASA Phase 1 v1 report](docs/research/mspciformer-vasa-phase1.md)
+- [Active MSPCIFormer VASA two-model protocol](docs/research/mspciformer-vasa-phase1-v2.md)
+- [Seven-day portfolio recommendation](docs/research/phase2-seven-day-portfolio.md)
 - [Provider coverage and terms review](docs/provider-terms-review.md)
 - [ResilientDB ecosystem development references](docs/development-references.md)
 - [Canonical Milestone Convention](docs/milestones/milestones.md)

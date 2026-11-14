@@ -2,6 +2,13 @@
 
 Status: completed local, non-commercial research run on 2026-11-14
 
+> Historical v1 report: this document truthfully records the original
+> three-model experiment, including naive persistence. The active v2 research
+> pipeline now compares only Original MSPCIFormer and VASA-MSPCIFormer. See
+> [`mspciformer-vasa-phase1-v2.md`](mspciformer-vasa-phase1-v2.md). The v1
+> manifest, artifacts, checkpoints, hashes, figures, and evidence remain
+> unchanged.
+
 This report covers Phase 1 only. It does not change the Crypto Intelligence
 dashboard, the approved 15-day runtime forecast, portfolio optimization, the
 risk questionnaire, Finance, wallet behavior, settlement, or investment
@@ -268,4 +275,5 @@ Run focused verification:
 - The research is local and non-commercial. It does not establish production,
   BFT, custody, trading, or investment-advice readiness.
 
-Phase 2 remains unimplemented and requires explicit approval.
+Phase 2 was implemented later as a separate seven-day portfolio and dashboard
+path. That later work does not retroactively alter this historical experiment.

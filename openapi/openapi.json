@@ -43,10 +43,6 @@
             "title": "Asset",
             "type": "string"
           },
-          "cap": {
-            "title": "Cap",
-            "type": "string"
-          },
           "weight": {
             "title": "Weight",
             "type": "string"
@@ -55,8 +51,7 @@
         "required": [
           "asset",
           "weight",
-          "amount",
-          "cap"
+          "amount"
         ],
         "title": "AllocationModel",
         "type": "object"
@@ -72,34 +67,35 @@
             "title": "Asset",
             "type": "string"
           },
-          "expected_return": {
-            "title": "Expected Return",
+          "current_price": {
+            "title": "Current Price",
             "type": "string"
           },
-          "p10_return": {
-            "title": "P10 Return",
-            "type": "string"
+          "predicted_daily_returns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Predicted Daily Returns",
+            "type": "array"
           },
-          "p50_return": {
-            "title": "P50 Return",
-            "type": "string"
+          "predicted_prices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Predicted Prices",
+            "type": "array"
           },
-          "p90_return": {
-            "title": "P90 Return",
-            "type": "string"
-          },
-          "probability_up": {
-            "title": "Probability Up",
+          "predicted_return_7d": {
+            "title": "Predicted Return 7D",
             "type": "string"
           }
         },
         "required": [
           "asset",
-          "expected_return",
-          "probability_up",
-          "p10_return",
-          "p50_return",
-          "p90_return"
+          "current_price",
+          "predicted_prices",
+          "predicted_daily_returns",
+          "predicted_return_7d"
         ],
         "title": "AssetForecastModel",
         "type": "object"
@@ -462,80 +458,6 @@
         "title": "CreateGroupCommand",
         "type": "object"
       },
-      "CryptoOverviewModel": {
-        "properties": {
-          "default_capital": {
-            "$ref": "#/components/schemas/MoneyModel"
-          },
-          "forecast": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ForecastSnapshotModel"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "month": {
-            "title": "Month",
-            "type": "string"
-          },
-          "recommendation": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/RecommendationModel"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "risk_profile": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/RiskProfileModel"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "risk_projection_version": {
-            "title": "Risk Projection Version",
-            "type": "integer"
-          },
-          "savings_calculation_id": {
-            "title": "Savings Calculation Id",
-            "type": "string"
-          },
-          "savings_formula_version": {
-            "const": "finance-savings-v1",
-            "title": "Savings Formula Version",
-            "type": "string"
-          },
-          "savings_source_event_ids": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Savings Source Event Ids",
-            "type": "array"
-          }
-        },
-        "required": [
-          "month",
-          "risk_profile",
-          "risk_projection_version",
-          "forecast",
-          "recommendation",
-          "default_capital",
-          "savings_formula_version",
-          "savings_calculation_id",
-          "savings_source_event_ids"
-        ],
-        "title": "CryptoOverviewModel",
-        "type": "object"
-      },
       "DeactivateBudgetCommand": {
         "additionalProperties": false,
         "properties": {
@@ -659,6 +581,29 @@
         "title": "EvidenceModel",
         "type": "object"
       },
+      "ExpectedReturnModel": {
+        "properties": {
+          "asset": {
+            "enum": [
+              "BTC",
+              "ETH",
+              "SOL"
+            ],
+            "title": "Asset",
+            "type": "string"
+          },
+          "predicted_return_7d": {
+            "title": "Predicted Return 7D",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset",
+          "predicted_return_7d"
+        ],
+        "title": "ExpectedReturnModel",
+        "type": "object"
+      },
       "FinanceOverviewModel": {
         "properties": {
           "budgets": {
@@ -715,82 +660,51 @@
         "title": "FinanceOverviewModel",
         "type": "object"
       },
-      "ForecastSnapshotModel": {
+      "ForecastAccuracyModel": {
         "properties": {
-          "as_of_utc": {
-            "format": "date-time",
-            "title": "As Of Utc",
+          "btc_day_7_mae_usd": {
+            "title": "Btc Day 7 Mae Usd",
             "type": "string"
           },
-          "dataset_hash": {
-            "title": "Dataset Hash",
+          "directional_accuracy": {
+            "title": "Directional Accuracy",
             "type": "string"
           },
-          "expires_at_utc": {
-            "format": "date-time",
-            "title": "Expires At Utc",
+          "eth_day_7_mae_usd": {
+            "title": "Eth Day 7 Mae Usd",
             "type": "string"
           },
-          "forecasts": {
-            "items": {
-              "$ref": "#/components/schemas/AssetForecastModel"
-            },
-            "title": "Forecasts",
-            "type": "array"
-          },
-          "horizon_days": {
-            "const": 15,
-            "title": "Horizon Days",
-            "type": "integer"
-          },
-          "model_hash": {
-            "title": "Model Hash",
+          "mape": {
+            "title": "Mape",
             "type": "string"
           },
-          "model_name": {
-            "const": "adaptive-gating",
-            "title": "Model Name",
+          "model_key": {
+            "enum": [
+              "original-mspciformer",
+              "vasa-mspciformer"
+            ],
+            "title": "Model Key",
             "type": "string"
           },
-          "price_history": {
-            "items": {
-              "$ref": "#/components/schemas/PricePointModel"
-            },
-            "title": "Price History",
-            "type": "array"
-          },
-          "promotion_event_id": {
-            "title": "Promotion Event Id",
+          "return_7d_mae": {
+            "title": "Return 7D Mae",
             "type": "string"
           },
-          "run_id": {
-            "title": "Run Id",
-            "type": "string"
-          },
-          "scope": {
-            "title": "Scope",
-            "type": "string"
-          },
-          "snapshot_id": {
-            "title": "Snapshot Id",
+          "sol_day_7_mae_usd": {
+            "title": "Sol Day 7 Mae Usd",
             "type": "string"
           }
         },
         "required": [
-          "snapshot_id",
-          "as_of_utc",
-          "expires_at_utc",
-          "horizon_days",
-          "run_id",
-          "model_name",
-          "model_hash",
-          "dataset_hash",
-          "promotion_event_id",
-          "scope",
-          "forecasts",
-          "price_history"
+          "model_key",
+          "mape",
+          "return_7d_mae",
+          "directional_accuracy",
+          "btc_day_7_mae_usd",
+          "eth_day_7_mae_usd",
+          "sol_day_7_mae_usd"
         ],
-        "title": "ForecastSnapshotModel",
+        "title": "ForecastAccuracyModel",
         "type": "object"
       },
       "FundCreditsCommand": {
@@ -1521,40 +1435,6 @@
         "title": "ObligationModel",
         "type": "object"
       },
-      "PricePointModel": {
-        "properties": {
-          "asset": {
-            "enum": [
-              "BTC",
-              "ETH",
-              "SOL"
-            ],
-            "title": "Asset",
-            "type": "string"
-          },
-          "observed_at_utc": {
-            "format": "date-time",
-            "title": "Observed At Utc",
-            "type": "string"
-          },
-          "price_usd": {
-            "title": "Price Usd",
-            "type": "string"
-          },
-          "source_record_id": {
-            "title": "Source Record Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "asset",
-          "observed_at_utc",
-          "price_usd",
-          "source_record_id"
-        ],
-        "title": "PricePointModel",
-        "type": "object"
-      },
       "ProvenanceModel": {
         "properties": {
           "as_of_utc": {
@@ -1589,6 +1469,19 @@
         "title": "ProvenanceModel",
         "type": "object"
       },
+      "RecommendationCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "capital": {
+            "$ref": "#/components/schemas/MoneyModel"
+          }
+        },
+        "required": [
+          "capital"
+        ],
+        "title": "RecommendationCommand",
+        "type": "object"
+      },
       "RecommendationModel": {
         "properties": {
           "allocations": {
@@ -1601,63 +1494,73 @@
           "capital": {
             "$ref": "#/components/schemas/MoneyModel"
           },
+          "covariance_estimator": {
+            "const": "Ledoit-Wolf",
+            "title": "Covariance Estimator",
+            "type": "string"
+          },
+          "covariance_lookback_days": {
+            "title": "Covariance Lookback Days",
+            "type": "integer"
+          },
           "covariance_repaired": {
             "title": "Covariance Repaired",
             "type": "boolean"
           },
-          "fallback_used": {
-            "title": "Fallback Used",
-            "type": "boolean"
+          "estimated_portfolio_volatility_7d": {
+            "title": "Estimated Portfolio Volatility 7D",
+            "type": "string"
+          },
+          "expected_returns_7d": {
+            "items": {
+              "$ref": "#/components/schemas/ExpectedReturnModel"
+            },
+            "title": "Expected Returns 7D",
+            "type": "array"
           },
           "forecast_snapshot_id": {
             "title": "Forecast Snapshot Id",
             "type": "string"
           },
+          "forecast_status": {
+            "enum": [
+              "current",
+              "stale"
+            ],
+            "title": "Forecast Status",
+            "type": "string"
+          },
+          "model_key": {
+            "title": "Model Key",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
           "policy_version": {
-            "const": "portfolio-policy-v1",
+            "const": "phase2-mean-variance-v1",
             "title": "Policy Version",
             "type": "string"
           },
-          "promotion_event_id": {
-            "title": "Promotion Event Id",
+          "predicted_portfolio_return_7d": {
+            "title": "Predicted Portfolio Return 7D",
             "type": "string"
           },
-          "risk_profile_event_id": {
-            "title": "Risk Profile Event Id",
+          "risk_aversion": {
+            "title": "Risk Aversion",
             "type": "string"
-          },
-          "risk_score": {
-            "title": "Risk Score",
-            "type": "integer"
-          },
-          "savings_calculation_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Savings Calculation Id"
-          },
-          "savings_source_event_ids": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Savings Source Event Ids",
-            "type": "array"
           },
           "solver": {
             "title": "Solver",
             "type": "string"
           },
-          "source_kind": {
-            "enum": [
-              "finance_savings",
-              "scenario"
-            ],
-            "title": "Source Kind",
+          "solver_status": {
+            "title": "Solver Status",
+            "type": "string"
+          },
+          "total_allocation_weight": {
+            "title": "Total Allocation Weight",
             "type": "string"
           },
           "warnings": {
@@ -1670,18 +1573,22 @@
         },
         "required": [
           "capital",
-          "source_kind",
-          "savings_calculation_id",
-          "savings_source_event_ids",
-          "risk_score",
-          "risk_profile_event_id",
-          "policy_version",
           "forecast_snapshot_id",
-          "promotion_event_id",
-          "solver",
-          "fallback_used",
+          "forecast_status",
+          "model_key",
+          "model_version",
+          "expected_returns_7d",
+          "predicted_portfolio_return_7d",
+          "estimated_portfolio_volatility_7d",
+          "risk_aversion",
+          "covariance_lookback_days",
+          "covariance_estimator",
           "covariance_repaired",
+          "solver",
+          "solver_status",
+          "policy_version",
           "allocations",
+          "total_allocation_weight",
           "warnings"
         ],
         "title": "RecommendationModel",
@@ -1829,118 +1736,6 @@
         "title": "RecurringEntryModel",
         "type": "object"
       },
-      "RiskAnswersModel": {
-        "additionalProperties": false,
-        "properties": {
-          "investment_horizon": {
-            "maximum": 3.0,
-            "minimum": 1.0,
-            "title": "Investment Horizon",
-            "type": "integer"
-          },
-          "liquidity_needs": {
-            "maximum": 3.0,
-            "minimum": 1.0,
-            "title": "Liquidity Needs",
-            "type": "integer"
-          },
-          "risk_tolerance": {
-            "maximum": 3.0,
-            "minimum": 1.0,
-            "title": "Risk Tolerance",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "investment_horizon",
-          "risk_tolerance",
-          "liquidity_needs"
-        ],
-        "title": "RiskAnswersModel",
-        "type": "object"
-      },
-      "RiskProfileCommand": {
-        "additionalProperties": false,
-        "properties": {
-          "answers": {
-            "$ref": "#/components/schemas/RiskAnswersModel"
-          },
-          "expected_version": {
-            "minimum": 0.0,
-            "title": "Expected Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "answers",
-          "expected_version"
-        ],
-        "title": "RiskProfileCommand",
-        "type": "object"
-      },
-      "RiskProfileEventResponse": {
-        "properties": {
-          "deduplicated": {
-            "title": "Deduplicated",
-            "type": "boolean"
-          },
-          "event_id": {
-            "title": "Event Id",
-            "type": "string"
-          },
-          "occurred_at_utc": {
-            "format": "date-time",
-            "title": "Occurred At Utc",
-            "type": "string"
-          },
-          "projection_version": {
-            "title": "Projection Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "event_id",
-          "projection_version",
-          "occurred_at_utc",
-          "deduplicated"
-        ],
-        "title": "RiskProfileEventResponse",
-        "type": "object"
-      },
-      "RiskProfileModel": {
-        "properties": {
-          "answers": {
-            "$ref": "#/components/schemas/RiskAnswersModel"
-          },
-          "policy_version": {
-            "const": "risk-questionnaire-v2",
-            "title": "Policy Version",
-            "type": "string"
-          },
-          "recorded_at_utc": {
-            "format": "date-time",
-            "title": "Recorded At Utc",
-            "type": "string"
-          },
-          "score": {
-            "title": "Score",
-            "type": "integer"
-          },
-          "source_event_id": {
-            "title": "Source Event Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "answers",
-          "score",
-          "policy_version",
-          "source_event_id",
-          "recorded_at_utc"
-        ],
-        "title": "RiskProfileModel",
-        "type": "object"
-      },
       "SavingsModel": {
         "properties": {
           "actual": {
@@ -1978,19 +1773,6 @@
           "source_event_ids"
         ],
         "title": "SavingsModel",
-        "type": "object"
-      },
-      "ScenarioCommand": {
-        "additionalProperties": false,
-        "properties": {
-          "amount": {
-            "$ref": "#/components/schemas/MoneyModel"
-          }
-        },
-        "required": [
-          "amount"
-        ],
-        "title": "ScenarioCommand",
         "type": "object"
       },
       "SessionRequest": {
@@ -2065,6 +1847,123 @@
           "intent"
         ],
         "title": "SettleObligationCommand",
+        "type": "object"
+      },
+      "SevenDayForecastModel": {
+        "properties": {
+          "accuracy": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastAccuracyModel"
+            },
+            "title": "Accuracy",
+            "type": "array"
+          },
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/AssetForecastModel"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Assets",
+            "type": "array"
+          },
+          "forecast_dates_utc": {
+            "items": {
+              "format": "date",
+              "type": "string"
+            },
+            "maxItems": 7,
+            "minItems": 7,
+            "title": "Forecast Dates Utc",
+            "type": "array"
+          },
+          "generated_at_utc": {
+            "format": "date-time",
+            "title": "Generated At Utc",
+            "type": "string"
+          },
+          "manifest_key": {
+            "title": "Manifest Key",
+            "type": "string"
+          },
+          "market_data_cutoff_utc": {
+            "format": "date-time",
+            "title": "Market Data Cutoff Utc",
+            "type": "string"
+          },
+          "model_key": {
+            "enum": [
+              "original-mspciformer",
+              "vasa-mspciformer"
+            ],
+            "title": "Model Key",
+            "type": "string"
+          },
+          "model_name": {
+            "title": "Model Name",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "quality_checks": {
+            "additionalProperties": true,
+            "title": "Quality Checks",
+            "type": "object"
+          },
+          "refreshed_from_checkpoint": {
+            "title": "Refreshed From Checkpoint",
+            "type": "boolean"
+          },
+          "research_status": {
+            "const": "experimental",
+            "default": "experimental",
+            "title": "Research Status",
+            "type": "string"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "stale_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Stale Reasons",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "current",
+              "stale"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "run_id",
+          "manifest_key",
+          "model_key",
+          "model_name",
+          "model_version",
+          "generated_at_utc",
+          "market_data_cutoff_utc",
+          "forecast_dates_utc",
+          "assets",
+          "status",
+          "stale_reasons",
+          "refreshed_from_checkpoint",
+          "quality_checks",
+          "accuracy"
+        ],
+        "title": "SevenDayForecastModel",
         "type": "object"
       },
       "TransactionCommand": {
@@ -2708,19 +2607,10 @@
         ]
       }
     },
-    "/api/v1/crypto/overview": {
+    "/api/v1/crypto/forecast": {
       "get": {
-        "operationId": "overview_api_v1_crypto_overview_get",
+        "operationId": "forecast_api_v1_crypto_forecast_get",
         "parameters": [
-          {
-            "in": "query",
-            "name": "month",
-            "required": true,
-            "schema": {
-              "title": "Month",
-              "type": "string"
-            }
-          },
           {
             "in": "header",
             "name": "Authorization",
@@ -2775,7 +2665,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CryptoOverviewModel"
+                  "$ref": "#/components/schemas/SevenDayForecastModel"
                 }
               }
             },
@@ -2792,99 +2682,15 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Overview",
+        "summary": "Forecast",
         "tags": [
           "crypto"
         ]
       }
     },
-    "/api/v1/crypto/risk-profile": {
+    "/api/v1/crypto/recommendations": {
       "post": {
-        "operationId": "record_risk_profile_api_v1_crypto_risk_profile_post",
-        "parameters": [
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": true,
-            "schema": {
-              "title": "Idempotency-Key",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Authorization",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Origin",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Origin"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RiskProfileCommand"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RiskProfileEventResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Record Risk Profile",
-        "tags": [
-          "crypto"
-        ]
-      }
-    },
-    "/api/v1/crypto/scenarios": {
-      "post": {
-        "operationId": "analyze_scenario_api_v1_crypto_scenarios_post",
+        "operationId": "recommendation_api_v1_crypto_recommendations_post",
         "parameters": [
           {
             "in": "header",
@@ -2917,13 +2723,29 @@
               ],
               "title": "Origin"
             }
+          },
+          {
+            "in": "header",
+            "name": "Referer",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Referer"
+            }
           }
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ScenarioCommand"
+                "$ref": "#/components/schemas/RecommendationCommand"
               }
             }
           },
@@ -2951,7 +2773,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Analyze Scenario",
+        "summary": "Recommendation",
         "tags": [
           "crypto"
         ]

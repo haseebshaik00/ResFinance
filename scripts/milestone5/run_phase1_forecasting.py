@@ -25,14 +25,14 @@ START_DATE = date(2020, 4, 10)
 def parser() -> argparse.ArgumentParser:
     value = argparse.ArgumentParser(
         description=(
-            "Run the isolated market-only seven-day MSPCIFormer/VASA Phase 1 experiment, "
+            "Run the active two-model market-only seven-day MSPCIFormer/VASA experiment, "
             "persist full artifacts in ResilientDB, and write bounded local evidence."
         )
     )
     value.add_argument(
         "--experiment-config",
         type=Path,
-        default=Path("config/crypto-intelligence/phase1-vasa-v1.json"),
+        default=Path("config/crypto-intelligence/phase1-vasa-v2.json"),
     )
     value.add_argument("--end-date", type=date.fromisoformat)
     value.add_argument("--docker", type=Path, default=Path("docker"))
@@ -45,7 +45,7 @@ def parser() -> argparse.ArgumentParser:
     value.add_argument(
         "--output-directory",
         type=Path,
-        default=Path(".resfinance-local/research/phase1-vasa"),
+        default=Path(".resfinance-local/research/phase1-vasa-v2"),
     )
     value.add_argument("--evidence-output", type=Path, required=True)
     return value
@@ -75,7 +75,7 @@ def main() -> int:
         )
     )
     archive = CryptoResearchRepository(store).put_observation_archive(observations)
-    run_id = f"phase1-vasa-{uuid.uuid4().hex}"
+    run_id = f"phase1-vasa-v2-{uuid.uuid4().hex}"
     result = run_phase1_research(
         observations,
         run_id=run_id,
