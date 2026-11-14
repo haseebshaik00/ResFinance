@@ -1,6 +1,8 @@
 # Phase 2 — Seven-Day Portfolio Recommendation
 
-Status: cash-reserve policy v2 implemented and exercised locally on 2026-11-14.
+Status: model-informed diversified cash-reserve policy v3 implemented and
+exercised locally on 2026-11-14. The v1 and v2 evidence below is retained as
+historical output from their earlier policies.
 
 ## Pipeline
 
@@ -9,7 +11,7 @@ Verified Phase 1 v2 manifest + checkpoint + preprocessing
   -> latest completed BTC/ETH/SOL daily observations
   -> seven direct predicted prices and cumulative returns
   -> 365-day Ledoit-Wolf daily covariance × 7
-  -> long-only mean-variance crypto sleeve plus USD cash reserve
+  -> model-informed diversified crypto sleeve plus USD cash reserve
   -> exact-cent BTC/ETH/SOL and unallocated-USD scenario amounts
 ```
 
@@ -18,9 +20,10 @@ to Original MSPCIFormer, and the proposed VASA model is not promoted merely
 because it is the research novelty. The current validation result selects the
 original reimplementation.
 
-## Optimization policy
+## Active v3 policy
 
-The fixed v2 objective is:
+The optimizer first determines the total crypto-sleeve exposure from the fixed
+mean-variance objective:
 
 ```text
 maximize μᵀw - 5.0 × (wᵀΣ₇w)
@@ -43,6 +46,24 @@ maximize μᵀw - 5.0 × (wᵀΣ₇w)
 - Dollar allocations use largest-remainder cent reconciliation and always sum
   exactly to entered capital.
 
+V3 retains that model-selected total sleeve weight and diversifies only the
+BTC/ETH/SOL mix. Let `m` be the normalized mean-variance crypto weights and
+`p` be normalized inverse-volatility weights derived from the diagonal of
+`Σ₇`. The final sleeve weights are:
+
+```text
+final crypto weights = sleeve weight × (c × m + (1 - c) × p)
+```
+
+`c` is the selected model's held-out calibration: the square root of the
+product of (a) directional skill above chance and (b) the strongest absolute
+predicted return divided by seven-day return MAE. Both components are bounded
+to `[0, 1]`. Thus a weak or unavailable validation signal leaves the active
+crypto sleeve close to the covariance-derived diversification prior; it does
+not invent a stronger model signal. The forecast still governs the total
+crypto-versus-cash exposure. This is a declared policy choice, not a claim
+that all three assets will outperform.
+
 ## Historical fully-invested v1 result
 
 Evidence:
@@ -62,7 +83,7 @@ Evidence:
 
 That evidence is retained unchanged as the historical fully-invested policy.
 
-## Actual $1,000 cash-reserve v2 result
+## Historical $1,000 cash-reserve v2 result
 
 Evidence:
 [`../../config/crypto-intelligence/phase2-portfolio-cash-v2-2026-11-14.json`](../../config/crypto-intelligence/phase2-portfolio-cash-v2-2026-11-14.json).
@@ -81,6 +102,29 @@ Evidence:
 The tiny BTC/ETH weights are continuous optimizer outputs. The API preserves
 them, while the UI renders a positive value below one-hundredth of a percent as
 `<0.01%`; cent reconciliation leaves BTC at zero cents and ETH at one cent.
+
+## Actual $1,000 model-informed diversified v3 result
+
+Evidence:
+[`../../config/crypto-intelligence/phase2-model-informed-diversified-cash-v3-2026-11-14.json`](../../config/crypto-intelligence/phase2-model-informed-diversified-cash-v3-2026-11-14.json).
+
+| Allocation | Weight | USD amount |
+|---|---:|---:|
+| BTC | 3.98084821% | $39.81 |
+| ETH | 2.93655101% | $29.36 |
+| SOL | 3.20095481% | $32.01 |
+| USD cash reserve | 89.88164597% | $898.82 |
+
+- Forecast-model tilt: **3.39067511%**; the other 96.60932489% of the crypto
+  sleeve follows the inverse-volatility prior.
+- Predicted portfolio seven-day return: **0.03884855%**.
+- Estimated portfolio seven-day volatility: **0.72263648%**.
+- Solver: CLARABEL, status `optimal`; covariance repair was not required.
+
+The v3 result is not a hard-coded 24/21/15 allocation. It is a current,
+evidence-bound combination of the selected MSPCIFormer forecast, its measured
+validation quality, and the 365-day covariance estimate. If the optimizer
+rejects crypto exposure entirely, the result remains 100% cash.
 
 ## API and UI
 
@@ -104,7 +148,7 @@ Reproduce the $1,000 calculation:
 ```bash
 .venv/bin/python -m scripts.milestone6.run_phase2_recommendation \
   --capital-cents 100000 \
-  --evidence-output config/crypto-intelligence/phase2-portfolio-$(date -u +%F).json
+  --evidence-output config/crypto-intelligence/phase2-model-informed-diversified-cash-v3-$(date -u +%F).json
 ```
 
 This is experimental investment guidance, not automated trading, guaranteed

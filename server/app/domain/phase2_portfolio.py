@@ -10,7 +10,7 @@ from typing import Literal
 from server.app.domain.crypto import CryptoAsset, canonical_decimal, utc_datetime
 
 FORECAST_HORIZON_DAYS = 7
-PHASE2_POLICY_VERSION = "phase2-mean-variance-cash-v2"
+PHASE2_POLICY_VERSION = "phase2-model-informed-diversified-cash-v3"
 
 
 @dataclass(frozen=True)
@@ -186,7 +186,9 @@ class Phase2Recommendation:
     covariance_repaired: bool
     solver: str
     solver_status: str
-    policy_version: Literal["phase2-mean-variance-cash-v2"]
+    policy_version: Literal["phase2-model-informed-diversified-cash-v3"]
+    model_confidence: str
+    diversification_prior: Literal["inverse-volatility"]
     allocations: tuple[Phase2Allocation, ...]
     cash_reserve: CashReserve
     warnings: tuple[str, ...]

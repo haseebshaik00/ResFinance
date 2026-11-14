@@ -107,7 +107,8 @@ Every Group write is append-only, encrypted before ResilientDB, version checked,
   amount and returns the exact Phase 1 Day-7 returns used, long-only crypto
   sleeve weights, exact-cent BTC/ETH/SOL amounts, an unallocated USD cash
   reserve, seven-day predicted portfolio return and volatility, covariance
-  policy, solver status, snapshot identity, and warnings.
+  policy, selected-model calibration confidence, inverse-volatility
+  diversification prior, solver status, snapshot identity, and warnings.
 
 Forecast records require a v2 Phase 1 manifest whose selected model, checkpoint,
 preprocessing, artifact hashes, and forecast agree. Inference may refresh only

@@ -76,6 +76,7 @@ def test_optimizer_allows_a_cash_reserve_and_reconciles_exactly_in_cents() -> No
     assert Decimal(result.predicted_return_7d) > 0
     assert Decimal(result.estimated_volatility_7d) >= 0
     assert all(not hasattr(item, "cap") for item in result.allocations)
+    assert all(value > 0 for value in weights)
 
 
 def test_singular_covariance_is_repaired_without_changing_the_objective() -> None:
@@ -184,6 +185,9 @@ def test_authenticated_phase2_api_returns_one_snapshot_and_backend_allocations()
         < 1e-8
     )
     assert body["covariance_lookback_days"] == 365
+    assert body["policy_version"] == "phase2-model-informed-diversified-cash-v3"
+    assert body["diversification_prior"] == "inverse-volatility"
+    assert Decimal(body["model_confidence"]) == Decimal("0")
     assert client.post("/api/v1/crypto/risk-profile", headers=headers, json={}).status_code == 404
 
 

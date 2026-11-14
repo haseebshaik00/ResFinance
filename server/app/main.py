@@ -102,7 +102,7 @@ def services_from_environment() -> tuple[
         Path(
             os.environ.get(
                 "RESFINANCE_PHASE2_POLICY_CONFIG",
-                "config/crypto-intelligence/phase2-portfolio-cash-v2.json",
+                "config/crypto-intelligence/phase2-model-informed-diversified-cash-v3.json",
             )
         )
     )

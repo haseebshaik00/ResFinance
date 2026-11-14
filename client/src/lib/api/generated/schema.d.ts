@@ -982,6 +982,11 @@ export interface components {
             covariance_repaired: boolean;
             /** Crypto Allocation Weight */
             crypto_allocation_weight: string;
+            /**
+             * Diversification Prior
+             * @constant
+             */
+            diversification_prior: "inverse-volatility";
             /** Estimated Portfolio Volatility 7D */
             estimated_portfolio_volatility_7d: string;
             /** Expected Returns 7D */
@@ -993,6 +998,8 @@ export interface components {
              * @enum {string}
              */
             forecast_status: "current" | "stale";
+            /** Model Confidence */
+            model_confidence: string;
             /** Model Key */
             model_key: string;
             /** Model Version */
@@ -1001,7 +1008,7 @@ export interface components {
              * Policy Version
              * @constant
              */
-            policy_version: "phase2-mean-variance-cash-v2";
+            policy_version: "phase2-model-informed-diversified-cash-v3";
             /** Predicted Portfolio Return 7D */
             predicted_portfolio_return_7d: string;
             /** Risk Aversion */

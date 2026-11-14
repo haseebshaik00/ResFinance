@@ -34,6 +34,7 @@ def optimize_seven_day_portfolio(
     price_history: tuple[HistoricalPrice, ...],
     risk_aversion: Decimal,
     covariance_lookback_days: int,
+    model_confidence: Decimal = Decimal(0),
 ) -> Phase2OptimizationResult:
     if isinstance(capital_minor_units, bool) or capital_minor_units <= 0:
         raise ValueError("investment capital must be positive integer USD cents")
@@ -43,6 +44,8 @@ def optimize_seven_day_portfolio(
         raise ValueError("risk aversion must be positive")
     if covariance_lookback_days < 30:
         raise ValueError("covariance lookback must be at least 30 days")
+    if not model_confidence.is_finite() or not Decimal(0) <= model_confidence <= Decimal(1):
+        raise ValueError("model confidence must be between zero and one")
 
     daily_returns = _aligned_daily_returns(price_history, covariance_lookback_days)
     covariance = LedoitWolf().fit(daily_returns).covariance_ * 7.0
@@ -74,7 +77,12 @@ def optimize_seven_day_portfolio(
     if not solver or weights.value is None:
         raise ValueError("portfolio optimization failed: " + "; ".join(failures))
 
-    crypto_weights = _validate_crypto_weights(np.asarray(weights.value, dtype=np.float64))
+    optimized_crypto_weights = _validate_crypto_weights(np.asarray(weights.value, dtype=np.float64))
+    crypto_weights = _diversify_crypto_sleeve(
+        optimized_crypto_weights,
+        covariance,
+        float(model_confidence),
+    )
     all_weights = np.append(crypto_weights, max(0.0, 1.0 - float(crypto_weights.sum())))
     amounts = _reconcile_cents(capital_minor_units, all_weights)
     weight_strings = _reconciled_weight_strings(all_weights)
@@ -146,6 +154,32 @@ def _validate_crypto_weights(values: np.ndarray) -> np.ndarray:
     if total > 1.0:
         result /= total
     return result
+
+
+def _diversify_crypto_sleeve(
+    optimized_weights: np.ndarray,
+    covariance: np.ndarray,
+    model_confidence: float,
+) -> np.ndarray:
+    """Keep model-selected sleeve exposure, then diversify its BTC/ETH/SOL mix."""
+
+    sleeve_weight = float(optimized_weights.sum())
+    if sleeve_weight <= 0:
+        return optimized_weights
+    diagonal = np.diag(covariance)
+    if (
+        diagonal.shape != (len(ASSETS),)
+        or not np.isfinite(diagonal).all()
+        or np.any(diagonal <= 0)
+    ):
+        raise ValueError("covariance diagonal is invalid for inverse-volatility diversification")
+    model_mix = optimized_weights / sleeve_weight
+    inverse_volatility = 1.0 / np.sqrt(diagonal)
+    prior_mix = inverse_volatility / inverse_volatility.sum()
+    diversified = sleeve_weight * (
+        model_confidence * model_mix + (1.0 - model_confidence) * prior_mix
+    )
+    return _validate_crypto_weights(diversified)
 
 
 def _reconcile_cents(capital: int, weights: np.ndarray) -> tuple[int, ...]:

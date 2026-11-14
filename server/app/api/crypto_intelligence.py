@@ -109,7 +109,9 @@ class RecommendationModel(BaseModel):
     covariance_repaired: bool
     solver: str
     solver_status: str
-    policy_version: Literal["phase2-mean-variance-cash-v2"]
+    policy_version: Literal["phase2-model-informed-diversified-cash-v3"]
+    model_confidence: str
+    diversification_prior: Literal["inverse-volatility"]
     allocations: list[AllocationModel]
     cash_reserve: CashReserveModel
     crypto_allocation_weight: str
@@ -239,6 +241,8 @@ def _recommendation_response(value: Phase2Recommendation) -> RecommendationModel
         solver=value.solver,
         solver_status=value.solver_status,
         policy_version=value.policy_version,
+        model_confidence=value.model_confidence,
+        diversification_prior=value.diversification_prior,
         allocations=[_allocation_response(item) for item in value.allocations],
         cash_reserve=_cash_reserve_response(value.cash_reserve),
         crypto_allocation_weight=str(sum(Decimal(item.weight) for item in value.allocations)),

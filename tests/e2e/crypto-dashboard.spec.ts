@@ -157,7 +157,9 @@ test.beforeEach(async ({ page }) => {
         covariance_repaired: false,
         solver: "CLARABEL",
         solver_status: "optimal",
-        policy_version: "phase2-mean-variance-cash-v2",
+        policy_version: "phase2-model-informed-diversified-cash-v3",
+        model_confidence: "0.20",
+        diversification_prior: "inverse-volatility",
         allocations: ["BTC", "ETH", "SOL"].map((asset, index) => ({
           asset,
           weight: weights[index].toString(),
@@ -206,7 +208,10 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(page.getByText("$210.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$150.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$400.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("USD cash reserve", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("USD cash reserve", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(/Model tilt: 20.00%/)).toBeVisible();
   await expect(page.getByText("Risk Questionnaire")).toHaveCount(0);
   await expect(page.getByText(/15-day/i)).toHaveCount(0);
 
@@ -222,12 +227,13 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     ),
   ).toBe(false);
   expect(
-    await page.locator(".phase2-portfolio .section-heading").evaluate(
-      (heading) =>
+    await page
+      .locator(".phase2-portfolio .section-heading")
+      .evaluate((heading) =>
         Array.from(heading.children).every(
           (child) => child.scrollWidth <= child.clientWidth,
         ),
-    ),
+      ),
   ).toBe(true);
   await page.screenshot({
     path: "test-results/crypto-phase2-desktop.png",

@@ -1537,6 +1537,11 @@
             "title": "Crypto Allocation Weight",
             "type": "string"
           },
+          "diversification_prior": {
+            "const": "inverse-volatility",
+            "title": "Diversification Prior",
+            "type": "string"
+          },
           "estimated_portfolio_volatility_7d": {
             "title": "Estimated Portfolio Volatility 7D",
             "type": "string"
@@ -1560,6 +1565,10 @@
             "title": "Forecast Status",
             "type": "string"
           },
+          "model_confidence": {
+            "title": "Model Confidence",
+            "type": "string"
+          },
           "model_key": {
             "title": "Model Key",
             "type": "string"
@@ -1569,7 +1578,7 @@
             "type": "string"
           },
           "policy_version": {
-            "const": "phase2-mean-variance-cash-v2",
+            "const": "phase2-model-informed-diversified-cash-v3",
             "title": "Policy Version",
             "type": "string"
           },
@@ -1617,6 +1626,8 @@
           "solver",
           "solver_status",
           "policy_version",
+          "model_confidence",
+          "diversification_prior",
           "allocations",
           "cash_reserve",
           "crypto_allocation_weight",

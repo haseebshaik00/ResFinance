@@ -14,9 +14,12 @@ seven-day mean–variance portfolio. It has one hypothetical USD capital input,
 no questionnaire, no Finance default, and no BTC/ETH/SOL caps. Ledoit-Wolf
 covariance uses 365 aligned daily returns and is scaled by seven; fixed
 `lambda = 5.0`; BTC/ETH/SOL weights are long-only and may sum to less than one.
-The remaining scenario amount is an unallocated USD cash reserve, not a
-stablecoin or trade. CLARABEL and SCS may solve the same objective, but no
-alternative portfolio is substituted if both fail.
+The forecast-model tilt is calibrated from selected-model held-out directional
+skill and return MAE, then blended with an inverse-volatility BTC/ETH/SOL
+prior inside that model-selected crypto sleeve. The remaining scenario amount
+is an unallocated USD cash reserve, not a stablecoin or trade. CLARABEL and
+SCS may solve the same objective, but no alternative portfolio is substituted
+if both fail.
 
 Active authenticated endpoints:
 

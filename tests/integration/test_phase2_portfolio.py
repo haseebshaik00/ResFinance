@@ -89,6 +89,8 @@ def test_phase1_v2_artifacts_feed_the_seven_day_optimizer_without_retraining() -
         + float(recommendation.cash_reserve.weight)
         == 1.0
     )
+    assert recommendation.policy_version == "phase2-model-informed-diversified-cash-v3"
+    assert recommendation.diversification_prior == "inverse-volatility"
 
 
 def test_historical_three_model_evidence_remains_byte_for_byte_unchanged() -> None:

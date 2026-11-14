@@ -141,7 +141,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
       >
         <div className="section-heading">
           <div>
-            <p className="section-kicker">Mean–variance recommendation</p>
+            <p className="section-kicker">Model-informed diversification</p>
             <h2 id="allocation-title">Portfolio Allocation</h2>
           </div>
           <label className="investment-capital-field">
@@ -350,6 +350,11 @@ function RecommendationPanel({
             </strong>
           </span>
         </div>
+        <p className="panel-note">
+          Model tilt:{" "}
+          {(Number(recommendation.model_confidence) * 100).toFixed(2)}%;
+          balance: inverse-volatility diversification across BTC, ETH, and SOL.
+        </p>
       </div>
       {recommendation.warnings.map((warning) => (
         <p className="panel-note recommendation-warning" key={warning}>
@@ -386,8 +391,9 @@ function MethodPanel({ forecast }: { forecast: SevenDayForecast }) {
         <li>
           <strong>Allocate</strong>
           <span>
-            Maximize μᵀw − 5(wᵀΣ₇w), long-only; unallocated capital remains in
-            USD cash.
+            The forecast sets crypto exposure and a confidence-weighted model
+            tilt; the remaining sleeve follows inverse-volatility BTC/ETH/SOL
+            weights. Unallocated capital remains in USD cash.
           </span>
         </li>
       </ol>
