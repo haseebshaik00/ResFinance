@@ -225,6 +225,22 @@ The contract is authoritative for obligation and settlement state. Finance is up
 
 ### Crypto data, ML, portfolio, and AI
 
+Research direction as of 2026-11-14:
+
+- New forecasting experiments use MSPCIFormer as the sole base architecture.
+- Phase 1 is an isolated market-price-only seven-day experiment comparing
+  persistence, a clean-room original reimplementation, and VASA scale
+  aggregation. Sentiment, news/social inputs, on-chain features, source gating,
+  equal source fusion, and multi-source ablations are excluded.
+- The prior three-source 15-day pipeline, its Gurgul comparison, promotion
+  events, forecast snapshots, and dashboard/portfolio integration remain
+  immutable legacy runtime evidence until a separately reviewed Phase 2.
+- Actual Phase 1 architecture, results, and limitations are documented in
+  [`research/mspciformer-vasa-phase1.md`](research/mspciformer-vasa-phase1.md).
+
+The following V1 description records the existing legacy runtime architecture;
+it is not the input contract for the new Phase 1 experiment.
+
 Data adapters:
 
 - Coin Metrics Community for daily BTC/ETH/SOL price, volume, capitalization, and available BTC/ETH on-chain metrics.
@@ -254,7 +270,7 @@ Model:
 - Required ablations: market-only, fixed equal fusion, adaptive gating, and one-source-removed variants.
 - Baselines: naive last value/zero return, linear model, and an LSTM or equivalent sequence baseline.
 
-The published MSPCIFormer experiment used eight input assets and only ADA/BTC/ETH targets; this project is therefore a documented three-asset adaptation, not an exact reproduction. The paper and author repository remain provenance inputs, but source code must not be copied until its absent license is resolved: [MSPCIFormer paper](https://onlinelibrary.wiley.com/doi/10.1111/exsy.70343), [author repository](https://github.com/cmajorsolo/MSPCIFormer). The Gurgul baseline is similarly adapted to the permitted data and assets: [arXiv paper](https://arxiv.org/abs/2311.14759), [journal DOI](https://doi.org/10.1016/j.ijforecast.2025.02.007).
+The published MSPCIFormer experiment used eight input assets and only ADA/BTC/ETH targets; this project is therefore a documented three-asset adaptation, not an exact reproduction. The paper and author repository remain provenance inputs, but source code must not be copied until its absent license is resolved: [MSPCIFormer paper](https://onlinelibrary.wiley.com/doi/10.1111/exsy.70343), [author repository](https://github.com/cmajorsolo/MSPCIFormer). The Gurgul baseline was adapted only in the historical multimodal program and is not an architectural dependency of the new Phase 1 direction: [arXiv paper](https://arxiv.org/abs/2311.14759), [journal DOI](https://doi.org/10.1016/j.ijforecast.2025.02.007).
 
 Every research run persists:
 

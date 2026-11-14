@@ -72,3 +72,20 @@ This protocol is frozen before retrieving or scoring the forward holdout. It is 
 - After a pass, a deployment checkpoint may be refit on all labels mature at the current cutoff using the frozen configuration. Its hash, standardizer, calibration, evaluated checkpoint, dataset, run, and promotion event must be recorded before a forecast snapshot is eligible.
 
 The completion run must report per-model forward metrics, the chosen coefficient and validation scores for every grid value, exact window boundaries, input record IDs, point-in-time cutoff checks, conformal adjustment, evaluated and deployment artifact hashes, and whether holdout labels were consumed. A failed forward run remains useful immutable evidence but cannot publish a live recommendation.
+
+## Phase 1 market-only MSPCIFormer/VASA experiment
+
+The new forecasting research direction uses MSPCIFormer as its sole base paper
+and isolates sentiment, on-chain inputs, adaptive source gating, equal source
+fusion, multi-source ablations, portfolio optimization, and frontend behavior
+from the experiment. Historical multimodal runs and the approved 15-day runtime
+path remain immutable legacy evidence.
+
+The declared Phase 1 protocol uses Coin Metrics daily BTC/ETH/SOL closing
+prices, a direct seven-day price path, five trailing input days, patch scales 4
+and 5, training-only log-price normalization, a validation-selected trailing
+volatility lookback, a seven-day embargo, an untouched chronological holdout,
+three expanding walk-forward folds, and seeds 2025/2026/2027. Model B and Model
+C differ only by VASA's zero-initialized `1 -> 8 -> 2` volatility adjustment to
+the learned scale logits. Full details and actual results are in
+[`research/mspciformer-vasa-phase1.md`](research/mspciformer-vasa-phase1.md).

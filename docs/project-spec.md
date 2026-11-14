@@ -165,9 +165,14 @@ The ledger stays shared and auditable; Analyze Another Amount remains an isolate
 
 ## Research core
 
-- MSPCIFormer (2026)
-- Gurgul et al. (2025)
-- Adaptive Multi-Source Fusion/Gating
+- New research direction: MSPCIFormer (2026) only, beginning with the isolated
+  market-only seven-day VASA experiment documented in
+  [`research/mspciformer-vasa-phase1.md`](research/mspciformer-vasa-phase1.md).
+- Legacy runtime evidence only: Gurgul et al. (2025) and Adaptive Multi-Source
+  Fusion/Gating. These remain auditable for the existing 15-day dashboard path
+  but are retired from new forecasting experiments.
+- Phase 2 portfolio and UI work remains unimplemented pending explicit review
+  of the Phase 1 results.
 
 ## Deployment summary — on hold
 

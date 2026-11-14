@@ -183,4 +183,19 @@ docker compose --profile tools up -d --build --wait \
 - Model output is research analysis, not financial advice, and no path trades or mutates Finance.
 - No cloud or production readiness is claimed.
 
+## 2026-11-14 Phase 1 market-only forecasting extension
+
+An additive, research-only path now evaluates naive persistence, a clean-room
+market-only MSPCIFormer reimplementation, and VASA-MSPCIFormer on direct Days
+1-7 BTC/ETH/SOL prices. It does not rewrite the historical multimodal evidence
+or change the promoted 15-day runtime contract.
+
+The actual untouched holdout did not support the VASA hypothesis: VASA's Day-7
+MAE was 0.414%, 0.430%, and 0.553% worse than the original reimplementation for
+BTC, ETH, and SOL respectively. Validation selected the original model for the
+separate latest research-only forecast. See
+[`../research/mspciformer-vasa-phase1.md`](../research/mspciformer-vasa-phase1.md)
+for the architecture, protocol, full results, artifacts, and reproduction
+command.
+
 Milestone 6 implements risk scoring, constrained BTC/ETH/SOL portfolio optimization, forecast presentation, and non-mutating amount scenarios against the immutable forecast/run interfaces. It must reject stale or unpromoted forecasts and may not treat the rejected synthetic smoke candidate as an approved model.

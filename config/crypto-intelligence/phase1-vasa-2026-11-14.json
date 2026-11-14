@@ -1,0 +1,191 @@
+{
+  "artifact_hashes": {
+    "actual-vs-predicted.svg": "17577fcb27928bce0766879ddd080429e8562a28d292838bddce79f2264a4bf7",
+    "checkpoint-original-mspciformer-seed-2025.json": "6397760c5b63f4b01a8dcb7894dc64cfc4fd8b0de64e707932f73d05cc98d197",
+    "checkpoint-original-mspciformer-seed-2026.json": "f3b52c2e022725ec81d3cdef6d1232ddaa7e79dc7374a52205eb871cf7652c37",
+    "checkpoint-original-mspciformer-seed-2027.json": "f32d03f7c7f67a688c50e07240eaddfab4b77b68c6f36ea1663bec91275ac456",
+    "checkpoint-vasa-mspciformer-seed-2025.json": "5a7246932506b209435c836d4e3bc872ef593ee323b5465993ddac0a5439d04b",
+    "checkpoint-vasa-mspciformer-seed-2026.json": "985ab2161a193f29ca0fe084d68361969d2ac1b4ed42ba4f65e24c15b82fdf8f",
+    "checkpoint-vasa-mspciformer-seed-2027.json": "e18db1d81b8234d745ff3c531024240e422cd4e2b29cb6f28c152372f16e45ff",
+    "data-manifest.json": "40b6fed77636555d23b6dceeec12ef92818393d1236d51b683a310c658560fec",
+    "deployment-checkpoint.json": "77df67e6ad303116aca1751ca795517e7befa9b724ed5c76aecc1d011e41e1a9",
+    "experiment-config.json": "f878d75d1c5bb8d28f400ba0151dfd6127a628aeac2f08c178b6f1731325d3bc",
+    "latest-forecast.json": "6f4b505042e92c1b3bdd96a9206e3c80135477eaa5c9e71df0420705d8d8f751",
+    "metrics.json": "e48c45ae3883a1f15619a3b977df139a134912a757d78c7d0f74e8187d62ea82",
+    "per-horizon-error.svg": "cfc7e026c44df004999fc8cb6e195511f9207f0b5ab850e18217e8e7e95d222a",
+    "predictions.json": "e273c374a3ac55d4d475641bc8169e35e000ce24c42314103aecf58f59733de2",
+    "volatility-scale-weights.svg": "5dca900ad12c1a09f1cfd80b973be5bbf27834ecfb185a79351bd7b443523c58"
+  },
+  "artifact_restore_verified": true,
+  "author_repository_code_copied": false,
+  "comparison": {
+    "naive-persistence": {
+      "btc_day_7_mae_usd": 3634.6761419056,
+      "eth_day_7_mae_usd": 170.3862237006,
+      "mape": 0.0423108397,
+      "mda": 0.0,
+      "return_7d_mae": 0.0574080884,
+      "sol_day_7_mae_usd": 8.7365941219
+    },
+    "original-mspciformer": {
+      "btc_day_7_mae_usd": 3581.9985888572,
+      "eth_day_7_mae_usd": 173.8878124703,
+      "mape": 0.0442516198,
+      "mda": 0.5045966326,
+      "return_7d_mae": 0.0585412025,
+      "sol_day_7_mae_usd": 9.0292719186
+    },
+    "vasa-mspciformer": {
+      "btc_day_7_mae_usd": 3596.8303729104,
+      "eth_day_7_mae_usd": 174.6360958886,
+      "mape": 0.0446193933,
+      "mda": 0.4960231381,
+      "return_7d_mae": 0.0588239687,
+      "sol_day_7_mae_usd": 9.0791730846
+    }
+  },
+  "completed_at_utc": "2026-11-14T06:33:34.501047Z",
+  "data_period": {
+    "end": "2026-11-13",
+    "start": "2020-04-10"
+  },
+  "dataset_hash": "47f9b11bfa620ac2dc7d03b7e1de7f837d73b2f1e101f8d691697a3d5faccd68",
+  "exact_paper_reproduction": false,
+  "full_artifacts_persisted_in_resilientdb": true,
+  "latest_forecast": {
+    "assets": {
+      "BTC": {
+        "current_price": 68096.3125056,
+        "predicted_daily_returns": [
+          -0.0033681703,
+          -0.0037884573,
+          -0.0012647749,
+          0.0005251326,
+          0.0023092996,
+          0.0029731817,
+          0.0020894287
+        ],
+        "predicted_prices": [
+          67866.95252995,
+          67609.84147664,
+          67524.33024349,
+          67559.78946955,
+          67715.80526702,
+          67917.13665791,
+          68059.04467055
+        ],
+        "predicted_return_7d": -0.0005472813,
+        "scale_weights": [
+          0.4764117301,
+          0.5235882401
+        ]
+      },
+      "ETH": {
+        "current_price": 1923.37015483,
+        "predicted_daily_returns": [
+          0.0010218258,
+          0.0002947783,
+          -0.0002297345,
+          0.0009605405,
+          0.0008279325,
+          0.0019517692,
+          0.0011501282
+        ],
+        "predicted_prices": [
+          1925.33550403,
+          1925.90305115,
+          1925.46060469,
+          1927.31008759,
+          1928.90577019,
+          1932.67054911,
+          1934.89336792
+        ],
+        "predicted_return_7d": 0.0059911573,
+        "scale_weights": [
+          0.4764117301,
+          0.5235882401
+        ]
+      },
+      "SOL": {
+        "current_price": 77.8394437,
+        "predicted_daily_returns": [
+          -0.002107674,
+          -0.0028031939,
+          -0.0007505553,
+          0.0012580945,
+          0.0032845325,
+          0.0052305218,
+          0.0032139028
+        ],
+        "predicted_prices": [
+          77.67538353,
+          77.45764437,
+          77.39950812,
+          77.49688402,
+          77.75142506,
+          78.15810558,
+          78.40929813
+        ],
+        "predicted_return_7d": 0.0073208955,
+        "scale_weights": [
+          0.4764117301,
+          0.5235882401
+        ]
+      }
+    },
+    "deployment_training_epochs": 18,
+    "forecast_dates_utc": [
+      "2026-11-14",
+      "2026-11-15",
+      "2026-11-16",
+      "2026-11-17",
+      "2026-11-18",
+      "2026-11-19",
+      "2026-11-20"
+    ],
+    "forecast_horizon_days": 7,
+    "generated_at_utc": "2026-11-14T06:33:34.501047Z",
+    "market_data_cutoff_utc": "2026-11-13T00:00:00Z",
+    "model": "Original MSPCIFormer reimplementation",
+    "model_key": "original-mspciformer",
+    "model_version": "phase1-market-only-v1",
+    "quality_checks": {
+      "fallback_used": false,
+      "finite": true,
+      "positive_prices": true
+    },
+    "research_only": true,
+    "schema_version": 1,
+    "training_data_fitted_through_utc": "2026-11-06T00:00:00Z"
+  },
+  "manifest_key": "phase1-run:phase1-vasa-ad3650aef2e4440f8dd0a846efd18bc5:manifest",
+  "observation_archive_key": "observation-archive:fcd1f649a1ffa40ce8b0c3e3a7e900e9e2f15980500b83d80db355e620a32138",
+  "portfolio_or_frontend_changed": false,
+  "relative_comparisons": {
+    "BTC": {
+      "original_vs_naive_day_7_mae_percent": 1.449305,
+      "vasa_vs_naive_day_7_mae_percent": 1.041242,
+      "vasa_vs_original_day_7_mae_percent": -0.414064
+    },
+    "ETH": {
+      "original_vs_naive_day_7_mae_percent": -2.055089,
+      "vasa_vs_naive_day_7_mae_percent": -2.494258,
+      "vasa_vs_original_day_7_mae_percent": -0.430325
+    },
+    "SOL": {
+      "original_vs_naive_day_7_mae_percent": -3.350022,
+      "vasa_vs_naive_day_7_mae_percent": -3.921196,
+      "vasa_vs_original_day_7_mae_percent": -0.55266
+    }
+  },
+  "run_id": "phase1-vasa-ad3650aef2e4440f8dd0a846efd18bc5",
+  "schema_version": 1,
+  "scope": "Milestone 5 Phase 1 local non-commercial provider-data research",
+  "selected_latest_forecast_model": "original-mspciformer",
+  "selected_volatility_lookback_days": 7,
+  "test_period": {
+    "end": "2026-11-06",
+    "sample_count": 461,
+    "start": "2025-08-03"
+  }
+}

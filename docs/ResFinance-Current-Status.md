@@ -174,6 +174,19 @@ Evidence:
 - Repeated deterministic CPU runs produced identical dataset and prediction
   hashes, and all 39 encrypted research artifacts restored byte-for-byte from
   the real four-replica ResilientDB stack.
+- Completed an isolated Phase 1 market-only MSPCIFormer experiment on real
+  BTC/ETH/SOL daily data through 2026-11-13. The clean-room VASA novelty
+  conditioned scale weights on trailing volatility but slightly degraded
+  untouched Day-7 MAE for all three assets versus the original reimplementation.
+  Validation selected the original model for the separate research-only latest
+  seven-day forecast; no result entered the legacy promotion, dashboard, or
+  portfolio path.
+- Persisted the raw Coin Metrics archive and all predictions, metrics,
+  checkpoints, figures, configuration, and latest forecast in ResilientDB.
+  Bounded evidence is recorded in
+  [`config/crypto-intelligence/phase1-vasa-2026-11-14.json`](../config/crypto-intelligence/phase1-vasa-2026-11-14.json),
+  with the complete report in
+  [`research/mspciformer-vasa-phase1.md`](research/mspciformer-vasa-phase1.md).
 
 Evidence:
 [`milestones/milestone5-crypto-intelligence-research.md`](milestones/milestone5-crypto-intelligence-research.md).

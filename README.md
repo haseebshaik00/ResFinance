@@ -84,6 +84,7 @@ docs/          Product, architecture, milestone evidence, and development refere
 - [REST API Contract](docs/rest-api-contract.md)
 - [Security Contract](docs/security.md)
 - [Research Protocol](docs/research-protocol.md)
+- [MSPCIFormer VASA Phase 1 research report](docs/research/mspciformer-vasa-phase1.md)
 - [Provider coverage and terms review](docs/provider-terms-review.md)
 - [ResilientDB ecosystem development references](docs/development-references.md)
 - [Canonical Milestone Convention](docs/milestones/milestones.md)
