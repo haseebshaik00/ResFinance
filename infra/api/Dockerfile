@@ -28,7 +28,7 @@ COPY --from=resilientdb \
 COPY infra/resilientdb/client.config /config/client.config
 COPY infra/rescontract/client.config /config/rescontract-client.config
 COPY blockchain /app/blockchain
-COPY config/crypto-intelligence/phase2-model-informed-diversified-cash-v3.json /app/config/crypto-intelligence/phase2-model-informed-diversified-cash-v3.json
+COPY config/crypto-intelligence/phase2-risk-profile-model-blend-v4.json /app/config/crypto-intelligence/phase2-risk-profile-model-blend-v4.json
 COPY ml /app/ml
 COPY server /app/server
 ENV RESFINANCE_RESDB_TOOL=/usr/local/bin/kv_service_tools \

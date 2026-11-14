@@ -101,11 +101,13 @@ their original dates and are labeled stale.
 ## Phase 2 seven-day portfolio protocol
 
 Phase 2 reads raw cumulative Day-7 returns from one verified Phase 1 snapshot
-and applies a fixed mean–variance policy. Ledoit-Wolf covariance uses the
-latest 365 aligned daily returns available at the forecast cutoff and is
-multiplied by seven. The objective is `mu^T w - 5.0(w^T Sigma_7 w)`, subject
-only to nonnegative weights summing to one. There are no asset caps, minimums,
-cash allocation, risk questionnaire, leverage, or short positions. CLARABEL
-and SCS solve the identical objective; total solver failure is returned rather
-than replaced by another portfolio. Exact-cent reconciliation affects dollar
-amounts, not weights.
+and applies a fixed mean–variance policy as a conditional BTC/ETH/SOL model
+view. Ledoit-Wolf covariance uses the latest 365 aligned daily returns
+available at the forecast cutoff and is multiplied by seven. The wallet-scoped
+three-question risk profile selects fixed Conservative, Balanced, or Growth
+BTC/ETH/SOL/USD-cash targets. Model calibration confidence blends the
+conditional model view only inside that policy-selected crypto sleeve; it does
+not set cash or total crypto exposure. There are no asset caps, leverage, or
+short positions. CLARABEL and SCS solve the identical objective; total solver
+failure is returned rather than replaced by another portfolio. Exact-cent
+reconciliation affects dollar amounts, not weights.

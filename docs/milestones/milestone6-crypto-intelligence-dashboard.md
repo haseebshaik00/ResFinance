@@ -11,15 +11,15 @@ trading, custody, and investment-performance claims remain out of scope.
 The active application supersedes the dashboard behavior below with the
 validation-selected Phase 1 v2 MSPCIFormer forecast and a simplified
 seven-day mean–variance portfolio. It has one hypothetical USD capital input,
-no questionnaire, no Finance default, and no BTC/ETH/SOL caps. Ledoit-Wolf
+one three-question wallet-scoped risk questionnaire, no Finance default, and no BTC/ETH/SOL caps. Ledoit-Wolf
 covariance uses 365 aligned daily returns and is scaled by seven; fixed
 `lambda = 5.0`; BTC/ETH/SOL weights are long-only and may sum to less than one.
-The forecast-model tilt is calibrated from selected-model held-out directional
-skill and return MAE, then blended with an inverse-volatility BTC/ETH/SOL
-prior inside that model-selected crypto sleeve. The remaining scenario amount
-is an unallocated USD cash reserve, not a stablecoin or trade. CLARABEL and
-SCS may solve the same objective, but no alternative portfolio is substituted
-if both fail.
+The questionnaire fixes Conservative (20/15/5/60), Balanced (25/40/15/20),
+or Growth (30/35/25/10) BTC/ETH/SOL/USD-cash policy weights. The selected
+model's held-out directional skill and return MAE calibrate a confidence-
+weighted blend only within that fixed crypto sleeve; cash is not a model
+output. CLARABEL and SCS may solve the same objective, but no alternative
+portfolio is substituted if both fail.
 
 Active authenticated endpoints:
 

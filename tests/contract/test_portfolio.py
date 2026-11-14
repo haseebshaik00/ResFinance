@@ -8,18 +8,16 @@ import pytest
 from fastapi.testclient import TestClient
 
 from ml.portfolio.phase2_optimizer import optimize_seven_day_portfolio
-from server.app.application.phase2_portfolio import (
-    Phase2PortfolioPolicy,
-    Phase2PortfolioRejected,
-    Phase2PortfolioService,
-)
+from server.app.application.phase2_portfolio import Phase2PortfolioRejected, Phase2PortfolioService
 from server.app.domain.crypto import CryptoAsset
+from server.app.domain.events import AppendResult, DomainEvent
 from server.app.domain.phase2_portfolio import (
     ForecastAccuracy,
     HistoricalPrice,
     SevenDayAssetForecast,
     SevenDayForecast,
 )
+from server.app.domain.portfolio import RiskAnswers, RiskProfile, RiskProjection
 from server.app.infrastructure.phase1_forecast_repository import Phase1ForecastBundle
 from server.app.main import create_app
 from tests.contract.test_authentication import (
@@ -48,6 +46,39 @@ class FailedForecastFixture:
         raise ValueError("verified Phase 1 artifact is missing")
 
 
+class RiskProfileFixture:
+    def risk_profile(self, *, actor_address: str) -> RiskProjection:
+        return RiskProjection(projection_version=1, profile=_risk_profile())
+
+    def record_risk_profile(
+        self,
+        *,
+        actor_address: str,
+        idempotency_key: str,
+        expected_version: int,
+        answers: RiskAnswers,
+    ) -> AppendResult:
+        return AppendResult(
+            event=DomainEvent(
+                schema_version=1,
+                event_id="evt_risk_profile_saved",
+                event_type="risk.profile-recorded",
+                occurred_at_utc=NOW,
+                tenant_id="tenant_test",
+                actor_id="actor_test",
+                aggregate_type="risk-profile",
+                aggregate_id="risk_test",
+                aggregate_version=expected_version + 1,
+                idempotency_key_hash="a" * 64,
+                payload={"score": answers.score},
+                payload_hash="b" * 64,
+                source_references=(),
+                contract_receipt=None,
+            ),
+            deduplicated=False,
+        )
+
+
 def test_optimizer_allows_a_cash_reserve_and_reconciles_exactly_in_cents() -> None:
     result = optimize_seven_day_portfolio(
         capital_minor_units=100_001,
@@ -59,6 +90,12 @@ def test_optimizer_allows_a_cash_reserve_and_reconciles_exactly_in_cents() -> No
         price_history=_prices(),
         risk_aversion=Decimal("5.0"),
         covariance_lookback_days=365,
+        strategic_crypto_weights={
+            CryptoAsset.BTC: Decimal("0.25"),
+            CryptoAsset.ETH: Decimal("0.40"),
+            CryptoAsset.SOL: Decimal("0.15"),
+        },
+        cash_weight=Decimal("0.20"),
     )
 
     weights = [Decimal(item.weight) for item in result.allocations]
@@ -76,7 +113,8 @@ def test_optimizer_allows_a_cash_reserve_and_reconciles_exactly_in_cents() -> No
     assert Decimal(result.predicted_return_7d) > 0
     assert Decimal(result.estimated_volatility_7d) >= 0
     assert all(not hasattr(item, "cap") for item in result.allocations)
-    assert all(value > 0 for value in weights)
+    assert Decimal(result.cash_reserve.weight) == Decimal("0.20")
+    assert Decimal(result.strategic_cash_reserve.weight) == Decimal("0.20")
 
 
 def test_singular_covariance_is_repaired_without_changing_the_objective() -> None:
@@ -95,11 +133,16 @@ def test_singular_covariance_is_repaired_without_changing_the_objective() -> Non
         price_history=flat,
         risk_aversion=Decimal("5.0"),
         covariance_lookback_days=365,
+        strategic_crypto_weights={
+            CryptoAsset.BTC: Decimal("0.25"),
+            CryptoAsset.ETH: Decimal("0.40"),
+            CryptoAsset.SOL: Decimal("0.15"),
+        },
+        cash_weight=Decimal("0.20"),
     )
     assert result.covariance_repaired
-    assert sum(Decimal(item.weight) for item in result.allocations) == Decimal("0")
-    assert Decimal(result.cash_reserve.weight) == Decimal("1")
-    assert result.cash_reserve.amount_minor_units == 100_000
+    assert Decimal(result.cash_reserve.weight) == Decimal("0.20")
+    assert result.cash_reserve.amount_minor_units == 20_000
 
 
 def test_solver_failures_are_explicit_and_never_substitute_another_portfolio(
@@ -116,17 +159,18 @@ def test_solver_failures_are_explicit_and_never_substitute_another_portfolio(
             price_history=_prices(),
             risk_aversion=Decimal("5.0"),
             covariance_lookback_days=365,
+            strategic_crypto_weights={asset: Decimal("0.20") for asset in CryptoAsset},
+            cash_weight=Decimal("0.40"),
         )
 
 
 def test_service_warns_for_stale_forecasts_and_retains_cash_for_negative_forecasts() -> None:
-    service = Phase2PortfolioService(
-        ForecastFixture(_bundle(status="stale", negative=True)),
-        policy=Phase2PortfolioPolicy(risk_aversion=Decimal("5.0"), covariance_lookback_days=365),
+    service = Phase2PortfolioService(ForecastFixture(_bundle(status="stale", negative=True)))
+    recommendation = service.recommend(
+        capital_minor_units=100_000, risk_profile=_risk_profile()
     )
-    recommendation = service.recommend(capital_minor_units=100_000)
     assert recommendation.forecast_status == "stale"
-    assert any("cash reserve" in warning.lower() for warning in recommendation.warnings)
+    assert any("risk profile fixes cash" in warning.lower() for warning in recommendation.warnings)
     assert any("Forecast window ended" in warning for warning in recommendation.warnings)
     assert (
         sum(item.amount_minor_units for item in recommendation.allocations)
@@ -142,14 +186,20 @@ def test_unavailable_forecast_and_invalid_capital_fail_explicitly() -> None:
         failed.forecast()
     service = Phase2PortfolioService(ForecastFixture(_bundle()))
     with pytest.raises(Phase2PortfolioRejected, match="positive integer USD cents"):
-        service.recommend(capital_minor_units=0)
+        service.recommend(capital_minor_units=0, risk_profile=_risk_profile())
 
 
 def test_authenticated_phase2_api_returns_one_snapshot_and_backend_allocations() -> None:
     store = MemoryKeyValueStore()
     authentication = auth_service(store)
     service = Phase2PortfolioService(ForecastFixture(_bundle()))
-    client = TestClient(create_app(authentication, phase2_portfolio_service=service))
+    client = TestClient(
+        create_app(
+            authentication,
+            portfolio_service=RiskProfileFixture(),  # type: ignore[arg-type]
+            phase2_portfolio_service=service,
+        )
+    )
     private_key, identity = wallet()
     challenge_body = challenge(client, identity)
     token = create_session(
@@ -185,10 +235,27 @@ def test_authenticated_phase2_api_returns_one_snapshot_and_backend_allocations()
         < 1e-8
     )
     assert body["covariance_lookback_days"] == 365
-    assert body["policy_version"] == "phase2-model-informed-diversified-cash-v3"
-    assert body["diversification_prior"] == "inverse-volatility"
+    assert body["policy_version"] == "phase2-risk-profile-model-blend-v4"
+    assert body["risk_profile"] == "balanced"
+    assert body["model_blend"] == "confidence-weighted"
     assert Decimal(body["model_confidence"]) == Decimal("0")
-    assert client.post("/api/v1/crypto/risk-profile", headers=headers, json={}).status_code == 404
+    risk_response = client.get("/api/v1/crypto/risk-profile", headers=headers)
+    assert risk_response.status_code == 200
+    assert risk_response.json()["profile"]["score"] == 56
+    saved = client.post(
+        "/api/v1/crypto/risk-profile",
+        headers={**headers, "Idempotency-Key": "risk-profile-api-test"},
+        json={
+            "expected_version": 1,
+            "answers": {
+                "investment_horizon": 2,
+                "risk_tolerance": 2,
+                "liquidity_needs": 1,
+            },
+        },
+    )
+    assert saved.status_code == 201
+    assert saved.json()["event_id"] == "evt_risk_profile_saved"
 
 
 def _bundle(*, status: str = "current", negative: bool = False) -> Phase1ForecastBundle:
@@ -244,6 +311,16 @@ def _accuracy(model: str) -> ForecastAccuracy:
         btc_day_7_mae_usd="3582",
         eth_day_7_mae_usd="174",
         sol_day_7_mae_usd="9",
+    )
+
+
+def _risk_profile() -> RiskProfile:
+    return RiskProfile(
+        answers=RiskAnswers(investment_horizon=2, risk_tolerance=2, liquidity_needs=1),
+        score=56,
+        policy_version="risk-questionnaire-v2",
+        source_event_id="evt_risk_profile_test",
+        recorded_at_utc=NOW,
     )
 
 

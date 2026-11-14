@@ -10,7 +10,7 @@ from typing import Literal
 from server.app.domain.crypto import CryptoAsset, canonical_decimal, utc_datetime
 
 FORECAST_HORIZON_DAYS = 7
-PHASE2_POLICY_VERSION = "phase2-model-informed-diversified-cash-v3"
+PHASE2_POLICY_VERSION = "phase2-risk-profile-model-blend-v4"
 
 
 @dataclass(frozen=True)
@@ -171,6 +171,17 @@ class CashReserve:
 
 
 @dataclass(frozen=True)
+class Phase2TacticalAdjustment:
+    asset: CryptoAsset
+    weight: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "weight", canonical_decimal(self.weight))
+        if not Decimal(-1) <= Decimal(self.weight) <= Decimal(1):
+            raise ValueError("tactical adjustment must be between negative one and one")
+
+
+@dataclass(frozen=True)
 class Phase2Recommendation:
     capital_minor_units: int
     forecast_snapshot_id: str
@@ -186,9 +197,16 @@ class Phase2Recommendation:
     covariance_repaired: bool
     solver: str
     solver_status: str
-    policy_version: Literal["phase2-model-informed-diversified-cash-v3"]
+    policy_version: Literal["phase2-risk-profile-model-blend-v4"]
+    risk_profile: Literal["conservative", "balanced", "growth"]
+    risk_score: int
+    risk_profile_event_id: str
+    risk_policy_version: Literal["risk-questionnaire-v2"]
     model_confidence: str
-    diversification_prior: Literal["inverse-volatility"]
+    model_blend: Literal["confidence-weighted"]
+    strategic_allocations: tuple[Phase2Allocation, ...]
+    strategic_cash_reserve: CashReserve
+    tactical_adjustments: tuple[Phase2TacticalAdjustment, ...]
     allocations: tuple[Phase2Allocation, ...]
     cash_reserve: CashReserve
     warnings: tuple[str, ...]

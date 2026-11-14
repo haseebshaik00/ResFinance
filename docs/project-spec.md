@@ -106,12 +106,12 @@ selection.
 
 Combine raw predicted Day-7 returns with a 365-day Ledoit-Wolf covariance
 estimate scaled to seven days. Use fixed-lambda, long-only mean–variance
-optimization for the BTC/ETH/SOL sleeve with an optional unallocated USD cash
-reserve; do not force full crypto allocation. Calibrate the model tilt from
-held-out model evidence and blend the sleeve mix with inverse-volatility
-weights so a weak signal does not silently collapse the active sleeve into one
-coin. There are no coin caps or questionnaire. Integrate the result into the
-local dashboard. Deployment remains separately deferred.
+optimization for the BTC/ETH/SOL sleeve. A wallet-scoped risk questionnaire
+selects fixed Conservative, Balanced, or Growth BTC/ETH/SOL/USD-cash policy
+weights. Calibrate the model blend from held-out evidence and use it only to
+refine the crypto sleeve; cash and total crypto exposure remain the user's risk
+decision. There are no coin caps. Integrate the result into the local
+dashboard. Deployment remains separately deferred.
 
 ### Final local delivery gate — Milestone 7: Deliverables — Cross-dashboard Integration & Local Handoff
 

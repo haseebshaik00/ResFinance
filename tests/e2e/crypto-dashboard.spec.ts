@@ -125,11 +125,44 @@ test.beforeEach(async ({ page }) => {
       }),
     });
   });
+  await page.route("**/api/v1/crypto/risk-profile", async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({
+          event_id: "evt-risk-profile-e2e",
+          projection_version: 1,
+          occurred_at_utc: "2026-11-14T06:30:00Z",
+          deduplicated: false,
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        projection_version: 1,
+        profile: {
+          answers: {
+            investment_horizon: 2,
+            risk_tolerance: 2,
+            liquidity_needs: 1,
+          },
+          score: 56,
+          policy_version: "risk-questionnaire-v2",
+          source_event_id: "evt-risk-profile-e2e",
+          recorded_at_utc: "2026-11-14T06:30:00Z",
+        },
+      }),
+    });
+  });
   await page.route("**/api/v1/crypto/recommendations", async (route) => {
     const capital = route.request().postDataJSON().capital
       .minor_units as number;
-    const weights = [0.24, 0.21, 0.15];
-    const cashWeight = 0.4;
+    const weights = [0.25, 0.4, 0.15];
+    const cashWeight = 0.2;
     const amounts = [
       Math.round(capital * weights[0]),
       Math.round(capital * weights[1]),
@@ -157,9 +190,27 @@ test.beforeEach(async ({ page }) => {
         covariance_repaired: false,
         solver: "CLARABEL",
         solver_status: "optimal",
-        policy_version: "phase2-model-informed-diversified-cash-v3",
+        policy_version: "phase2-risk-profile-model-blend-v4",
+        risk_profile: "balanced",
+        risk_score: 56,
+        risk_profile_event_id: "evt-risk-profile-e2e",
+        risk_policy_version: "risk-questionnaire-v2",
         model_confidence: "0.20",
-        diversification_prior: "inverse-volatility",
+        model_blend: "confidence-weighted",
+        strategic_allocations: ["BTC", "ETH", "SOL"].map((asset, index) => ({
+          asset,
+          weight: weights[index].toString(),
+          amount: { currency: "USD", minor_units: amounts[index] },
+        })),
+        strategic_cash_reserve: {
+          label: "USD cash reserve",
+          weight: cashWeight.toString(),
+          amount: { currency: "USD", minor_units: cashAmount },
+        },
+        tactical_adjustments: ["BTC", "ETH", "SOL"].map((asset) => ({
+          asset,
+          weight: "0",
+        })),
         allocations: ["BTC", "ETH", "SOL"].map((asset, index) => ({
           asset,
           weight: weights[index].toString(),
@@ -204,22 +255,22 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.getByRole("heading", { name: "Portfolio Allocation" }),
   ).toBeVisible();
-  await expect(page.getByText("$240.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("$210.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("$150.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$250.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$400.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$150.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$200.00", { exact: true })).toBeVisible();
   await expect(
     page.getByText("USD cash reserve", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByText(/Model tilt: 20.00%/)).toBeVisible();
-  await expect(page.getByText("Risk Questionnaire")).toHaveCount(0);
+  await expect(page.getByText(/Model confidence: 20.00%/)).toBeVisible();
+  await expect(page.getByText("Risk Questionnaire")).toBeVisible();
   await expect(page.getByText(/15-day/i)).toHaveCount(0);
 
   await page.getByLabel("Investment Capital (USD)").fill("2000.00");
-  await expect(page.getByText("$480.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("$420.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("$300.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$500.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$800.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$300.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$400.00", { exact: true })).toBeVisible();
 
   expect(
     await page.evaluate(

@@ -1,0 +1,147 @@
+{
+  "forecast": {
+    "assets": [
+      {
+        "asset": "BTC",
+        "current_price": "68096.3125056",
+        "predicted_prices": [
+          "67866.95252995",
+          "67609.84147664",
+          "67524.33024349",
+          "67559.78946955",
+          "67715.80526702",
+          "67917.13665791",
+          "68059.04467055"
+        ],
+        "predicted_return_7d": "-0.0005472813"
+      },
+      {
+        "asset": "ETH",
+        "current_price": "1923.37015483",
+        "predicted_prices": [
+          "1925.33550403",
+          "1925.90305115",
+          "1925.46060469",
+          "1927.31008759",
+          "1928.90577019",
+          "1932.67054911",
+          "1934.89336792"
+        ],
+        "predicted_return_7d": "0.0059911573"
+      },
+      {
+        "asset": "SOL",
+        "current_price": "77.8394437",
+        "predicted_prices": [
+          "77.67538353",
+          "77.45764437",
+          "77.39950812",
+          "77.49688402",
+          "77.75142506",
+          "78.15810558",
+          "78.40929813"
+        ],
+        "predicted_return_7d": "0.0073208955"
+      }
+    ],
+    "forecast_dates_utc": [
+      "2026-11-14",
+      "2026-11-15",
+      "2026-11-16",
+      "2026-11-17",
+      "2026-11-18",
+      "2026-11-19",
+      "2026-11-20"
+    ],
+    "generated_at_utc": "2026-11-14T07:22:42.305314Z",
+    "manifest_key": "phase1-run:phase1-vasa-v2-f07de01b517d4304823d07bb11a28b1b:manifest",
+    "market_data_cutoff_utc": "2026-11-13T00:00:00Z",
+    "model_key": "original-mspciformer",
+    "model_version": "phase1-market-only-v2",
+    "run_id": "phase1-vasa-v2-f07de01b517d4304823d07bb11a28b1b",
+    "snapshot_id": "ab57e3bf7fc0811dfb43fcca9bd399681479c30bd1662a5b2fc33e5b81f1e008",
+    "stale_reasons": [],
+    "status": "current"
+  },
+  "recommendation": {
+    "allocations": [
+      {
+        "amount_minor_units": 26720,
+        "asset": "BTC",
+        "weight": "0.2672029137"
+      },
+      {
+        "amount_minor_units": 38644,
+        "asset": "ETH",
+        "weight": "0.3864373367"
+      },
+      {
+        "amount_minor_units": 14636,
+        "asset": "SOL",
+        "weight": "0.1463597496"
+      }
+    ],
+    "capital_minor_units": 100000,
+    "capital_usd": "1000",
+    "cash_reserve": {
+      "amount_minor_units": 20000,
+      "weight": "0.2"
+    },
+    "covariance_estimator": "Ledoit-Wolf",
+    "covariance_lookback_days": 365,
+    "covariance_repaired": false,
+    "estimated_portfolio_volatility_7d": "0.0582373217",
+    "model_blend": "confidence-weighted",
+    "model_confidence": "0.03390675112329580580854069685",
+    "policy_version": "phase2-risk-profile-model-blend-v4",
+    "predicted_portfolio_return_7d": "0.0032404561",
+    "risk_aversion": "5.0",
+    "risk_profile": "balanced",
+    "risk_score": 56,
+    "solver": "CLARABEL",
+    "solver_status": "optimal",
+    "strategic_allocations": [
+      {
+        "amount_minor_units": 25000,
+        "asset": "BTC",
+        "weight": "0.25"
+      },
+      {
+        "amount_minor_units": 40000,
+        "asset": "ETH",
+        "weight": "0.4"
+      },
+      {
+        "amount_minor_units": 15000,
+        "asset": "SOL",
+        "weight": "0.15"
+      }
+    ],
+    "strategic_cash_reserve": {
+      "amount_minor_units": 20000,
+      "weight": "0.2"
+    },
+    "tactical_adjustments": [
+      {
+        "asset": "BTC",
+        "weight": "0.0172029137"
+      },
+      {
+        "asset": "ETH",
+        "weight": "-0.0135626633"
+      },
+      {
+        "asset": "SOL",
+        "weight": "-0.0036402504"
+      }
+    ],
+    "warnings": [
+      "Experimental research output: predicted returns are uncertain and are not guaranteed profits.",
+      "This recommendation is informational only and does not execute trades or transfer assets.",
+      "The saved risk profile fixes cash and the strategic crypto sleeve. A 3.39% confidence-weighted forecast/covariance model blend refines only BTC, ETH, and SOL."
+    ]
+  },
+  "schema_version": 4,
+  "scope": "Milestone 6 local non-commercial research recommendation",
+  "trades_executed": false
+}

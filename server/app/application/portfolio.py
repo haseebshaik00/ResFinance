@@ -87,6 +87,16 @@ class PortfolioService:
                 return existing
             return self._events.append(command)
 
+    def risk_profile(self, *, actor_address: str) -> RiskProjection:
+        """Return the wallet's append-only questionnaire projection only.
+
+        The active seven-day Crypto Intelligence flow uses this projection for
+        its strategic policy; it does not invoke this service's legacy
+        fifteen-day recommendation path.
+        """
+
+        return self._risk_projection(actor_address)
+
     def overview(
         self,
         *,

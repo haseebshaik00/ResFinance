@@ -63,7 +63,9 @@ def create_app(
         prefix="/api/v1",
     )
     app.include_router(
-        create_crypto_intelligence_router(phase2_portfolio_service, auth_service),
+        create_crypto_intelligence_router(
+            phase2_portfolio_service, auth_service, portfolio_service
+        ),
         prefix="/api/v1",
     )
     app.include_router(
@@ -102,7 +104,7 @@ def services_from_environment() -> tuple[
         Path(
             os.environ.get(
                 "RESFINANCE_PHASE2_POLICY_CONFIG",
-                "config/crypto-intelligence/phase2-model-informed-diversified-cash-v3.json",
+                "config/crypto-intelligence/phase2-risk-profile-model-blend-v4.json",
             )
         )
     )

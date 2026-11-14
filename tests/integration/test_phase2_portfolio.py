@@ -10,6 +10,7 @@ from ml.evaluation.phase1 import TrainingConfig
 from ml.runs.phase1 import Phase1Config, run_phase1_research
 from server.app.application.phase2_portfolio import Phase2PortfolioService
 from server.app.domain.crypto import CryptoAsset, ObservationChannel, ProviderObservation
+from server.app.domain.portfolio import RiskAnswers, RiskProfile
 from server.app.infrastructure.blob_repository import EncryptedBlobRepository
 from server.app.infrastructure.crypto_repository import CryptoResearchRepository
 from server.app.infrastructure.encryption import AesGcmCipher, canonical_json_bytes
@@ -77,7 +78,16 @@ def test_phase1_v2_artifacts_feed_the_seven_day_optimizer_without_retraining() -
     assert not bundle.forecast.refreshed_from_checkpoint
     assert len(bundle.price_history) == 430 * 3
 
-    recommendation = Phase2PortfolioService(repository).recommend(capital_minor_units=100_000)
+    recommendation = Phase2PortfolioService(repository).recommend(
+        capital_minor_units=100_000,
+        risk_profile=RiskProfile(
+            answers=RiskAnswers(investment_horizon=2, risk_tolerance=2, liquidity_needs=1),
+            score=56,
+            policy_version="risk-questionnaire-v2",
+            source_event_id="evt_risk_profile_integration",
+            recorded_at_utc=NOW,
+        ),
+    )
     assert recommendation.forecast_snapshot_id == bundle.forecast.snapshot_id
     assert (
         sum(item.amount_minor_units for item in recommendation.allocations)
@@ -89,8 +99,8 @@ def test_phase1_v2_artifacts_feed_the_seven_day_optimizer_without_retraining() -
         + float(recommendation.cash_reserve.weight)
         == 1.0
     )
-    assert recommendation.policy_version == "phase2-model-informed-diversified-cash-v3"
-    assert recommendation.diversification_prior == "inverse-volatility"
+    assert recommendation.policy_version == "phase2-risk-profile-model-blend-v4"
+    assert recommendation.risk_profile == "balanced"
 
 
 def test_historical_three_model_evidence_remains_byte_for_byte_unchanged() -> None:

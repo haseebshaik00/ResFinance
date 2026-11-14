@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from server.app.application.phase2_portfolio import (
     Phase2PortfolioService,
     load_phase2_policy,
 )
+from server.app.domain.portfolio import RiskAnswers, RiskProfile
 from server.app.infrastructure.blob_repository import EncryptedBlobRepository
 from server.app.infrastructure.crypto_repository import CryptoResearchRepository
 from server.app.infrastructure.encryption import AesGcmCipher
@@ -24,9 +26,18 @@ def parser() -> argparse.ArgumentParser:
     )
     value.add_argument("--capital-cents", type=int, default=100_000)
     value.add_argument(
+        "--risk-profile",
+        choices=("conservative", "balanced", "growth"),
+        default="balanced",
+        help=(
+            "Declared local research scenario profile; API recommendations use "
+            "the saved wallet profile."
+        ),
+    )
+    value.add_argument(
         "--policy-config",
         type=Path,
-        default=Path("config/crypto-intelligence/phase2-model-informed-diversified-cash-v3.json"),
+        default=Path("config/crypto-intelligence/phase2-risk-profile-model-blend-v4.json"),
     )
     value.add_argument("--docker", type=Path, default=Path("docker"))
     value.add_argument("--docker-host")
@@ -78,9 +89,12 @@ def main() -> int:
         policy=load_phase2_policy(args.policy_config),
     )
     forecast = service.forecast()
-    recommendation = service.recommend(capital_minor_units=args.capital_cents)
+    risk_profile = _risk_profile(args.risk_profile)
+    recommendation = service.recommend(
+        capital_minor_units=args.capital_cents, risk_profile=risk_profile
+    )
     document = {
-        "schema_version": 3,
+        "schema_version": 4,
         "scope": "Milestone 6 local non-commercial research recommendation",
         "forecast": {
             "snapshot_id": forecast.snapshot_id,
@@ -129,8 +143,26 @@ def main() -> int:
             "solver": recommendation.solver,
             "solver_status": recommendation.solver_status,
             "policy_version": recommendation.policy_version,
+            "risk_profile": recommendation.risk_profile,
+            "risk_score": recommendation.risk_score,
+            "strategic_allocations": [
+                {
+                    "asset": item.asset.value,
+                    "weight": item.weight,
+                    "amount_minor_units": item.amount_minor_units,
+                }
+                for item in recommendation.strategic_allocations
+            ],
+            "strategic_cash_reserve": {
+                "weight": recommendation.strategic_cash_reserve.weight,
+                "amount_minor_units": recommendation.strategic_cash_reserve.amount_minor_units,
+            },
+            "tactical_adjustments": [
+                {"asset": item.asset.value, "weight": item.weight}
+                for item in recommendation.tactical_adjustments
+            ],
             "model_confidence": recommendation.model_confidence,
-            "diversification_prior": recommendation.diversification_prior,
+            "model_blend": recommendation.model_blend,
             "warnings": list(recommendation.warnings),
         },
         "trades_executed": False,
@@ -140,6 +172,22 @@ def main() -> int:
     args.evidence_output.write_text(rendered, encoding="utf-8")
     print(rendered, end="")
     return 0
+
+
+def _risk_profile(profile: str) -> RiskProfile:
+    answers_by_profile = {
+        "conservative": RiskAnswers(1, 1, 1),
+        "balanced": RiskAnswers(2, 2, 1),
+        "growth": RiskAnswers(3, 3, 1),
+    }
+    answers = answers_by_profile[profile]
+    return RiskProfile(
+        answers=answers,
+        score=answers.score,
+        policy_version="risk-questionnaire-v2",
+        source_event_id=f"local-evidence-{profile}",
+        recorded_at_utc=datetime.now(UTC),
+    )
 
 
 if __name__ == "__main__":

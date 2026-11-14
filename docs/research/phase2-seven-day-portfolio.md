@@ -1,8 +1,8 @@
 # Phase 2 — Seven-Day Portfolio Recommendation
 
-Status: model-informed diversified cash-reserve policy v3 implemented and
-exercised locally on 2026-11-14. The v1 and v2 evidence below is retained as
-historical output from their earlier policies.
+Status: risk-profile model-blend policy v4 implemented and exercised locally
+on 2026-11-14. The v1, v2, and v3 evidence below is retained as historical
+output from their earlier policies.
 
 ## Pipeline
 
@@ -20,7 +20,7 @@ to Original MSPCIFormer, and the proposed VASA model is not promoted merely
 because it is the research novelty. The current validation result selects the
 original reimplementation.
 
-## Active v3 policy
+## Active v4 policy
 
 The optimizer first determines the total crypto-sleeve exposure from the fixed
 mean-variance objective:
@@ -46,23 +46,31 @@ maximize μᵀw - 5.0 × (wᵀΣ₇w)
 - Dollar allocations use largest-remainder cent reconciliation and always sum
   exactly to entered capital.
 
-V3 retains that model-selected total sleeve weight and diversifies only the
-BTC/ETH/SOL mix. Let `m` be the normalized mean-variance crypto weights and
-`p` be normalized inverse-volatility weights derived from the diagonal of
-`Σ₇`. The final sleeve weights are:
+The wallet-scoped `risk-questionnaire-v2` selects one fixed strategic target:
+
+| Profile | BTC | ETH | SOL | USD cash |
+|---|---:|---:|---:|---:|
+| Conservative (33–44) | 20% | 15% | 5% | 60% |
+| Balanced (56–67) | 25% | 40% | 15% | 20% |
+| Growth (78–100) | 30% | 35% | 25% | 10% |
+
+Cash and total crypto exposure are fixed by the selected profile. Let `s` be
+the normalized strategic crypto mix, `m` the fully-invested conditional
+mean-variance BTC/ETH/SOL mix, and `c` the validation calibration confidence.
+The final crypto weights are:
 
 ```text
-final crypto weights = sleeve weight × (c × m + (1 - c) × p)
+final crypto weights = strategic crypto sleeve × ((1 - c) × s + c × m)
 ```
 
 `c` is the selected model's held-out calibration: the square root of the
 product of (a) directional skill above chance and (b) the strongest absolute
 predicted return divided by seven-day return MAE. Both components are bounded
 to `[0, 1]`. Thus a weak or unavailable validation signal leaves the active
-crypto sleeve close to the covariance-derived diversification prior; it does
-not invent a stronger model signal. The forecast still governs the total
-crypto-versus-cash exposure. This is a declared policy choice, not a claim
-that all three assets will outperform.
+crypto sleeve close to the user-selected strategic target; it does not invent
+a stronger model signal. There is no arbitrary percentage-point tilt cap.
+This is a declared policy choice, not a claim that all three assets will
+outperform.
 
 ## Historical fully-invested v1 result
 
@@ -126,29 +134,40 @@ evidence-bound combination of the selected MSPCIFormer forecast, its measured
 validation quality, and the 365-day covariance estimate. If the optimizer
 rejects crypto exposure entirely, the result remains 100% cash.
 
+## Actual $1,000 Balanced-profile v4 result
+
+Evidence:
+[`../../config/crypto-intelligence/phase2-risk-profile-model-blend-v4-2026-11-14.json`](../../config/crypto-intelligence/phase2-risk-profile-model-blend-v4-2026-11-14.json).
+
+The Balanced strategic policy is $250 BTC / $400 ETH / $150 SOL / $200 cash.
+The selected model's 3.39067511% calibration confidence applies a small,
+zero-sum tactical crypto adjustment, producing $267.20 BTC / $386.44 ETH /
+$146.36 SOL / $200.00 cash. Predicted seven-day portfolio return is
+0.32404561% and estimated seven-day volatility is 5.82373217%.
+
 ## API and UI
 
 - `GET /api/v1/crypto/forecast`: verified model provenance, current observed
   prices, seven daily prices and returns, UTC dates, freshness, and historical
   holdout errors.
 - `POST /api/v1/crypto/recommendations`: positive integer USD cents in;
-  expected returns, BTC/ETH/SOL sleeve weights and amounts, an unallocated USD
-  cash-reserve weight and amount, solver state, risk estimate, provenance, and
-  warnings out.
+  saved-profile strategic targets, BTC/ETH/SOL model adjustments, exact-cent
+  final amounts, fixed policy cash, solver state, risk estimate, provenance,
+  and warnings out.
 
 The Crypto Intelligence dashboard displays three market cards, an asset
 selector with observed/predicted chart styling and tooltips, one capital input,
-an allocation table and donut that includes cash, freshness warnings,
-historical model error, and the calculation method. It supports light/dark
-themes and responsive layouts. There is no risk questionnaire or trading
-action.
+an allocation table and donut that includes cash, a risk questionnaire,
+freshness warnings, historical model error, and the calculation method. It
+supports light/dark themes and responsive layouts. There is no trading action.
 
 Reproduce the $1,000 calculation:
 
 ```bash
 .venv/bin/python -m scripts.milestone6.run_phase2_recommendation \
   --capital-cents 100000 \
-  --evidence-output config/crypto-intelligence/phase2-model-informed-diversified-cash-v3-$(date -u +%F).json
+  --risk-profile balanced \
+  --evidence-output config/crypto-intelligence/phase2-risk-profile-model-blend-v4-$(date -u +%F).json
 ```
 
 This is experimental investment guidance, not automated trading, guaranteed

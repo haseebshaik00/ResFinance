@@ -419,12 +419,15 @@ Feasibility implementations are narrow, disposable spikes unless the platform fo
   research metadata and refresh only by inference when newer completed
   observations already exist.
 - Apply fixed-lambda seven-day mean-variance optimization with 365-day
-  Ledoit-Wolf covariance, no asset caps, long-only/full-investment constraints,
-  explicit solver status, and no alternative-objective fallback.
+  Ledoit-Wolf covariance as a conditional crypto-sleeve model view. A
+  wallet-scoped risk questionnaire fixes Conservative, Balanced, or Growth
+  BTC/ETH/SOL/USD-cash targets; validation confidence blends the model view
+  only within the selected crypto sleeve. There are no asset caps and no
+  alternative-objective fallback.
 - Expose one hypothetical USD capital input, exact-cent allocations, current or
   stale forecast status, historical errors, an asset-selectable seven-day
-  chart, and a no-trading warning. The current flow has no questionnaire and
-  does not mutate Finance.
+  chart, and a no-trading warning. The current flow persists only the
+  questionnaire profile and does not mutate Finance.
 
 **Acceptance:** weights are nonnegative and sum to one, dollar allocations
 reconcile to the input amount, prediction/covariance horizons are both seven

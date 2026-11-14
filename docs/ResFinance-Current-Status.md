@@ -206,14 +206,13 @@ earlier 15-day questionnaire/capped workflow remains immutable legacy evidence.
   it never retrains. Newer stored completed observations can trigger
   inference-only refresh, while unavailable inputs fail explicitly and old
   dates remain visibly stale.
-- Implemented fixed `lambda = 5.0` mean–variance optimization using raw Day-7
-  predicted returns and 365 aligned daily returns with Ledoit-Wolf covariance
-  scaled by seven. BTC/ETH/SOL weights are nonnegative and may sum to less than
-  one; the exact residual is an unallocated USD cash reserve with zero assumed
-  seven-day return. The model-selected crypto sleeve is then blended with an
-  inverse-volatility BTC/ETH/SOL prior, using calibration confidence derived
-  from the selected model's held-out directional skill and return MAE. There
-  are no asset caps, leverage, shorts, or questionnaire.
+- Restored the encrypted, append-only `risk-questionnaire-v2` to choose
+  Conservative, Balanced, or Growth strategic BTC/ETH/SOL/USD-cash targets.
+  Fixed-lambda seven-day mean-variance optimization uses raw Day-7 predicted
+  returns and 365 aligned daily returns with Ledoit-Wolf covariance. The
+  forecast affects only the selected crypto sleeve through its held-out
+  calibration confidence; the questionnaire fixes cash and total crypto
+  exposure. There is no arbitrary percentage-point tactical tilt cap.
 - CLARABEL and SCS solve the same objective. Total solver failure is explicit;
   there is no equal-weight or minimum-variance substitution. Crypto and cash
   USD cents reconcile to 100% and the exact entered capital.
@@ -221,13 +220,12 @@ earlier 15-day questionnaire/capped workflow remains immutable legacy evidence.
   actual-versus-predicted seven-day charts, one USD capital input, an allocation
   donut/table, model error, provenance, freshness warnings, methodology, and
   responsive light/dark presentation. No trading control exists.
-- The executed v3 $1,000 result retains $898.82 (89.88164597%) as unallocated
-  USD cash and allocates $39.81 BTC, $29.36 ETH, and $32.01 SOL. The selected
-  model's calibration creates a 3.39067511% model tilt within the crypto
-  sleeve; the balance uses inverse-volatility diversification. It has
-  0.03884855% predicted return and 0.72263648% estimated seven-day volatility.
+- The executed v4 $1,000 Balanced-profile result fixes $200 cash and starts
+  from $250 BTC / $400 ETH / $150 SOL. Its 3.39067511% model confidence
+  produces $267.20 BTC / $386.44 ETH / $146.36 SOL / $200 cash, with
+  0.32404561% predicted return and 5.82373217% estimated seven-day volatility.
   Evidence is in
-  [`config/crypto-intelligence/phase2-model-informed-diversified-cash-v3-2026-11-14.json`](../config/crypto-intelligence/phase2-model-informed-diversified-cash-v3-2026-11-14.json).
+  [`config/crypto-intelligence/phase2-risk-profile-model-blend-v4-2026-11-14.json`](../config/crypto-intelligence/phase2-risk-profile-model-blend-v4-2026-11-14.json).
 
 Evidence:
 [`milestones/milestone6-crypto-intelligence-dashboard.md`](milestones/milestone6-crypto-intelligence-dashboard.md).

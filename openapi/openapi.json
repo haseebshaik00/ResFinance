@@ -1537,11 +1537,6 @@
             "title": "Crypto Allocation Weight",
             "type": "string"
           },
-          "diversification_prior": {
-            "const": "inverse-volatility",
-            "title": "Diversification Prior",
-            "type": "string"
-          },
           "estimated_portfolio_volatility_7d": {
             "title": "Estimated Portfolio Volatility 7D",
             "type": "string"
@@ -1565,6 +1560,11 @@
             "title": "Forecast Status",
             "type": "string"
           },
+          "model_blend": {
+            "const": "confidence-weighted",
+            "title": "Model Blend",
+            "type": "string"
+          },
           "model_confidence": {
             "title": "Model Confidence",
             "type": "string"
@@ -1578,7 +1578,7 @@
             "type": "string"
           },
           "policy_version": {
-            "const": "phase2-model-informed-diversified-cash-v3",
+            "const": "phase2-risk-profile-model-blend-v4",
             "title": "Policy Version",
             "type": "string"
           },
@@ -1590,6 +1590,28 @@
             "title": "Risk Aversion",
             "type": "string"
           },
+          "risk_policy_version": {
+            "const": "risk-questionnaire-v2",
+            "title": "Risk Policy Version",
+            "type": "string"
+          },
+          "risk_profile": {
+            "enum": [
+              "conservative",
+              "balanced",
+              "growth"
+            ],
+            "title": "Risk Profile",
+            "type": "string"
+          },
+          "risk_profile_event_id": {
+            "title": "Risk Profile Event Id",
+            "type": "string"
+          },
+          "risk_score": {
+            "title": "Risk Score",
+            "type": "integer"
+          },
           "solver": {
             "title": "Solver",
             "type": "string"
@@ -1597,6 +1619,23 @@
           "solver_status": {
             "title": "Solver Status",
             "type": "string"
+          },
+          "strategic_allocations": {
+            "items": {
+              "$ref": "#/components/schemas/AllocationModel"
+            },
+            "title": "Strategic Allocations",
+            "type": "array"
+          },
+          "strategic_cash_reserve": {
+            "$ref": "#/components/schemas/CashReserveModel"
+          },
+          "tactical_adjustments": {
+            "items": {
+              "$ref": "#/components/schemas/TacticalAdjustmentModel"
+            },
+            "title": "Tactical Adjustments",
+            "type": "array"
           },
           "total_allocation_weight": {
             "title": "Total Allocation Weight",
@@ -1626,8 +1665,15 @@
           "solver",
           "solver_status",
           "policy_version",
+          "risk_profile",
+          "risk_score",
+          "risk_profile_event_id",
+          "risk_policy_version",
           "model_confidence",
-          "diversification_prior",
+          "model_blend",
+          "strategic_allocations",
+          "strategic_cash_reserve",
+          "tactical_adjustments",
           "allocations",
           "cash_reserve",
           "crypto_allocation_weight",
@@ -1777,6 +1823,142 @@
           "source_event_id"
         ],
         "title": "RecurringEntryModel",
+        "type": "object"
+      },
+      "RiskAnswersModel": {
+        "additionalProperties": false,
+        "properties": {
+          "investment_horizon": {
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Investment Horizon",
+            "type": "integer"
+          },
+          "liquidity_needs": {
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Liquidity Needs",
+            "type": "integer"
+          },
+          "risk_tolerance": {
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Risk Tolerance",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "investment_horizon",
+          "risk_tolerance",
+          "liquidity_needs"
+        ],
+        "title": "RiskAnswersModel",
+        "type": "object"
+      },
+      "RiskProfileCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "answers": {
+            "$ref": "#/components/schemas/RiskAnswersModel"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "answers",
+          "expected_version"
+        ],
+        "title": "RiskProfileCommand",
+        "type": "object"
+      },
+      "RiskProfileEventModel": {
+        "properties": {
+          "deduplicated": {
+            "title": "Deduplicated",
+            "type": "boolean"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "occurred_at_utc": {
+            "format": "date-time",
+            "title": "Occurred At Utc",
+            "type": "string"
+          },
+          "projection_version": {
+            "title": "Projection Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "event_id",
+          "projection_version",
+          "occurred_at_utc",
+          "deduplicated"
+        ],
+        "title": "RiskProfileEventModel",
+        "type": "object"
+      },
+      "RiskProfileModel": {
+        "properties": {
+          "answers": {
+            "$ref": "#/components/schemas/RiskAnswersModel"
+          },
+          "policy_version": {
+            "const": "risk-questionnaire-v2",
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "recorded_at_utc": {
+            "format": "date-time",
+            "title": "Recorded At Utc",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "source_event_id": {
+            "title": "Source Event Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "answers",
+          "score",
+          "policy_version",
+          "source_event_id",
+          "recorded_at_utc"
+        ],
+        "title": "RiskProfileModel",
+        "type": "object"
+      },
+      "RiskProfileOverviewModel": {
+        "properties": {
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskProfileModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "projection_version": {
+            "title": "Projection Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "projection_version",
+          "profile"
+        ],
+        "title": "RiskProfileOverviewModel",
         "type": "object"
       },
       "SavingsModel": {
@@ -2007,6 +2189,29 @@
           "accuracy"
         ],
         "title": "SevenDayForecastModel",
+        "type": "object"
+      },
+      "TacticalAdjustmentModel": {
+        "properties": {
+          "asset": {
+            "enum": [
+              "BTC",
+              "ETH",
+              "SOL"
+            ],
+            "title": "Asset",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset",
+          "weight"
+        ],
+        "title": "TacticalAdjustmentModel",
         "type": "object"
       },
       "TransactionCommand": {
@@ -2817,6 +3022,169 @@
           }
         },
         "summary": "Recommendation",
+        "tags": [
+          "crypto"
+        ]
+      }
+    },
+    "/api/v1/crypto/risk-profile": {
+      "get": {
+        "operationId": "risk_profile_api_v1_crypto_risk_profile_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Origin"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Referer",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Referer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskProfileOverviewModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Risk Profile",
+        "tags": [
+          "crypto"
+        ]
+      },
+      "post": {
+        "operationId": "record_risk_profile_api_v1_crypto_risk_profile_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Origin"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RiskProfileCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskProfileEventModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Risk Profile",
         "tags": [
           "crypto"
         ]

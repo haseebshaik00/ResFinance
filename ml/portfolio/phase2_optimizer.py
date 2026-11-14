@@ -17,6 +17,8 @@ ASSETS: tuple[CryptoAsset, ...] = tuple(CryptoAsset)
 
 @dataclass(frozen=True)
 class Phase2OptimizationResult:
+    strategic_allocations: tuple[Phase2Allocation, ...]
+    strategic_cash_reserve: CashReserve
     allocations: tuple[Phase2Allocation, ...]
     cash_reserve: CashReserve
     predicted_return_7d: str
@@ -35,6 +37,8 @@ def optimize_seven_day_portfolio(
     risk_aversion: Decimal,
     covariance_lookback_days: int,
     model_confidence: Decimal = Decimal(0),
+    strategic_crypto_weights: dict[CryptoAsset, Decimal] | None = None,
+    cash_weight: Decimal = Decimal(0),
 ) -> Phase2OptimizationResult:
     if isinstance(capital_minor_units, bool) or capital_minor_units <= 0:
         raise ValueError("investment capital must be positive integer USD cents")
@@ -46,6 +50,13 @@ def optimize_seven_day_portfolio(
         raise ValueError("covariance lookback must be at least 30 days")
     if not model_confidence.is_finite() or not Decimal(0) <= model_confidence <= Decimal(1):
         raise ValueError("model confidence must be between zero and one")
+    if strategic_crypto_weights is None or set(strategic_crypto_weights) != set(ASSETS):
+        raise ValueError("strategic weights must contain exactly BTC, ETH, and SOL")
+    if not cash_weight.is_finite() or not Decimal(0) <= cash_weight < Decimal(1):
+        raise ValueError("strategic cash weight must be between zero and one")
+    crypto_sleeve_weight = Decimal(1) - cash_weight
+    if sum(strategic_crypto_weights.values()) != crypto_sleeve_weight:
+        raise ValueError("strategic crypto weights must reconcile with strategic cash")
 
     daily_returns = _aligned_daily_returns(price_history, covariance_lookback_days)
     covariance = LedoitWolf().fit(daily_returns).covariance_ * 7.0
@@ -58,10 +69,10 @@ def optimize_seven_day_portfolio(
     objective = cp.Maximize(
         expected @ weights - float(risk_aversion) * cp.quad_form(weights, covariance)
     )
-    # Cash is the residual USD amount. It has a zero seven-day return and no
-    # crypto covariance, so it need not be added to the covariance matrix.
-    # The inequality deliberately permits a partial crypto allocation.
-    problem = cp.Problem(objective, [weights >= 0, cp.sum(weights) <= 1])
+    # This is the model's conditional view *inside* the crypto sleeve. The
+    # questionnaire, rather than a short-horizon forecast, determines total
+    # crypto exposure and USD cash.
+    problem = cp.Problem(objective, [weights >= 0, cp.sum(weights) == 1])
     failures: list[str] = []
     solver = ""
     for candidate in ("CLARABEL", "SCS"):
@@ -77,15 +88,31 @@ def optimize_seven_day_portfolio(
     if not solver or weights.value is None:
         raise ValueError("portfolio optimization failed: " + "; ".join(failures))
 
-    optimized_crypto_weights = _validate_crypto_weights(np.asarray(weights.value, dtype=np.float64))
-    crypto_weights = _diversify_crypto_sleeve(
-        optimized_crypto_weights,
-        covariance,
-        float(model_confidence),
+    model_crypto_mix = _normalize_full_crypto_weights(np.asarray(weights.value, dtype=np.float64))
+    strategic_crypto = np.asarray(
+        [float(strategic_crypto_weights[asset]) for asset in ASSETS], dtype=np.float64
     )
-    all_weights = np.append(crypto_weights, max(0.0, 1.0 - float(crypto_weights.sum())))
+    strategic_mix = strategic_crypto / float(crypto_sleeve_weight)
+    crypto_weights = float(crypto_sleeve_weight) * (
+        (1.0 - float(model_confidence)) * strategic_mix + float(model_confidence) * model_crypto_mix
+    )
+    all_weights = np.append(crypto_weights, float(cash_weight))
+    strategic_all_weights = np.append(strategic_crypto, float(cash_weight))
     amounts = _reconcile_cents(capital_minor_units, all_weights)
-    weight_strings = _reconciled_weight_strings(all_weights)
+    strategic_amounts = _reconcile_cents(capital_minor_units, strategic_all_weights)
+    weight_strings = _reconciled_weight_strings(all_weights, fixed_cash=True)
+    strategic_weight_strings = _reconciled_weight_strings(strategic_all_weights, fixed_cash=True)
+    strategic_allocations = tuple(
+        Phase2Allocation(
+            asset=asset,
+            weight=strategic_weight_strings[index],
+            amount_minor_units=strategic_amounts[index],
+        )
+        for index, asset in enumerate(ASSETS)
+    )
+    strategic_cash_reserve = CashReserve(
+        weight=strategic_weight_strings[-1], amount_minor_units=strategic_amounts[-1]
+    )
     allocations = tuple(
         Phase2Allocation(
             asset=asset,
@@ -100,6 +127,8 @@ def optimize_seven_day_portfolio(
     if portfolio_variance < -1e-12:
         raise ValueError("optimized covariance produced negative portfolio variance")
     return Phase2OptimizationResult(
+        strategic_allocations=strategic_allocations,
+        strategic_cash_reserve=strategic_cash_reserve,
         allocations=allocations,
         cash_reserve=cash_reserve,
         predicted_return_7d=_decimal(portfolio_return, 10),
@@ -156,30 +185,12 @@ def _validate_crypto_weights(values: np.ndarray) -> np.ndarray:
     return result
 
 
-def _diversify_crypto_sleeve(
-    optimized_weights: np.ndarray,
-    covariance: np.ndarray,
-    model_confidence: float,
-) -> np.ndarray:
-    """Keep model-selected sleeve exposure, then diversify its BTC/ETH/SOL mix."""
-
-    sleeve_weight = float(optimized_weights.sum())
-    if sleeve_weight <= 0:
-        return optimized_weights
-    diagonal = np.diag(covariance)
-    if (
-        diagonal.shape != (len(ASSETS),)
-        or not np.isfinite(diagonal).all()
-        or np.any(diagonal <= 0)
-    ):
-        raise ValueError("covariance diagonal is invalid for inverse-volatility diversification")
-    model_mix = optimized_weights / sleeve_weight
-    inverse_volatility = 1.0 / np.sqrt(diagonal)
-    prior_mix = inverse_volatility / inverse_volatility.sum()
-    diversified = sleeve_weight * (
-        model_confidence * model_mix + (1.0 - model_confidence) * prior_mix
-    )
-    return _validate_crypto_weights(diversified)
+def _normalize_full_crypto_weights(values: np.ndarray) -> np.ndarray:
+    result = _validate_crypto_weights(values)
+    total = float(result.sum())
+    if total <= 0:
+        raise ValueError("solver returned an empty crypto model mix")
+    return result / total
 
 
 def _reconcile_cents(capital: int, weights: np.ndarray) -> tuple[int, ...]:
@@ -198,13 +209,21 @@ def _decimal(value: float, places: int) -> str:
     return format(Decimal(str(value)).quantize(Decimal(1).scaleb(-places)), "f")
 
 
-def _reconciled_weight_strings(weights: np.ndarray) -> tuple[str, ...]:
-    """Round crypto weights, then assign the exact residual to USD cash."""
+def _reconciled_weight_strings(
+    weights: np.ndarray, *, fixed_cash: bool = False
+) -> tuple[str, ...]:
+    """Round weights while preserving either cash or the overall total exactly."""
 
     if weights.shape != (len(ASSETS) + 1,) or not np.isfinite(weights).all():
         raise ValueError("allocation weights are invalid")
     quantum = Decimal("0.0000000001")
     rounded = [Decimal(str(float(value))).quantize(quantum) for value in weights[:-1]]
+    if fixed_cash:
+        cash = Decimal(str(float(weights[-1]))).quantize(quantum)
+        rounded[-1] = (Decimal(1) - cash - sum(rounded[:-1])).quantize(quantum)
+        if rounded[-1] < 0:
+            raise ValueError("rounded strategic crypto weights are infeasible")
+        return tuple(format(value, "f") for value in (*rounded, cash))
     final = (Decimal(1) - sum(rounded)).quantize(quantum)
     if final < 0:
         raise ValueError("rounded portfolio weights are infeasible")

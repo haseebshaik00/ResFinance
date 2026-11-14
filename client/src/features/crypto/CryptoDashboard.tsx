@@ -28,9 +28,15 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
   const [capital, setCapital] = useState("1000.00");
   const [capitalError, setCapitalError] = useState<string | null>(null);
   const snapshotId = dashboard.forecast.data?.snapshot_id;
+  const riskProfile = dashboard.riskProfile.data?.profile;
 
   useEffect(() => {
-    if (snapshotId === undefined) return;
+    if (
+      snapshotId === undefined ||
+      riskProfile === null ||
+      riskProfile === undefined
+    )
+      return;
     const timer = window.setTimeout(() => {
       try {
         const minorUnits = usdToMinorUnits(capital);
@@ -47,7 +53,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
       }
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [capital, snapshotId]);
+  }, [capital, snapshotId, riskProfile?.source_event_id]);
 
   if (dashboard.forecast.isPending) {
     return (
@@ -105,6 +111,25 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
       )}
 
       <MarketOverview forecast={forecast} />
+
+      <RiskQuestionnaire
+        profile={riskProfile}
+        projectionVersion={dashboard.riskProfile.data?.projection_version ?? 0}
+        pending={dashboard.saveRiskProfile.isPending}
+        error={
+          dashboard.riskProfile.isError || dashboard.saveRiskProfile.isError
+            ? (dashboard.riskProfile.error ?? dashboard.saveRiskProfile.error)
+                ?.message
+            : undefined
+        }
+        onSave={(answers) =>
+          dashboard.saveRiskProfile.mutate({
+            answers,
+            expected_version:
+              dashboard.riskProfile.data?.projection_version ?? 0,
+          })
+        }
+      />
 
       <section
         className="panel phase2-outlook"
@@ -172,6 +197,16 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
             Calculating the portfolio…
           </p>
         )}
+        {riskProfile === undefined && (
+          <p className="panel-note" role="status">
+            Loading saved risk profile…
+          </p>
+        )}
+        {riskProfile === null && (
+          <p className="panel-note">
+            Save your risk profile to calculate a questionnaire-led allocation.
+          </p>
+        )}
         {dashboard.recommendation.data !== undefined &&
           capitalError === null && (
             <RecommendationPanel
@@ -182,6 +217,121 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
 
       <MethodPanel forecast={forecast} />
     </div>
+  );
+}
+
+function RiskQuestionnaire({
+  profile,
+  projectionVersion,
+  pending,
+  error,
+  onSave,
+}: {
+  profile:
+    | {
+        answers: {
+          investment_horizon: number;
+          risk_tolerance: number;
+          liquidity_needs: number;
+        };
+        score: number;
+      }
+    | null
+    | undefined;
+  projectionVersion: number;
+  pending: boolean;
+  error: string | undefined;
+  onSave: (answers: {
+    investment_horizon: number;
+    risk_tolerance: number;
+    liquidity_needs: number;
+  }) => void;
+}) {
+  const [answers, setAnswers] = useState({
+    investment_horizon: 2,
+    risk_tolerance: 2,
+    liquidity_needs: 2,
+  });
+  const labels = [
+    [
+      "Investment horizon",
+      "How long can this hypothetical allocation remain invested?",
+    ],
+    [
+      "Risk tolerance",
+      "How comfortable are you with substantial price changes?",
+    ],
+    ["Liquidity needs", "How soon might you need this hypothetical capital?"],
+  ] as const;
+  const keys = [
+    "investment_horizon",
+    "risk_tolerance",
+    "liquidity_needs",
+  ] as const;
+  return (
+    <section
+      className="panel risk-questionnaire-card"
+      aria-labelledby="risk-profile-title"
+    >
+      <div className="section-heading compact">
+        <div>
+          <p className="section-kicker">Strategic allocation policy</p>
+          <h2 id="risk-profile-title">Risk Questionnaire</h2>
+        </div>
+        {profile !== null && profile !== undefined && (
+          <span className="forecast-status-pill current">
+            Score {profile.score}
+          </span>
+        )}
+      </div>
+      <p className="panel-note">
+        Your answers set the BTC, ETH, SOL, and cash targets. The forecast can
+        refine only the crypto sleeve.
+      </p>
+      <div className="risk-form">
+        {keys.map((key, index) => (
+          <label className="form-field" key={key}>
+            <span>{labels[index]![0]}</span>
+            <small>{labels[index]![1]}</small>
+            <select
+              aria-label={labels[index]![0]}
+              value={answers[key]}
+              onChange={(event) =>
+                setAnswers((current) => ({
+                  ...current,
+                  [key]: Number(event.target.value),
+                }))
+              }
+            >
+              <option value={1}>1 — Low</option>
+              <option value={2}>2 — Medium</option>
+              <option value={3}>3 — High</option>
+            </select>
+          </label>
+        ))}
+        <button
+          className="primary-button"
+          disabled={pending}
+          onClick={() => onSave(answers)}
+          type="button"
+        >
+          {pending
+            ? "Saving…"
+            : profile === null
+              ? "Save risk profile"
+              : "Update risk profile"}
+        </button>
+      </div>
+      {error !== undefined && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+      <p className="panel-note">
+        Profile version {projectionVersion}; responses are wallet-scoped and
+        informational only.
+      </p>
+    </section>
   );
 }
 
@@ -256,6 +406,12 @@ function RecommendationPanel({
   const ethEnd = btcEnd + (percentages[1] ?? 0);
   const solEnd = ethEnd + (percentages[2] ?? 0);
   const gradient = `conic-gradient(#6555a5 0 ${btcEnd}%, #2c9c91 ${btcEnd}% ${ethEnd}%, #d49735 ${ethEnd}% ${solEnd}%, #607184 ${solEnd}% 100%)`;
+  const adjustments = new Map(
+    recommendation.tactical_adjustments.map((item) => [
+      item.asset,
+      item.weight,
+    ]),
+  );
   return (
     <div className="recommendation-layout">
       <div className="allocation-donut-wrap">
@@ -287,11 +443,17 @@ function RecommendationPanel({
         </span>
       </div>
       <div className="allocation-table-wrap">
+        <p className="panel-note">
+          {recommendation.risk_profile} profile · score{" "}
+          {recommendation.risk_score} · cash fixed at{" "}
+          {formatAllocationWeight(recommendation.strategic_cash_reserve.weight)}
+        </p>
         <table className="allocation-table">
           <thead>
             <tr>
               <th>Asset</th>
               <th>Allocation</th>
+              <th className="tactical-adjustment">Model adjustment</th>
               <th>Investment</th>
             </tr>
           </thead>
@@ -303,6 +465,11 @@ function RecommendationPanel({
                   {item.asset}
                 </th>
                 <td>{formatAllocationWeight(item.weight)}</td>
+                <td className="tactical-adjustment">
+                  {formatForecastReturn(
+                    Number(adjustments.get(item.asset) ?? 0),
+                  )}
+                </td>
                 <td>{formatUsd(item.amount.minor_units)}</td>
               </tr>
             ))}
@@ -314,6 +481,7 @@ function RecommendationPanel({
               <td>
                 {formatAllocationWeight(recommendation.cash_reserve.weight)}
               </td>
+              <td className="tactical-adjustment">Fixed</td>
               <td>
                 {formatUsd(recommendation.cash_reserve.amount.minor_units)}
               </td>
@@ -328,6 +496,7 @@ function RecommendationPanel({
                 )}
                 %
               </td>
+              <td className="tactical-adjustment">—</td>
               <td>{formatUsd(recommendation.capital.minor_units)}</td>
             </tr>
           </tfoot>
@@ -351,9 +520,9 @@ function RecommendationPanel({
           </span>
         </div>
         <p className="panel-note">
-          Model tilt:{" "}
+          Model confidence:{" "}
           {(Number(recommendation.model_confidence) * 100).toFixed(2)}%;
-          balance: inverse-volatility diversification across BTC, ETH, and SOL.
+          strategic targets are blended with the forecast/covariance model mix.
         </p>
       </div>
       {recommendation.warnings.map((warning) => (
@@ -391,9 +560,9 @@ function MethodPanel({ forecast }: { forecast: SevenDayForecast }) {
         <li>
           <strong>Allocate</strong>
           <span>
-            The forecast sets crypto exposure and a confidence-weighted model
-            tilt; the remaining sleeve follows inverse-volatility BTC/ETH/SOL
-            weights. Unallocated capital remains in USD cash.
+            The questionnaire fixes crypto exposure and USD cash. The forecast
+            applies a confidence-weighted BTC/ETH/SOL model blend inside that
+            selected crypto sleeve.
           </span>
         </li>
       </ol>

@@ -106,6 +106,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crypto/risk-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Risk Profile */
+        get: operations["risk_profile_api_v1_crypto_risk_profile_get"];
+        put?: never;
+        /** Record Risk Profile */
+        post: operations["record_risk_profile_api_v1_crypto_risk_profile_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/finance/budgets": {
         parameters: {
             query?: never;
@@ -982,11 +1000,6 @@ export interface components {
             covariance_repaired: boolean;
             /** Crypto Allocation Weight */
             crypto_allocation_weight: string;
-            /**
-             * Diversification Prior
-             * @constant
-             */
-            diversification_prior: "inverse-volatility";
             /** Estimated Portfolio Volatility 7D */
             estimated_portfolio_volatility_7d: string;
             /** Expected Returns 7D */
@@ -998,6 +1011,11 @@ export interface components {
              * @enum {string}
              */
             forecast_status: "current" | "stale";
+            /**
+             * Model Blend
+             * @constant
+             */
+            model_blend: "confidence-weighted";
             /** Model Confidence */
             model_confidence: string;
             /** Model Key */
@@ -1008,15 +1026,34 @@ export interface components {
              * Policy Version
              * @constant
              */
-            policy_version: "phase2-model-informed-diversified-cash-v3";
+            policy_version: "phase2-risk-profile-model-blend-v4";
             /** Predicted Portfolio Return 7D */
             predicted_portfolio_return_7d: string;
             /** Risk Aversion */
             risk_aversion: string;
+            /**
+             * Risk Policy Version
+             * @constant
+             */
+            risk_policy_version: "risk-questionnaire-v2";
+            /**
+             * Risk Profile
+             * @enum {string}
+             */
+            risk_profile: "conservative" | "balanced" | "growth";
+            /** Risk Profile Event Id */
+            risk_profile_event_id: string;
+            /** Risk Score */
+            risk_score: number;
             /** Solver */
             solver: string;
             /** Solver Status */
             solver_status: string;
+            /** Strategic Allocations */
+            strategic_allocations: components["schemas"]["AllocationModel"][];
+            strategic_cash_reserve: components["schemas"]["CashReserveModel"];
+            /** Tactical Adjustments */
+            tactical_adjustments: components["schemas"]["TacticalAdjustmentModel"][];
             /** Total Allocation Weight */
             total_allocation_weight: string;
             /** Warnings */
@@ -1083,6 +1120,59 @@ export interface components {
              * Format: date
              */
             starts_on: string;
+        };
+        /** RiskAnswersModel */
+        RiskAnswersModel: {
+            /** Investment Horizon */
+            investment_horizon: number;
+            /** Liquidity Needs */
+            liquidity_needs: number;
+            /** Risk Tolerance */
+            risk_tolerance: number;
+        };
+        /** RiskProfileCommand */
+        RiskProfileCommand: {
+            answers: components["schemas"]["RiskAnswersModel"];
+            /** Expected Version */
+            expected_version: number;
+        };
+        /** RiskProfileEventModel */
+        RiskProfileEventModel: {
+            /** Deduplicated */
+            deduplicated: boolean;
+            /** Event Id */
+            event_id: string;
+            /**
+             * Occurred At Utc
+             * Format: date-time
+             */
+            occurred_at_utc: string;
+            /** Projection Version */
+            projection_version: number;
+        };
+        /** RiskProfileModel */
+        RiskProfileModel: {
+            answers: components["schemas"]["RiskAnswersModel"];
+            /**
+             * Policy Version
+             * @constant
+             */
+            policy_version: "risk-questionnaire-v2";
+            /**
+             * Recorded At Utc
+             * Format: date-time
+             */
+            recorded_at_utc: string;
+            /** Score */
+            score: number;
+            /** Source Event Id */
+            source_event_id: string;
+        };
+        /** RiskProfileOverviewModel */
+        RiskProfileOverviewModel: {
+            profile: components["schemas"]["RiskProfileModel"] | null;
+            /** Projection Version */
+            projection_version: number;
         };
         /** SavingsModel */
         SavingsModel: {
@@ -1182,6 +1272,16 @@ export interface components {
              * @enum {string}
              */
             status: "current" | "stale";
+        };
+        /** TacticalAdjustmentModel */
+        TacticalAdjustmentModel: {
+            /**
+             * Asset
+             * @enum {string}
+             */
+            asset: "BTC" | "ETH" | "SOL";
+            /** Weight */
+            weight: string;
         };
         /** TransactionCommand */
         TransactionCommand: {
@@ -1550,6 +1650,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecommendationModel"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    risk_profile_api_v1_crypto_risk_profile_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                Authorization?: string | null;
+                Origin?: string | null;
+                Referer?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiskProfileOverviewModel"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_risk_profile_api_v1_crypto_risk_profile_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+                Authorization?: string | null;
+                Origin?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RiskProfileCommand"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RiskProfileEventModel"];
                 };
             };
             /** @description Validation Error */

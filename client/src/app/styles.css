@@ -5552,6 +5552,10 @@ td.expense {
   .allocation-table td {
     padding-inline: 0.25rem;
   }
+
+  .allocation-table .tactical-adjustment {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

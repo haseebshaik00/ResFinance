@@ -52,6 +52,10 @@ export type RecommendationCommand =
   components["schemas"]["RecommendationCommand"];
 export type PortfolioRecommendation =
   components["schemas"]["RecommendationModel"];
+export type CryptoRiskProfileOverview =
+  components["schemas"]["RiskProfileOverviewModel"];
+export type CryptoRiskProfileCommand =
+  components["schemas"]["RiskProfileCommand"];
 export type InsightsOverview = components["schemas"]["InsightsOverviewModel"];
 export type InsightResponse = components["schemas"]["InsightResponseModel"];
 export type InsightQuery = components["schemas"]["InsightQueryModel"];
@@ -125,6 +129,38 @@ export async function getCryptoForecast(
   };
   if (signal !== undefined) request.signal = signal;
   return requestJson<SevenDayForecast>(`/api/v1/crypto/forecast`, request);
+}
+
+export async function getCryptoRiskProfile(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CryptoRiskProfileOverview> {
+  const request: RequestInit = {
+    headers: authorizedHeaders(accessToken),
+    credentials: "include",
+  };
+  if (signal !== undefined) request.signal = signal;
+  return requestJson<CryptoRiskProfileOverview>(
+    "/api/v1/crypto/risk-profile",
+    request,
+  );
+}
+
+export async function saveCryptoRiskProfile(
+  accessToken: string,
+  idempotencyKey: string,
+  command: CryptoRiskProfileCommand,
+): Promise<void> {
+  await requestJson("/api/v1/crypto/risk-profile", {
+    method: "POST",
+    headers: {
+      ...authorizedHeaders(accessToken),
+      "Content-Type": "application/json",
+      "Idempotency-Key": idempotencyKey,
+    },
+    credentials: "include",
+    body: JSON.stringify(command),
+  });
 }
 
 export async function getInsightsOverview(

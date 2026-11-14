@@ -1,12 +1,16 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   getCryptoForecast,
+  getCryptoRiskProfile,
   getPortfolioRecommendation,
+  saveCryptoRiskProfile,
+  type CryptoRiskProfileCommand,
   type RecommendationCommand,
 } from "../../lib/api/client";
 
 export function useCryptoDashboard(accessToken: string) {
+  const queryClient = useQueryClient();
   const forecast = useQuery({
     queryKey: ["crypto-forecast", accessToken] as const,
     queryFn: ({ signal }) => getCryptoForecast(accessToken, signal),
@@ -15,5 +19,18 @@ export function useCryptoDashboard(accessToken: string) {
     mutationFn: (body: RecommendationCommand) =>
       getPortfolioRecommendation(accessToken, body),
   });
-  return { forecast, recommendation };
+  const riskProfile = useQuery({
+    queryKey: ["crypto-risk-profile", accessToken] as const,
+    queryFn: ({ signal }) => getCryptoRiskProfile(accessToken, signal),
+  });
+  const saveRiskProfile = useMutation({
+    mutationFn: (body: CryptoRiskProfileCommand) =>
+      saveCryptoRiskProfile(accessToken, crypto.randomUUID(), body),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["crypto-risk-profile", accessToken],
+      });
+    },
+  });
+  return { forecast, recommendation, riskProfile, saveRiskProfile };
 }
