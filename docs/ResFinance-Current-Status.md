@@ -1,6 +1,6 @@
 # ResFinance Current Status
 
-Last updated: 2026-11-01
+Last updated: 2026-11-15
 
 ResFinance uses the eight-milestone convention in
 [`milestones/milestones.md`](milestones/milestones.md). Milestones 1–7 are complete for the
@@ -221,9 +221,12 @@ earlier 15-day questionnaire/capped workflow remains immutable legacy evidence.
   there is no equal-weight or minimum-variance substitution. Crypto and cash
   USD cents reconcile to 100% and the exact entered capital.
 - Replaced the active Crypto Intelligence page with BTC/ETH/SOL overview cards,
-  actual-versus-predicted seven-day charts, one USD capital input, an allocation
-  donut/table, model error, provenance, freshness warnings, methodology, and
-  responsive light/dark presentation. No trading control exists.
+  a seven-day P10/P50/P90 chart and P10–P90 uncertainty band derived from the
+  selected model's immutable held-out residuals, one USD capital input, an
+  allocation donut/table, model error, provenance, freshness warnings,
+  methodology, and responsive light/dark presentation. The uncertainty paths
+  are visualization-only; the optimizer continues to use its existing point
+  forecast inputs. No trading control exists.
 - The executed v4 $1,000 Balanced-profile result fixes $200 cash and starts
   from $250 BTC / $400 ETH / $150 SOL. Its 3.39067511% model confidence
   produces $267.20 BTC / $386.44 ETH / $146.36 SOL / $200 cash, with

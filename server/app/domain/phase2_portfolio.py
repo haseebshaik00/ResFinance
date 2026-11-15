@@ -20,6 +20,9 @@ class SevenDayAssetForecast:
     predicted_prices: tuple[str, ...]
     predicted_daily_returns: tuple[str, ...]
     predicted_return_7d: str
+    p10_prices: tuple[str, ...]
+    p50_prices: tuple[str, ...]
+    p90_prices: tuple[str, ...]
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "current_price", _positive_decimal(self.current_price))
@@ -27,6 +30,11 @@ class SevenDayAssetForecast:
             raise ValueError("forecast must contain exactly seven predicted prices")
         if len(self.predicted_daily_returns) != FORECAST_HORIZON_DAYS:
             raise ValueError("forecast must contain exactly seven daily returns")
+        if any(
+            len(values) != FORECAST_HORIZON_DAYS
+            for values in (self.p10_prices, self.p50_prices, self.p90_prices)
+        ):
+            raise ValueError("forecast quantiles must contain exactly seven prices")
         object.__setattr__(
             self,
             "predicted_prices",
@@ -38,6 +46,17 @@ class SevenDayAssetForecast:
             tuple(canonical_decimal(value) for value in self.predicted_daily_returns),
         )
         object.__setattr__(self, "predicted_return_7d", canonical_decimal(self.predicted_return_7d))
+        for name in ("p10_prices", "p50_prices", "p90_prices"):
+            object.__setattr__(
+                self,
+                name,
+                tuple(_positive_decimal(value) for value in getattr(self, name)),
+            )
+        if any(
+            not Decimal(p10) <= Decimal(p50) <= Decimal(p90)
+            for p10, p50, p90 in zip(self.p10_prices, self.p50_prices, self.p90_prices, strict=True)
+        ):
+            raise ValueError("forecast price quantiles must be ordered")
         calculated = Decimal(self.predicted_prices[-1]) / Decimal(self.current_price) - Decimal(1)
         if abs(calculated - Decimal(self.predicted_return_7d)) > Decimal("0.00000002"):
             raise ValueError("seven-day return is inconsistent with the Day-7 price")
@@ -122,6 +141,9 @@ class SevenDayForecast:
                     "predicted_prices": item.predicted_prices,
                     "predicted_daily_returns": item.predicted_daily_returns,
                     "predicted_return_7d": item.predicted_return_7d,
+                    "p10_prices": item.p10_prices,
+                    "p50_prices": item.p50_prices,
+                    "p90_prices": item.p90_prices,
                 }
                 for item in self.assets
             ],

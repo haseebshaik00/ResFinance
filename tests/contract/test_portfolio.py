@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
@@ -233,9 +234,7 @@ def test_solver_failures_are_explicit_and_never_substitute_another_portfolio(
 
 def test_service_warns_for_stale_forecasts_and_retains_cash_for_negative_forecasts() -> None:
     service = Phase2PortfolioService(ForecastFixture(_bundle(status="stale", negative=True)))
-    recommendation = service.recommend(
-        capital_minor_units=100_000, risk_profile=_risk_profile()
-    )
+    recommendation = service.recommend(capital_minor_units=100_000, risk_profile=_risk_profile())
     assert recommendation.forecast_status == "stale"
     assert any("risk profile fixes cash" in warning.lower() for warning in recommendation.warnings)
     assert any("Forecast window ended" in warning for warning in recommendation.warnings)
@@ -245,6 +244,42 @@ def test_service_warns_for_stale_forecasts_and_retains_cash_for_negative_forecas
         == 100_000
     )
     assert recommendation.risk_aversion == "5.0"
+
+
+def test_visual_quantile_paths_do_not_change_portfolio_calculations() -> None:
+    bundle = _bundle()
+    visual_only_assets = tuple(
+        replace(
+            asset,
+            p10_prices=tuple(
+                str(Decimal(value) * Decimal("0.1")) for value in asset.predicted_prices
+            ),
+            p50_prices=tuple(
+                str(Decimal(value) * Decimal("0.5")) for value in asset.predicted_prices
+            ),
+            p90_prices=tuple(
+                str(Decimal(value) * Decimal("10")) for value in asset.predicted_prices
+            ),
+        )
+        for asset in bundle.forecast.assets
+    )
+    visual_only_bundle = replace(
+        bundle,
+        forecast=replace(bundle.forecast, assets=visual_only_assets),
+    )
+
+    expected = Phase2PortfolioService(ForecastFixture(bundle)).recommend(
+        capital_minor_units=100_000,
+        risk_profile=_risk_profile(),
+    )
+    actual = Phase2PortfolioService(ForecastFixture(visual_only_bundle)).recommend(
+        capital_minor_units=100_000,
+        risk_profile=_risk_profile(),
+    )
+
+    assert actual.allocations == expected.allocations
+    assert actual.cash_reserve == expected.cash_reserve
+    assert actual.predicted_portfolio_return_7d == expected.predicted_portfolio_return_7d
 
 
 def test_unavailable_forecast_and_invalid_capital_fail_explicitly() -> None:
@@ -280,6 +315,19 @@ def test_authenticated_phase2_api_returns_one_snapshot_and_backend_allocations()
     assert forecast.status_code == 200
     assert forecast.json()["model_key"] == "original-mspciformer"
     assert len(forecast.json()["forecast_dates_utc"]) == 7
+    btc_forecast = forecast.json()["assets"][0]
+    assert len(btc_forecast["p10_prices"]) == 7
+    assert len(btc_forecast["p50_prices"]) == 7
+    assert len(btc_forecast["p90_prices"]) == 7
+    assert all(
+        Decimal(p10) <= Decimal(p50) <= Decimal(p90)
+        for p10, p50, p90 in zip(
+            btc_forecast["p10_prices"],
+            btc_forecast["p50_prices"],
+            btc_forecast["p90_prices"],
+            strict=True,
+        )
+    )
     response = client.post(
         "/api/v1/crypto/recommendations",
         headers=headers,
@@ -348,6 +396,9 @@ def _bundle(*, status: str = "current", negative: bool = False) -> Phase1Forecas
                 predicted_prices=tuple(str(value) for value in path),
                 predicted_daily_returns=tuple(daily),
                 predicted_return_7d=returns[index],
+                p10_prices=tuple(str(value * Decimal("0.95")) for value in path),
+                p50_prices=tuple(str(value) for value in path),
+                p90_prices=tuple(str(value * Decimal("1.05")) for value in path),
             )
         )
     reasons = ("Forecast window ended 2026-11-10.",) if status == "stale" else ()

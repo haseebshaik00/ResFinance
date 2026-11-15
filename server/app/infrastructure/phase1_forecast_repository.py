@@ -58,6 +58,7 @@ class Phase1ForecastRepository:
             for name in (
                 "latest-forecast.json",
                 "metrics.json",
+                "predictions.json",
                 "deployment-checkpoint.json",
                 "deployment-preprocessing.json",
                 "experiment-config.json",
@@ -82,6 +83,7 @@ class Phase1ForecastRepository:
             stored,
             manifest=manifest,
             metrics=_object(artifacts["metrics.json"], "metrics"),
+            predictions=_object(artifacts["predictions.json"], "predictions"),
             now=now,
             refreshed=refreshed,
         )
@@ -111,10 +113,8 @@ class Phase1ForecastRepository:
             if (
                 value.get("schema_version") == 2
                 and value.get("purpose") == "phase-1-market-only-mspciformer-vasa-research"
-                and value.get("active_models")
-                == ["original-mspciformer", "vasa-mspciformer"]
-                and value.get("comparison_protocol")
-                == "original-mspciformer-versus-vasa-only"
+                and value.get("active_models") == ["original-mspciformer", "vasa-mspciformer"]
+                and value.get("comparison_protocol") == "original-mspciformer-versus-vasa-only"
             ):
                 candidates.append(cast(dict[str, Any], value))
         if not candidates:
@@ -189,6 +189,7 @@ class Phase1ForecastRepository:
         *,
         manifest: dict[str, Any],
         metrics: dict[str, Any],
+        predictions: dict[str, Any],
         now: datetime,
         refreshed: bool,
     ) -> SevenDayForecast:
@@ -215,9 +216,11 @@ class Phase1ForecastRepository:
         if dates and dates[-1] < now.date():
             reasons.append(f"Forecast window ended {dates[-1].isoformat()}.")
         quality = value.get("quality_checks")
-        if not isinstance(quality, dict) or quality.get("finite") is not True or quality.get(
-            "positive_prices"
-        ) is not True:
+        if (
+            not isinstance(quality, dict)
+            or quality.get("finite") is not True
+            or quality.get("positive_prices") is not True
+        ):
             raise ValueError("Phase 1 forecast quality checks did not pass")
         holdout = metrics.get("holdout")
         if not isinstance(holdout, dict):
@@ -232,7 +235,13 @@ class Phase1ForecastRepository:
             market_data_cutoff_utc=cutoff,
             forecast_dates_utc=dates,
             assets=tuple(
-                _asset_forecast(asset.value, assets_value.get(asset.value)) for asset in ASSETS
+                _asset_forecast(
+                    asset.value,
+                    assets_value.get(asset.value),
+                    predictions=predictions,
+                    model_key=selected,
+                )
+                for asset in ASSETS
             ),
             status="stale" if reasons else "current",
             stale_reasons=tuple(reasons),
@@ -245,23 +254,125 @@ class Phase1ForecastRepository:
         )
 
 
-def _asset_forecast(asset: str, raw: object) -> SevenDayAssetForecast:
+def _asset_forecast(
+    asset: str,
+    raw: object,
+    *,
+    predictions: dict[str, Any],
+    model_key: str,
+) -> SevenDayAssetForecast:
     if not isinstance(raw, dict):
         raise ValueError(f"Phase 1 forecast is missing {asset}")
+    predicted_prices = tuple(str(value) for value in _list(raw, "predicted_prices"))
+    p10_prices, p50_prices, p90_prices = _empirical_price_quantiles(
+        asset=asset,
+        predicted_prices=predicted_prices,
+        predictions=predictions,
+        model_key=model_key,
+    )
     return SevenDayAssetForecast(
         asset=next(item for item in ASSETS if item.value == asset),
         current_price=str(raw["current_price"]),
-        predicted_prices=tuple(str(value) for value in _list(raw, "predicted_prices")),
+        predicted_prices=predicted_prices,
         predicted_daily_returns=tuple(
             str(value) for value in _list(raw, "predicted_daily_returns")
         ),
         predicted_return_7d=str(raw["predicted_return_7d"]),
+        p10_prices=p10_prices,
+        p50_prices=p50_prices,
+        p90_prices=p90_prices,
     )
 
 
+def _empirical_price_quantiles(
+    *,
+    asset: str,
+    predicted_prices: tuple[str, ...],
+    predictions: dict[str, Any],
+    model_key: str,
+) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+    """Apply immutable holdout residual quantiles to the current point path.
+
+    The active model has a point-price head. These visualization-only paths
+    form an empirical predictive distribution from the selected model's
+    untouched holdout residuals; portfolio return and covariance inputs retain
+    the original point forecast.
+    """
+
+    if predictions.get("assets") != [item.value for item in ASSETS]:
+        raise ValueError("Phase 1 prediction artifact assets are invalid")
+    rows = _list(predictions, "rows")
+    asset_index = next(index for index, item in enumerate(ASSETS) if item.value == asset)
+    residuals: list[list[Decimal]] = [[] for _ in predicted_prices]
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("Phase 1 prediction row is invalid")
+        actual = _matrix(row.get("actual_prices"), "actual_prices")
+        predicted_by_model = row.get("predicted_prices")
+        if not isinstance(predicted_by_model, dict):
+            raise ValueError("Phase 1 prediction model paths are invalid")
+        predicted = _matrix(predicted_by_model.get(model_key), f"{model_key} predicted_prices")
+        if len(actual) != len(predicted_prices) or len(predicted) != len(predicted_prices):
+            raise ValueError("Phase 1 prediction horizon is invalid")
+        for day in range(len(predicted_prices)):
+            actual_price = _positive_decimal(actual[day][asset_index], "actual price")
+            predicted_price = _positive_decimal(predicted[day][asset_index], "predicted price")
+            residuals[day].append(actual_price / predicted_price - Decimal(1))
+    if any(not values for values in residuals):
+        raise ValueError("Phase 1 prediction artifact has no residuals")
+
+    p10: list[str] = []
+    p50: list[str] = []
+    p90: list[str] = []
+    for point_price, day_residuals in zip(predicted_prices, residuals, strict=True):
+        point = _positive_decimal(point_price, "latest predicted price")
+        p10.append(_decimal_string(point * (Decimal(1) + _quantile(day_residuals, 10))))
+        p50.append(_decimal_string(point * (Decimal(1) + _quantile(day_residuals, 50))))
+        p90.append(_decimal_string(point * (Decimal(1) + _quantile(day_residuals, 90))))
+    return tuple(p10), tuple(p50), tuple(p90)
+
+
+def _matrix(value: object, label: str) -> list[list[object]]:
+    if not isinstance(value, list) or len(value) != 7:
+        raise ValueError(f"Phase 1 {label} is invalid")
+    result: list[list[object]] = []
+    for row in value:
+        if not isinstance(row, list) or len(row) != len(ASSETS):
+            raise ValueError(f"Phase 1 {label} is invalid")
+        result.append(row)
+    return result
+
+
+def _positive_decimal(value: object, label: str) -> Decimal:
+    try:
+        parsed = Decimal(str(value))
+    except Exception as exc:
+        raise ValueError(f"Phase 1 {label} is invalid") from exc
+    if not parsed.is_finite() or parsed <= 0:
+        raise ValueError(f"Phase 1 {label} is invalid")
+    return parsed
+
+
+def _quantile(values: list[Decimal], percentile: int) -> Decimal:
+    ordered = sorted(values)
+    numerator = (len(ordered) - 1) * percentile
+    lower = numerator // 100
+    remainder = numerator % 100
+    upper = min(lower + 1, len(ordered) - 1)
+    return ordered[lower] + (ordered[upper] - ordered[lower]) * Decimal(remainder) / Decimal(100)
+
+
+def _decimal_string(value: Decimal) -> str:
+    if not value.is_finite() or value <= 0:
+        raise ValueError("Phase 1 empirical quantile price is invalid")
+    return format(value, "f")
+
+
 def _accuracy(name: str, raw: object) -> ForecastAccuracy:
-    if not isinstance(raw, dict) or not isinstance(raw.get("aggregate"), dict) or not isinstance(
-        raw.get("by_asset"), dict
+    if (
+        not isinstance(raw, dict)
+        or not isinstance(raw.get("aggregate"), dict)
+        or not isinstance(raw.get("by_asset"), dict)
     ):
         raise ValueError(f"Phase 1 holdout metrics are invalid for {name}")
     aggregate = cast(dict[str, object], raw["aggregate"])

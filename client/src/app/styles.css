@@ -2389,6 +2389,28 @@ code {
   stroke-width: 4;
 }
 
+.forecast-uncertainty-band {
+  fill: color-mix(in srgb, var(--eth-color) 16%, transparent);
+  stroke: none;
+}
+
+.forecast-quantile-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.forecast-quantile-line.p10 {
+  stroke: #d16d7f;
+  stroke-dasharray: 5 5;
+}
+
+.forecast-quantile-line.p90 {
+  stroke: #d49735;
+  stroke-dasharray: 5 5;
+}
+
 .forecast-point {
   fill: var(--eth-color);
   stroke: var(--surface);
@@ -2428,6 +2450,12 @@ code {
     var(--eth-color) 0 6px,
     transparent 6px 10px
   );
+}
+
+.chart-legend i.uncertainty {
+  background: color-mix(in srgb, var(--eth-color) 25%, transparent);
+  border: 1px solid var(--eth-color);
+  height: 0.65rem;
 }
 
 .investment-capital-field {

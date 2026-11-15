@@ -19,12 +19,17 @@ export function CryptoChart({
 
   const cutoff = forecast.market_data_cutoff_utc.slice(0, 10);
   const dates = [cutoff, ...forecast.forecast_dates_utc];
-  const prices = [
+  const p10Prices = selected.p10_prices.map(Number);
+  const p50Prices = selected.p50_prices.map(Number);
+  const p90Prices = selected.p90_prices.map(Number);
+  const chartPrices = [
     Number(selected.current_price),
-    ...selected.predicted_prices.map(Number),
+    ...p10Prices,
+    ...p50Prices,
+    ...p90Prices,
   ];
-  const minimum = Math.min(...prices);
-  const maximum = Math.max(...prices);
+  const minimum = Math.min(...chartPrices);
+  const maximum = Math.max(...chartPrices);
   const padding = Math.max((maximum - minimum) * 0.18, maximum * 0.002);
   const low = minimum - padding;
   const high = maximum + padding;
@@ -34,13 +39,26 @@ export function CryptoChart({
     x: MARGIN.left + (index / 7) * plotWidth,
     y: MARGIN.top + ((high - value) / (high - low)) * plotHeight,
   });
-  const points = prices.map(point);
-  const forecastPath = points
+  const p10Points = p10Prices.map((value, index) => point(value, index + 1));
+  const p50Points = p50Prices.map((value, index) => point(value, index + 1));
+  const p90Points = p90Prices.map((value, index) => point(value, index + 1));
+  const linePath = (points: { x: number; y: number }[]) =>
+    points
+      .map(
+        ({ x, y }, index) =>
+          `${index === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`,
+      )
+      .join(" ");
+  const uncertaintyBandPath = [...p90Points, ...[...p10Points].reverse()]
     .map(
       ({ x, y }, index) =>
         `${index === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`,
     )
     .join(" ");
+  const displayPoints = [
+    point(Number(selected.current_price), 0),
+    ...p50Points,
+  ];
   const grid = Array.from({ length: 5 }, (_, index) => {
     const ratio = index / 4;
     return {
@@ -54,7 +72,7 @@ export function CryptoChart({
       <div
         className="phase2-chart"
         role="img"
-        aria-label={`${asset} observed price on ${formatForecastDate(cutoff)} and seven predicted daily USD prices through ${formatForecastDate(dates.at(-1) ?? cutoff)}`}
+        aria-label={`${asset} observed price on ${formatForecastDate(cutoff)} and empirical P10, P50, and P90 daily USD reference paths through ${formatForecastDate(dates.at(-1) ?? cutoff)}. The reference paths are visualization-only and do not affect portfolio calculations.`}
       >
         <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} aria-hidden="true">
           {grid.map((line) => (
@@ -75,8 +93,20 @@ export function CryptoChart({
               </text>
             </g>
           ))}
-          <path className="forecast-line" d={forecastPath} />
-          {points.map(({ x, y }, index) => (
+          <path
+            className="forecast-uncertainty-band"
+            d={`${uncertaintyBandPath} Z`}
+          />
+          <path
+            className="forecast-quantile-line p10"
+            d={linePath(p10Points)}
+          />
+          <path
+            className="forecast-quantile-line p90"
+            d={linePath(p90Points)}
+          />
+          <path className="forecast-line" d={linePath(p50Points)} />
+          {displayPoints.map(({ x, y }, index) => (
             <g key={dates[index]}>
               <circle
                 className={
@@ -87,7 +117,7 @@ export function CryptoChart({
                 r={index === 0 ? 6 : 4}
               >
                 <title>
-                  {`${formatForecastDate(dates[index] ?? cutoff)} · ${index === 0 ? "Observed" : `Predicted Day ${index}`} · ${formatForecastPrice(prices[index] ?? 0)}`}
+                  {`${formatForecastDate(dates[index] ?? cutoff)} · ${index === 0 ? "Observed" : `P50 Day ${index}`} · ${formatForecastPrice(index === 0 ? Number(selected.current_price) : (p50Prices[index - 1] ?? 0))}`}
                 </title>
               </circle>
               <text className="forecast-x-label" x={x} y={HEIGHT - 20}>
@@ -104,7 +134,11 @@ export function CryptoChart({
         </span>
         <span>
           <i className="predicted" />
-          MSPCIFormer prediction
+          P50 median reference
+        </span>
+        <span title="P10–P90 is an empirical, held-out residual reference band. It is not a price guarantee and is not used by the portfolio optimizer.">
+          <i className="uncertainty" />
+          P10–P90 reference band
         </span>
       </div>
     </div>

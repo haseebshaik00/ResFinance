@@ -464,6 +464,12 @@ export interface components {
             asset: "BTC" | "ETH" | "SOL";
             /** Current Price */
             current_price: string;
+            /** P10 Prices */
+            p10_prices: string[];
+            /** P50 Prices */
+            p50_prices: string[];
+            /** P90 Prices */
+            p90_prices: string[];
             /** Predicted Daily Returns */
             predicted_daily_returns: string[];
             /** Predicted Prices */

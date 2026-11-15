@@ -25,6 +25,9 @@ const assets = [
       "0.001",
     ],
     predicted_return_7d: "0.0102941176",
+    p10_prices: ["67600", "67650", "67700", "67750", "67800", "67850", "67900"],
+    p50_prices: ["68100", "68200", "68300", "68400", "68500", "68600", "68700"],
+    p90_prices: ["68600", "68750", "68900", "69050", "69200", "69350", "69500"],
   },
   {
     asset: "ETH",
@@ -40,6 +43,9 @@ const assets = [
       "0.004",
     ],
     predicted_return_7d: "0.02",
+    p10_prices: ["1885", "1888", "1891", "1894", "1897", "1900", "1905"],
+    p50_prices: ["1905", "1910", "1915", "1920", "1925", "1930", "1938"],
+    p90_prices: ["1925", "1932", "1939", "1946", "1953", "1960", "1971"],
   },
   {
     asset: "SOL",
@@ -55,6 +61,9 @@ const assets = [
       "0.004",
     ],
     predicted_return_7d: "0.02",
+    p10_prices: ["77.4", "77.6", "77.8", "78", "78.2", "78.4", "78.7"],
+    p50_prices: ["78.2", "78.4", "78.6", "78.8", "79", "79.2", "79.56"],
+    p90_prices: ["79", "79.2", "79.4", "79.6", "79.8", "80", "80.42"],
   },
 ];
 
@@ -249,8 +258,11 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(page.getByText("$68,700.00", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("img", {
-      name: /BTC observed price.*seven predicted daily USD prices/,
+      name: /BTC observed price.*empirical P10, P50, and P90 daily USD reference paths/,
     }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("P10–P90 reference band", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Portfolio Allocation" }),
@@ -292,6 +304,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator(".forecast-line")).toBeVisible();
+  await expect(page.locator(".forecast-uncertainty-band")).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth > innerWidth,

@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 
 from ml.evaluation.phase1 import TrainingConfig
@@ -77,6 +78,19 @@ def test_phase1_v2_artifacts_feed_the_seven_day_optimizer_without_retraining() -
     assert bundle.forecast.status == "current"
     assert not bundle.forecast.refreshed_from_checkpoint
     assert len(bundle.price_history) == 430 * 3
+    for asset in bundle.forecast.assets:
+        assert len(asset.p10_prices) == 7
+        assert len(asset.p50_prices) == 7
+        assert len(asset.p90_prices) == 7
+        assert all(
+            Decimal(p10) <= Decimal(p50) <= Decimal(p90)
+            for p10, p50, p90 in zip(
+                asset.p10_prices,
+                asset.p50_prices,
+                asset.p90_prices,
+                strict=True,
+            )
+        )
 
     recommendation = Phase2PortfolioService(repository).recommend(
         capital_minor_units=100_000,
@@ -94,11 +108,14 @@ def test_phase1_v2_artifacts_feed_the_seven_day_optimizer_without_retraining() -
         + recommendation.cash_reserve.amount_minor_units
         == 100_000
     )
-    assert abs(
-        sum(float(item.weight) for item in recommendation.allocations)
-        + float(recommendation.cash_reserve.weight)
-        - 1.0
-    ) < 1e-8
+    assert (
+        abs(
+            sum(float(item.weight) for item in recommendation.allocations)
+            + float(recommendation.cash_reserve.weight)
+            - 1.0
+        )
+        < 1e-8
+    )
     assert recommendation.policy_version == "phase2-risk-profile-model-blend-v4"
     assert recommendation.risk_profile == "growth"
 

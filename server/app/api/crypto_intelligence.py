@@ -80,9 +80,12 @@ class RiskProfileOverviewModel(BaseModel):
 class AssetForecastModel(BaseModel):
     asset: Literal["BTC", "ETH", "SOL"]
     current_price: str
-    predicted_prices: list[str]
-    predicted_daily_returns: list[str]
+    predicted_prices: list[str] = Field(min_length=7, max_length=7)
+    predicted_daily_returns: list[str] = Field(min_length=7, max_length=7)
     predicted_return_7d: str
+    p10_prices: list[str] = Field(min_length=7, max_length=7)
+    p50_prices: list[str] = Field(min_length=7, max_length=7)
+    p90_prices: list[str] = Field(min_length=7, max_length=7)
 
 
 class ForecastAccuracyModel(BaseModel):
@@ -308,6 +311,9 @@ def _asset_response(value: SevenDayAssetForecast) -> AssetForecastModel:
         predicted_prices=list(value.predicted_prices),
         predicted_daily_returns=list(value.predicted_daily_returns),
         predicted_return_7d=value.predicted_return_7d,
+        p10_prices=list(value.p10_prices),
+        p50_prices=list(value.p50_prices),
+        p90_prices=list(value.p90_prices),
     )
 
 

@@ -71,10 +71,39 @@
             "title": "Current Price",
             "type": "string"
           },
+          "p10_prices": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 7,
+            "minItems": 7,
+            "title": "P10 Prices",
+            "type": "array"
+          },
+          "p50_prices": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 7,
+            "minItems": 7,
+            "title": "P50 Prices",
+            "type": "array"
+          },
+          "p90_prices": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 7,
+            "minItems": 7,
+            "title": "P90 Prices",
+            "type": "array"
+          },
           "predicted_daily_returns": {
             "items": {
               "type": "string"
             },
+            "maxItems": 7,
+            "minItems": 7,
             "title": "Predicted Daily Returns",
             "type": "array"
           },
@@ -82,6 +111,8 @@
             "items": {
               "type": "string"
             },
+            "maxItems": 7,
+            "minItems": 7,
             "title": "Predicted Prices",
             "type": "array"
           },
@@ -95,7 +126,10 @@
           "current_price",
           "predicted_prices",
           "predicted_daily_returns",
-          "predicted_return_7d"
+          "predicted_return_7d",
+          "p10_prices",
+          "p50_prices",
+          "p90_prices"
         ],
         "title": "AssetForecastModel",
         "type": "object"
