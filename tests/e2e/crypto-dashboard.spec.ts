@@ -258,11 +258,11 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(page.getByText("$68,700.00", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("img", {
-      name: /BTC observed price.*empirical P10, P50, and P90 daily USD reference paths/,
+      name: /BTC observed price.*Historical Error Range summarizes held-out error.*not a validated 80% prediction interval/,
     }),
   ).toBeVisible();
   await expect(
-    page.getByText("P10–P90 reference band", { exact: true }),
+    page.getByText("Historical Error Range", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Portfolio Allocation" }),

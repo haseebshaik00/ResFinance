@@ -72,7 +72,7 @@ export function CryptoChart({
       <div
         className="phase2-chart"
         role="img"
-        aria-label={`${asset} observed price on ${formatForecastDate(cutoff)} and empirical P10, P50, and P90 daily USD reference paths through ${formatForecastDate(dates.at(-1) ?? cutoff)}. The reference paths are visualization-only and do not affect portfolio calculations.`}
+        aria-label={`${asset} observed price on ${formatForecastDate(cutoff)} and P10, P50, and P90 daily USD paths through ${formatForecastDate(dates.at(-1) ?? cutoff)}. The Historical Error Range summarizes held-out error; it is not a validated 80% prediction interval, is visualization-only, and does not affect portfolio calculations.`}
       >
         <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} aria-hidden="true">
           {grid.map((line) => (
@@ -136,9 +136,9 @@ export function CryptoChart({
           <i className="predicted" />
           P50 median reference
         </span>
-        <span title="P10–P90 is an empirical, held-out residual reference band. It is not a price guarantee and is not used by the portfolio optimizer.">
+        <span title="The Historical Error Range uses P10–P90 paths derived from held-out residuals. It is not a validated 80% prediction interval or price guarantee, and it is not used by the portfolio optimizer.">
           <i className="uncertainty" />
-          P10–P90 reference band
+          Historical Error Range
         </span>
       </div>
     </div>

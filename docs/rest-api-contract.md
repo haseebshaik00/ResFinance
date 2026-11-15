@@ -101,10 +101,12 @@ Every Group write is append-only, encrypted before ResilientDB, version checked,
 
 - `GET /api/v1/crypto/forecast` returns the verified validation-selected Phase
   1 model, current completed-day prices, seven daily predicted prices and
-  returns, empirical P10/P50/P90 price paths calibrated from the selected
-  model's immutable held-out residuals, UTC forecast dates, freshness, quality
-  checks, run provenance, and historical Original/VASA holdout errors. The
-  quantile paths support visualization only and are not portfolio inputs.
+  returns, P10/P50/P90 price paths derived from the selected model's immutable
+  held-out residuals, UTC forecast dates, freshness, quality checks, run
+  provenance, and historical Original/VASA holdout errors. The UI labels the
+  P10–P90 band as the **Historical Error Range**: it summarizes past held-out
+  error and is not a validated 80% prediction interval. The paths support
+  visualization only and are not portfolio inputs.
 - `POST /api/v1/crypto/recommendations` accepts one positive integer-cent USD
   amount and returns the saved risk profile, strategic BTC/ETH/SOL/USD-cash
   targets, exact-cent final amounts, confidence-weighted forecast/covariance

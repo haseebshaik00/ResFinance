@@ -155,11 +155,11 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
         </div>
         <CryptoChart forecast={forecast} asset={asset} />
         <p className="panel-note">
-          Solid marker: observed cutoff price. The P10–P90 band is derived from
-          the selected model&apos;s held-out residuals; it is a
-          visualization-only uncertainty reference, not a price guarantee.
-          Portfolio calculations continue to use the original seven-day research
-          forecast.
+          Solid marker: observed cutoff price. The Historical Error Range is
+          derived from the selected model&apos;s held-out residuals; it is a
+          visualization-only summary of past error, not a validated 80%
+          prediction interval or a price guarantee. Portfolio calculations
+          continue to use the original seven-day research forecast.
         </p>
       </section>
 

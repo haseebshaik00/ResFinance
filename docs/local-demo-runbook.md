@@ -301,7 +301,8 @@ Show:
 2. Forecast status is **15 days**.
 3. The snapshot as-of date and promotion provenance.
 4. BTC, ETH, and SOL chart switching.
-5. P10, P50, and P90 uncertainty overlays.
+5. The P10, P50, and P90 **Historical Error Range**, explaining that it
+   summarizes held-out error rather than a validated 80% prediction interval.
 6. The constrained portfolio allocation.
 7. Allocation amounts sum to exactly `$4,000.00`.
 

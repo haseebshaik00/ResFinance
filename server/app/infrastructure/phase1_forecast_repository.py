@@ -294,9 +294,9 @@ def _empirical_price_quantiles(
     """Apply immutable holdout residual quantiles to the current point path.
 
     The active model has a point-price head. These visualization-only paths
-    form an empirical predictive distribution from the selected model's
-    untouched holdout residuals; portfolio return and covariance inputs retain
-    the original point forecast.
+    summarize the selected model's untouched holdout residuals as a Historical
+    Error Range. They are not a validated 80% prediction interval; portfolio
+    return and covariance inputs retain the original point forecast.
     """
 
     if predictions.get("assets") != [item.value for item in ASSETS]:
