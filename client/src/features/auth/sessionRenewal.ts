@@ -4,6 +4,11 @@ export interface RenewableSession {
   expires_at: string;
 }
 
+/** Browsers store setTimeout delays as 32-bit signed ints; larger values overflow. */
+export const MAX_TIMER_DELAY_MS = 2_147_483_647;
+/** Avoid a tight refresh loop when a token is already inside the lead window. */
+export const MIN_REFRESH_DELAY_MS = 1_000;
+
 interface SessionRenewalOptions {
   refresh(): Promise<RenewableSession>;
   onSession(session: RenewableSession): void;
@@ -73,12 +78,15 @@ export class SessionRenewal {
   #schedule(generation: number): void {
     if (this.#current === null) return;
     const expiresAt = Date.parse(this.#current.expires_at);
-    const delayMs = Number.isFinite(expiresAt)
-      ? Math.max(
-          0,
-          expiresAt - this.#options.clock() - this.#options.refreshLeadMs,
-        )
+    const rawDelayMs = Number.isFinite(expiresAt)
+      ? expiresAt - this.#options.clock() - this.#options.refreshLeadMs
       : 0;
+    // Clamp into the safe setTimeout range. Far-future expiry used to overflow
+    // to ~0ms and refresh in a tight loop; already-due tokens wait briefly.
+    const delayMs = Math.min(
+      MAX_TIMER_DELAY_MS,
+      rawDelayMs <= 0 ? MIN_REFRESH_DELAY_MS : rawDelayMs,
+    );
     this.#timerId = this.#options.setTimer(() => {
       this.#timerId = null;
       void this.#refresh(generation).catch(() => undefined);

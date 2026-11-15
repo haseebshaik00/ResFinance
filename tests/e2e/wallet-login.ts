@@ -2,11 +2,16 @@ import { expect, type Page } from "@playwright/test";
 
 const defaultAddress = `0x${"a".repeat(40)}`;
 
+/** Far enough for tests, but inside the safe setTimeout delay range. */
+export function sessionExpiryHoursFromNow(hours = 6): string {
+  return new Date(Date.now() + hours * 60 * 60_000).toISOString();
+}
+
 /** Sets up an unlocked ResWallet and an approved challenge for dashboard tests. */
 export async function prepareWalletLogin(
   page: Page,
   actorAddress = defaultAddress,
-  sessionExpiresAt = "2099-01-01T00:00:00Z",
+  sessionExpiresAt = sessionExpiryHoursFromNow(),
 ): Promise<void> {
   await page.addInitScript((address) => {
     const identity = {
@@ -96,6 +101,18 @@ export async function prepareWalletLogin(
         access_token: "e2e-access-token",
         token_type: "Bearer",
         expires_at: sessionExpiresAt,
+        actor_address: actorAddress,
+      }),
+    }),
+  );
+  await page.route("**/api/v1/auth/refresh", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        access_token: "e2e-refreshed-token",
+        token_type: "Bearer",
+        expires_at: sessionExpiryHoursFromNow(),
         actor_address: actorAddress,
       }),
     }),

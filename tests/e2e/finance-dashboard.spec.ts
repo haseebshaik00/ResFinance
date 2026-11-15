@@ -144,18 +144,6 @@ test("renders exact balances, budget alert, savings, and provenance", async ({
   page,
 }) => {
   await prepareWalletLogin(page);
-  await page.route("**/api/v1/auth/refresh", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        access_token: "e2e-access-token",
-        token_type: "Bearer",
-        expires_at: "2026-10-14T08:10:00Z",
-        actor_address: `0x${"a".repeat(40)}`,
-      }),
-    });
-  });
   await page.route("**/api/v1/health", async (route) => {
     await route.fulfill({
       status: 200,
@@ -887,18 +875,6 @@ test("voids transactions and deactivates recurring items and budgets through con
   await prepareWalletLogin(page);
   const currentOverview = structuredClone(overview);
 
-  await page.route("**/api/v1/auth/refresh", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        access_token: "e2e-access-token",
-        token_type: "Bearer",
-        expires_at: "2026-10-19T20:10:00Z",
-        actor_address: `0x${"a".repeat(40)}`,
-      }),
-    });
-  });
   await page.route("**/api/v1/health", async (route) => {
     await route.fulfill({
       status: 200,
@@ -1198,7 +1174,7 @@ test("renews an authenticated session before its access token expires", async ({
       body: JSON.stringify({
         access_token: "e2e-rotated-token",
         token_type: "Bearer",
-        expires_at: "2099-01-01T00:00:00Z",
+        expires_at: new Date(Date.now() + 20 * 60_000).toISOString(),
         actor_address: actorAddress,
       }),
     });
@@ -1510,7 +1486,7 @@ test("updates the ResWallet login guidance after the popup changes wallet state"
       body: JSON.stringify({
         access_token: "e2e-login-token",
         actor_address: `0x${"6".repeat(40)}`,
-        expires_at: "2099-01-01T00:00:00Z",
+        expires_at: new Date(Date.now() + 6 * 60 * 60_000).toISOString(),
         token_type: "Bearer",
       }),
     });
