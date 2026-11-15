@@ -105,7 +105,9 @@ describe("SessionRenewal", () => {
       setTimer,
     });
 
-    renewal.start(session("long-lived-token", Date.parse("2099-01-01T00:00:00Z")));
+    renewal.start(
+      session("long-lived-token", Date.parse("2099-01-01T00:00:00Z")),
+    );
 
     expect(setTimer).toHaveBeenCalledWith(
       expect.any(Function),
