@@ -11,7 +11,8 @@ from typing import Literal
 from server.app.domain.crypto import CryptoAsset, canonical_decimal, utc_datetime
 from server.app.domain.events import DomainEvent
 
-RISK_POLICY_VERSION = "risk-questionnaire-v2"
+RISK_POLICY_VERSION = "risk-questionnaire-v3"
+SUPERSEDED_RISK_POLICY_VERSION = "risk-questionnaire-v2"
 LEGACY_RISK_POLICY_VERSION = "risk-questionnaire-v1"
 PORTFOLIO_POLICY_VERSION = "portfolio-policy-v1"
 FORECAST_HORIZON_DAYS = 15
@@ -36,8 +37,14 @@ class RiskAnswers:
     @property
     def score(self) -> int:
         # Scores remain whole numbers for the portfolio policy. This is the
-        # nearest-integer form of 100 × (horizon + tolerance + liquidity) / 9.
-        points = self.investment_horizon + self.risk_tolerance + self.liquidity_needs
+        # nearest-integer form of 100 × (horizon + tolerance + (4 - liquidity)) / 9.
+        # A higher liquidity need means funds may be needed sooner, so it must
+        # lower—not raise—the risk score.
+        points = (
+            self.investment_horizon
+            + self.risk_tolerance
+            + (4 - self.liquidity_needs)
+        )
         return (100 * points + 4) // 9
 
     def to_dict(self) -> dict[str, int]:
@@ -74,6 +81,16 @@ def reduce_risk_event(projection: RiskProjection, event: DomainEvent) -> RiskPro
         # The previous questionnaire cannot be mapped faithfully to the new
         # three-answer formula. Keep the append-only history, but require a
         # fresh v2 response before using it for a portfolio recommendation.
+        return RiskProjection(
+            projection_version=event.aggregate_version,
+            profile=None,
+            source_event_ids=(*projection.source_event_ids, event.event_id),
+        )
+    if policy_version == SUPERSEDED_RISK_POLICY_VERSION:
+        _validate_superseded_risk_payload(payload)
+        # The v2 answers have the same fields, but its liquidity contribution
+        # was directionally wrong. Do not reinterpret an existing score under
+        # v3; require an explicit, append-only v3 response instead.
         return RiskProjection(
             projection_version=event.aggregate_version,
             profile=None,
@@ -137,6 +154,33 @@ def _validate_legacy_risk_payload(payload: dict[str, object]) -> None:
     ) * 5
     if payload.get("score") != legacy_score:
         raise PortfolioProjectionError("stored legacy risk score does not match its answers")
+
+
+def _validate_superseded_risk_payload(payload: dict[str, object]) -> None:
+    answers_value = payload.get("answers")
+    if not isinstance(answers_value, dict):
+        raise PortfolioProjectionError("superseded risk answers are invalid")
+    try:
+        answers = RiskAnswers(
+            investment_horizon=_risk_answer(answers_value, "investment_horizon"),
+            risk_tolerance=_risk_answer(answers_value, "risk_tolerance"),
+            liquidity_needs=_risk_answer(answers_value, "liquidity_needs"),
+        )
+    except ValueError as exc:
+        raise PortfolioProjectionError("superseded risk answers are invalid") from exc
+    if set(answers_value) != set(answers.to_dict()):
+        raise PortfolioProjectionError("superseded risk answers contain unknown fields")
+    previous_score = (
+        100
+        * (
+            answers.investment_horizon
+            + answers.risk_tolerance
+            + answers.liquidity_needs
+        )
+        + 4
+    ) // 9
+    if payload.get("score") != previous_score:
+        raise PortfolioProjectionError("stored superseded risk score does not match its answers")
 
 
 @dataclass(frozen=True)

@@ -17,7 +17,7 @@ from server.app.domain.phase2_portfolio import (
     SevenDayAssetForecast,
     SevenDayForecast,
 )
-from server.app.domain.portfolio import RiskAnswers, RiskProfile, RiskProjection
+from server.app.domain.portfolio import RiskAnswers, RiskProfile, RiskProjection, reduce_risk_event
 from server.app.infrastructure.phase1_forecast_repository import Phase1ForecastBundle
 from server.app.main import create_app
 from tests.contract.test_authentication import (
@@ -77,6 +77,73 @@ class RiskProfileFixture:
             ),
             deduplicated=False,
         )
+
+
+def test_risk_score_penalizes_higher_liquidity_needs() -> None:
+    low_liquidity_need = RiskAnswers(
+        investment_horizon=2,
+        risk_tolerance=2,
+        liquidity_needs=1,
+    )
+    high_liquidity_need = RiskAnswers(
+        investment_horizon=2,
+        risk_tolerance=2,
+        liquidity_needs=3,
+    )
+
+    assert low_liquidity_need.score == 78
+    assert high_liquidity_need.score == 56
+    assert high_liquidity_need.score < low_liquidity_need.score
+
+
+def test_superseded_v2_profile_requires_a_fresh_v3_response() -> None:
+    answers = {
+        "investment_horizon": 2,
+        "risk_tolerance": 2,
+        "liquidity_needs": 1,
+    }
+    v2_event = _risk_event(
+        version=1,
+        policy_version="risk-questionnaire-v2",
+        answers=answers,
+        score=56,
+    )
+    v3_event = _risk_event(
+        version=2,
+        policy_version="risk-questionnaire-v3",
+        answers=answers,
+        score=78,
+    )
+
+    projection = reduce_risk_event(RiskProjection(), v2_event)
+    assert projection.projection_version == 1
+    assert projection.profile is None
+
+    projection = reduce_risk_event(projection, v3_event)
+    assert projection.profile is not None
+    assert projection.profile.score == 78
+    assert projection.profile.policy_version == "risk-questionnaire-v3"
+
+
+def _risk_event(
+    *, version: int, policy_version: str, answers: dict[str, int], score: int
+) -> DomainEvent:
+    return DomainEvent(
+        schema_version=1,
+        event_id=f"evt_risk_profile_{version}",
+        event_type="risk.profile-recorded",
+        occurred_at_utc=NOW,
+        tenant_id="tenant_test",
+        actor_id="actor_test",
+        aggregate_type="risk-profile",
+        aggregate_id="risk_test",
+        aggregate_version=version,
+        idempotency_key_hash="a" * 64,
+        payload={"policy_version": policy_version, "answers": answers, "score": score},
+        payload_hash="b" * 64,
+        source_references=(),
+        contract_receipt=None,
+    )
 
 
 def test_optimizer_allows_a_cash_reserve_and_reconciles_exactly_in_cents() -> None:
@@ -236,12 +303,12 @@ def test_authenticated_phase2_api_returns_one_snapshot_and_backend_allocations()
     )
     assert body["covariance_lookback_days"] == 365
     assert body["policy_version"] == "phase2-risk-profile-model-blend-v4"
-    assert body["risk_profile"] == "balanced"
+    assert body["risk_profile"] == "growth"
     assert body["model_blend"] == "confidence-weighted"
     assert Decimal(body["model_confidence"]) == Decimal("0")
     risk_response = client.get("/api/v1/crypto/risk-profile", headers=headers)
     assert risk_response.status_code == 200
-    assert risk_response.json()["profile"]["score"] == 56
+    assert risk_response.json()["profile"]["score"] == 78
     saved = client.post(
         "/api/v1/crypto/risk-profile",
         headers={**headers, "Idempotency-Key": "risk-profile-api-test"},
@@ -317,8 +384,8 @@ def _accuracy(model: str) -> ForecastAccuracy:
 def _risk_profile() -> RiskProfile:
     return RiskProfile(
         answers=RiskAnswers(investment_horizon=2, risk_tolerance=2, liquidity_needs=1),
-        score=56,
-        policy_version="risk-questionnaire-v2",
+        score=78,
+        policy_version="risk-questionnaire-v3",
         source_event_id="evt_risk_profile_test",
         recorded_at_utc=NOW,
     )

@@ -1035,7 +1035,7 @@ export interface components {
              * Risk Policy Version
              * @constant
              */
-            risk_policy_version: "risk-questionnaire-v2";
+            risk_policy_version: "risk-questionnaire-v3";
             /**
              * Risk Profile
              * @enum {string}
@@ -1157,7 +1157,7 @@ export interface components {
              * Policy Version
              * @constant
              */
-            policy_version: "risk-questionnaire-v2";
+            policy_version: "risk-questionnaire-v3";
             /**
              * Recorded At Utc
              * Format: date-time

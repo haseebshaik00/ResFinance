@@ -229,7 +229,7 @@ class Phase2PortfolioService:
             risk_profile=target.name,  # type: ignore[arg-type]
             risk_score=risk_profile.score,
             risk_profile_event_id=risk_profile.source_event_id,
-            risk_policy_version="risk-questionnaire-v2",
+            risk_policy_version="risk-questionnaire-v3",
             model_confidence=str(model_confidence),
             model_blend="confidence-weighted",
             strategic_allocations=result.strategic_allocations,

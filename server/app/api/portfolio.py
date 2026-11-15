@@ -62,7 +62,7 @@ class RiskProfileEventResponse(BaseModel):
 class RiskProfileModel(BaseModel):
     answers: RiskAnswersModel
     score: int
-    policy_version: Literal["risk-questionnaire-v2"]
+    policy_version: Literal["risk-questionnaire-v3"]
     source_event_id: str
     recorded_at_utc: datetime
 
@@ -246,7 +246,7 @@ def _risk_response(value: RiskProfile) -> RiskProfileModel:
     return RiskProfileModel(
         answers=RiskAnswersModel(**value.answers.to_dict()),
         score=value.score,
-        policy_version="risk-questionnaire-v2",
+        policy_version="risk-questionnaire-v3",
         source_event_id=value.source_event_id,
         recorded_at_utc=value.recorded_at_utc,
     )

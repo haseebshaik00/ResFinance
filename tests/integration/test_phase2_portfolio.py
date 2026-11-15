@@ -82,8 +82,8 @@ def test_phase1_v2_artifacts_feed_the_seven_day_optimizer_without_retraining() -
         capital_minor_units=100_000,
         risk_profile=RiskProfile(
             answers=RiskAnswers(investment_horizon=2, risk_tolerance=2, liquidity_needs=1),
-            score=56,
-            policy_version="risk-questionnaire-v2",
+            score=78,
+            policy_version="risk-questionnaire-v3",
             source_event_id="evt_risk_profile_integration",
             recorded_at_utc=NOW,
         ),
@@ -94,13 +94,13 @@ def test_phase1_v2_artifacts_feed_the_seven_day_optimizer_without_retraining() -
         + recommendation.cash_reserve.amount_minor_units
         == 100_000
     )
-    assert (
+    assert abs(
         sum(float(item.weight) for item in recommendation.allocations)
         + float(recommendation.cash_reserve.weight)
-        == 1.0
-    )
+        - 1.0
+    ) < 1e-8
     assert recommendation.policy_version == "phase2-risk-profile-model-blend-v4"
-    assert recommendation.risk_profile == "balanced"
+    assert recommendation.risk_profile == "growth"
 
 
 def test_historical_three_model_evidence_remains_byte_for_byte_unchanged() -> None:

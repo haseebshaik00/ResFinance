@@ -225,7 +225,7 @@ class InsightsService:
                     "crypto.risk.missing",
                     "crypto",
                     "No risk profile is recorded yet.",
-                    "risk-questionnaire-v2",
+                    "risk-questionnaire-v3",
                     (),
                     None,
                 )

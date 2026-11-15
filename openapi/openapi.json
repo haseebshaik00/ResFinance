@@ -1591,7 +1591,7 @@
             "type": "string"
           },
           "risk_policy_version": {
-            "const": "risk-questionnaire-v2",
+            "const": "risk-questionnaire-v3",
             "title": "Risk Policy Version",
             "type": "string"
           },
@@ -1909,7 +1909,7 @@
             "$ref": "#/components/schemas/RiskAnswersModel"
           },
           "policy_version": {
-            "const": "risk-questionnaire-v2",
+            "const": "risk-questionnaire-v3",
             "title": "Policy Version",
             "type": "string"
           },

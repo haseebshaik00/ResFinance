@@ -206,7 +206,11 @@ earlier 15-day questionnaire/capped workflow remains immutable legacy evidence.
   it never retrains. Newer stored completed observations can trigger
   inference-only refresh, while unavailable inputs fail explicitly and old
   dates remain visibly stale.
-- Restored the encrypted, append-only `risk-questionnaire-v2` to choose
+- The encrypted, append-only `risk-questionnaire-v3` now scores liquidity
+  needs inversely: `100 × (horizon + tolerance + (4 - liquidity)) / 9`,
+  rounded to the nearest whole number. Higher liquidity needs therefore reduce
+  the risk score. Historical v1 and v2 records remain auditable but require a
+  fresh v3 response before a portfolio recommendation. The questionnaire chooses
   Conservative, Balanced, or Growth strategic BTC/ETH/SOL/USD-cash targets.
   Fixed-lambda seven-day mean-variance optimization uses raw Day-7 predicted
   returns and 365 aligned daily returns with Ledoit-Wolf covariance. The

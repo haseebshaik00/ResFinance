@@ -201,7 +201,7 @@ class Phase2Recommendation:
     risk_profile: Literal["conservative", "balanced", "growth"]
     risk_score: int
     risk_profile_event_id: str
-    risk_policy_version: Literal["risk-questionnaire-v2"]
+    risk_policy_version: Literal["risk-questionnaire-v3"]
     model_confidence: str
     model_blend: Literal["confidence-weighted"]
     strategic_allocations: tuple[Phase2Allocation, ...]

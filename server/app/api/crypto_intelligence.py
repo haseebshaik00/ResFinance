@@ -67,7 +67,7 @@ class RiskProfileEventModel(BaseModel):
 class RiskProfileModel(BaseModel):
     answers: RiskAnswersModel
     score: int
-    policy_version: Literal["risk-questionnaire-v2"]
+    policy_version: Literal["risk-questionnaire-v3"]
     source_event_id: str
     recorded_at_utc: datetime
 
@@ -150,7 +150,7 @@ class RecommendationModel(BaseModel):
     risk_profile: Literal["conservative", "balanced", "growth"]
     risk_score: int
     risk_profile_event_id: str
-    risk_policy_version: Literal["risk-questionnaire-v2"]
+    risk_policy_version: Literal["risk-questionnaire-v3"]
     model_confidence: str
     model_blend: Literal["confidence-weighted"]
     strategic_allocations: list[AllocationModel]
@@ -369,7 +369,7 @@ def _risk_profile_response(value: RiskProfile) -> RiskProfileModel:
     return RiskProfileModel(
         answers=RiskAnswersModel(**value.answers.to_dict()),
         score=value.score,
-        policy_version="risk-questionnaire-v2",
+        policy_version="risk-questionnaire-v3",
         source_event_id=value.source_event_id,
         recorded_at_utc=value.recorded_at_utc,
     )
