@@ -5,6 +5,7 @@ import type {
   PortfolioRecommendation,
   SevenDayForecast,
 } from "../../lib/api/client";
+import { MonthPicker } from "../../components/MonthPicker";
 import {
   currentMonth,
   formatUsd,
@@ -36,7 +37,7 @@ function formatSavingsMonth(month: string): string {
 }
 
 export function CryptoDashboard({ accessToken }: { accessToken: string }) {
-  const [savingsMonth] = useState(currentMonth);
+  const [savingsMonth, setSavingsMonth] = useState(currentMonth);
   const dashboard = useCryptoDashboard(accessToken, savingsMonth);
   const [asset, setAsset] = useState<Asset>("BTC");
   const [capital, setCapital] = useState<string | null>(null);
@@ -108,29 +109,53 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
             risk profile.
           </p>
         </div>
-        <ForecastStatus forecast={forecast} />
+        <div className="crypto-header-actions">
+          <MonthPicker
+            label="Savings month"
+            month={savingsMonth}
+            onChange={setSavingsMonth}
+          />
+          <ForecastStatus forecast={forecast} />
+        </div>
       </section>
 
       <MarketOverview forecast={forecast} />
 
-      <RiskQuestionnaire
-        profile={riskProfile}
-        projectionVersion={dashboard.riskProfile.data?.projection_version ?? 0}
-        pending={dashboard.saveRiskProfile.isPending}
-        error={
-          dashboard.riskProfile.isError || dashboard.saveRiskProfile.isError
-            ? (dashboard.riskProfile.error ?? dashboard.saveRiskProfile.error)
-                ?.message
-            : undefined
-        }
-        onSave={(answers) =>
-          dashboard.saveRiskProfile.mutate({
-            answers,
-            expected_version:
-              dashboard.riskProfile.data?.projection_version ?? 0,
-          })
-        }
-      />
+      <section className="crypto-top-row" aria-label="Portfolio setup">
+        <InvestmentCapitalCard
+          availableSavings={availableSavings}
+          capital={capital}
+          capitalError={capitalError}
+          financeError={
+            dashboard.financeOverview.isError
+              ? dashboard.financeOverview.error.message
+              : undefined
+          }
+          financePending={dashboard.financeOverview.isPending}
+          month={savingsMonth}
+          onChange={setCapital}
+        />
+        <RiskQuestionnaire
+          profile={riskProfile}
+          projectionVersion={
+            dashboard.riskProfile.data?.projection_version ?? 0
+          }
+          pending={dashboard.saveRiskProfile.isPending}
+          error={
+            dashboard.riskProfile.isError || dashboard.saveRiskProfile.isError
+              ? (dashboard.riskProfile.error ?? dashboard.saveRiskProfile.error)
+                  ?.message
+              : undefined
+          }
+          onSave={(answers) =>
+            dashboard.saveRiskProfile.mutate({
+              answers,
+              expected_version:
+                dashboard.riskProfile.data?.projection_version ?? 0,
+            })
+          }
+        />
+      </section>
 
       <section
         className="panel phase2-outlook"
@@ -173,43 +198,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
             <p className="section-kicker">Model-informed diversification</p>
             <h2 id="allocation-title">Portfolio Allocation</h2>
           </div>
-          <label className="investment-capital-field">
-            <span>Investment Capital (USD)</span>
-            <span className="capital-input-shell">
-              <span aria-hidden="true">$</span>
-              <input
-                aria-label="Investment Capital (USD)"
-                inputMode="decimal"
-                value={capital ?? ""}
-                disabled={dashboard.financeOverview.isPending}
-                onChange={(event) => setCapital(event.target.value)}
-              />
-            </span>
-          </label>
         </div>
-        {dashboard.financeOverview.isPending && (
-          <p className="panel-note" role="status">
-            Loading available savings from Personal Finance…
-          </p>
-        )}
-        {dashboard.financeOverview.isError && (
-          <p className="form-error" role="alert">
-            Available savings could not be loaded:{" "}
-            {dashboard.financeOverview.error.message}
-          </p>
-        )}
-        {availableSavings !== undefined && (
-          <p className="panel-note">
-            Default: {formatUsd(availableSavings)} available savings from
-            Personal Finance for {formatSavingsMonth(savingsMonth)}. Changing
-            this amount runs a read-only scenario and never updates Finance.
-          </p>
-        )}
-        {capitalError !== null && (
-          <p className="form-error" role="alert">
-            {capitalError}
-          </p>
-        )}
         {dashboard.recommendation.isError && (
           <p className="form-error" role="alert">
             {dashboard.recommendation.error.message}
@@ -218,16 +207,6 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
         {dashboard.recommendation.isPending && (
           <p className="panel-note" role="status">
             Calculating the portfolio…
-          </p>
-        )}
-        {riskProfile === undefined && (
-          <p className="panel-note" role="status">
-            Loading saved risk profile…
-          </p>
-        )}
-        {riskProfile === null && (
-          <p className="panel-note">
-            Save your risk profile to calculate a questionnaire-led allocation.
           </p>
         )}
         {dashboard.recommendation.data !== undefined &&
@@ -279,6 +258,72 @@ function ForecastStatus({ forecast }: { forecast: SevenDayForecast }) {
         )}
       </div>
     </div>
+  );
+}
+
+function InvestmentCapitalCard({
+  availableSavings,
+  capital,
+  capitalError,
+  financeError,
+  financePending,
+  month,
+  onChange,
+}: {
+  availableSavings: number | undefined;
+  capital: string | null;
+  capitalError: string | null;
+  financeError: string | undefined;
+  financePending: boolean;
+  month: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <section className="panel capital-card" aria-labelledby="capital-title">
+      <div className="capital-card-heading">
+        <div>
+          <p className="section-kicker">Portfolio starting point</p>
+          <h2 id="capital-title">Investment Capital</h2>
+        </div>
+        <span className="capital-source">Available savings</span>
+      </div>
+      <label className="capital-edit-field">
+        <span className="sr-only">Investment Capital (USD)</span>
+        <span aria-hidden="true">$</span>
+        <input
+          aria-label="Investment Capital (USD)"
+          disabled={financePending}
+          inputMode="decimal"
+          value={capital ?? ""}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      </label>
+      {financePending && (
+        <p className="capital-disclaimer" role="status">
+          Loading available savings from Personal Finance…
+        </p>
+      )}
+      {financeError !== undefined && (
+        <p className="form-error" role="alert">
+          Available savings could not be loaded: {financeError}
+        </p>
+      )}
+      {availableSavings !== undefined && (
+        <p className="capital-disclaimer">
+          Default: <strong>{formatUsd(availableSavings)}</strong> available
+          savings from Personal Finance for {formatSavingsMonth(month)}.
+        </p>
+      )}
+      <p className="capital-disclaimer">
+        Changing this amount runs a read-only scenario and never updates
+        Finance.
+      </p>
+      {capitalError !== null && (
+        <p className="form-error" role="alert">
+          {capitalError}
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -341,9 +386,10 @@ function RiskQuestionnaire({
           <h2 id="risk-profile-title">Risk Questionnaire</h2>
         </div>
         {profile !== null && profile !== undefined && (
-          <span className="forecast-status-pill current">
-            Score {profile.score}
-          </span>
+          <RiskScore
+            projectionVersion={projectionVersion}
+            score={profile.score}
+          />
         )}
       </div>
       <p className="panel-note">
@@ -389,11 +435,43 @@ function RiskQuestionnaire({
           {error}
         </p>
       )}
-      <p className="panel-note">
+      {profile === undefined && (
+        <p className="panel-note" role="status">
+          Loading saved risk profile…
+        </p>
+      )}
+      {profile === null && (
+        <p className="panel-note">
+          Save your risk profile to calculate a questionnaire-led allocation.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function RiskScore({
+  projectionVersion,
+  score,
+}: {
+  projectionVersion: number;
+  score: number;
+}) {
+  const tooltipId = "risk-score-details";
+  return (
+    <div className="risk-score">
+      <button
+        aria-describedby={tooltipId}
+        aria-label={`Risk score ${score} details`}
+        className="freshness-pill risk-score-trigger"
+        type="button"
+      >
+        Score {score}
+      </button>
+      <div className="risk-score-tooltip" id={tooltipId} role="tooltip">
         Profile version {projectionVersion}; responses are wallet-scoped and
         informational only.
-      </p>
-    </section>
+      </div>
+    </div>
   );
 }
 
@@ -636,34 +714,65 @@ function MethodPanel({ forecast }: { forecast: SevenDayForecast }) {
           Execution <strong>No trades</strong>
         </span>
       </div>
-      <details className="accuracy-panel">
+      <details className="provenance-panel crypto-provenance-panel" open>
         <summary>Historical model accuracy and provenance</summary>
-        <div className="accuracy-grid">
-          {forecast.accuracy.map((item) => (
-            <article key={item.model_key}>
+        <div className="provenance-columns crypto-provenance-columns">
+          <section className="provenance-column">
+            <h3>Historical model accuracy</h3>
+            <div className="crypto-accuracy-grid">
+              {forecast.accuracy.map((item) => (
+                <article key={item.model_key}>
+                  <strong>
+                    {item.model_key === "original-mspciformer"
+                      ? "Original MSPCIFormer"
+                      : "VASA-MSPCIFormer"}
+                  </strong>
+                  <dl>
+                    <div>
+                      <dt>Holdout MAPE</dt>
+                      <dd>{formatForecastReturn(Number(item.mape))}</dd>
+                    </div>
+                    <div>
+                      <dt>7-day return MAE</dt>
+                      <dd>
+                        {formatForecastReturn(Number(item.return_7d_mae))}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Directional accuracy</dt>
+                      <dd>
+                        {formatForecastReturn(
+                          Number(item.directional_accuracy),
+                        )}
+                      </dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          </section>
+          <section className="provenance-column">
+            <h3>Forecast provenance</h3>
+            <p>
+              Snapshot <code>{forecast.snapshot_id}</code>
+            </p>
+            <p>
+              Run <code>{forecast.run_id}</code>
+            </p>
+            <p>
+              Model <code>{forecast.model_version}</code>
+            </p>
+            <p>
+              Completed-market cutoff{" "}
               <strong>
-                {item.model_key === "original-mspciformer"
-                  ? "Original MSPCIFormer"
-                  : "VASA-MSPCIFormer"}
+                {formatForecastDate(
+                  forecast.market_data_cutoff_utc.slice(0, 10),
+                )}
               </strong>
-              <span>
-                Holdout MAPE {formatForecastReturn(Number(item.mape))}
-              </span>
-              <span>
-                7-day return MAE{" "}
-                {formatForecastReturn(Number(item.return_7d_mae))}
-              </span>
-              <span>
-                Directional accuracy{" "}
-                {formatForecastReturn(Number(item.directional_accuracy))}
-              </span>
-            </article>
-          ))}
+              ; status <strong>{forecast.status}</strong>.
+            </p>
+          </section>
         </div>
-        <p>
-          Run <code>{forecast.run_id}</code> · Model{" "}
-          <code>{forecast.model_version}</code>
-        </p>
       </details>
     </section>
   );

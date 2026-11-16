@@ -1103,7 +1103,7 @@ code {
 
 .crypto-top-row {
   display: grid;
-  grid-template-columns: minmax(26rem, 1.05fr) minmax(25rem, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   align-items: stretch;
 }
@@ -2204,6 +2204,47 @@ code {
   color: var(--income);
 }
 
+.risk-score {
+  position: relative;
+}
+
+.risk-score-trigger {
+  cursor: help;
+  font-family: inherit;
+}
+
+.risk-score-tooltip {
+  width: max-content;
+  max-width: min(20rem, calc(100vw - 2rem));
+  padding: 0.62rem 0.72rem;
+  border: 1px solid var(--control-border);
+  border-radius: 0.7rem;
+  background: var(--popover-background);
+  box-shadow: var(--card-shadow);
+  color: var(--page-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  transform: translateY(-0.25rem);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    visibility 140ms ease;
+  visibility: hidden;
+  z-index: 5;
+}
+
+.risk-score:hover .risk-score-tooltip,
+.risk-score:focus-within .risk-score-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
 /* Seven-day MSPCIFormer + mean-variance Crypto Intelligence */
 .phase2-dashboard {
   --btc-color: #6555a5;
@@ -2212,6 +2253,12 @@ code {
 }
 
 .phase2-dashboard .dashboard-header {
+  align-items: flex-start;
+}
+
+.crypto-header-actions {
+  display: flex;
+  gap: 0.75rem;
   align-items: flex-start;
 }
 
@@ -2730,6 +2777,61 @@ code {
   display: grid;
   gap: 0.35rem;
   padding: 0.8rem;
+}
+
+.crypto-provenance-panel {
+  margin-top: 1.15rem;
+}
+
+.crypto-provenance-panel .provenance-column h3 {
+  color: var(--warning);
+}
+
+.crypto-accuracy-grid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.crypto-accuracy-grid article {
+  padding: 0.7rem;
+  border: 1px solid
+    color-mix(in srgb, var(--warning) 28%, var(--control-border));
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--warning) 6%, var(--control-background));
+}
+
+.crypto-accuracy-grid article > strong {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--page-text);
+}
+
+.crypto-accuracy-grid dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.crypto-accuracy-grid dt {
+  color: var(--page-muted);
+  font-size: 0.7rem;
+}
+
+.crypto-accuracy-grid dd {
+  margin: 0.15rem 0 0;
+  color: var(--page-text);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.crypto-provenance-panel .provenance-column p {
+  margin: 0 0 0.55rem;
+  overflow-wrap: anywhere;
+}
+
+.crypto-provenance-panel .provenance-column code {
+  overflow-wrap: anywhere;
 }
 
 .chart-wrap {
@@ -5592,10 +5694,29 @@ td.expense {
     align-items: stretch;
   }
 
+  .crypto-header-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crypto-header-actions .month-control,
+  .crypto-header-actions .forecast-status {
+    width: 100%;
+  }
+
+  .crypto-header-actions .forecast-status-pill {
+    width: 100%;
+    justify-content: center;
+  }
+
   .phase2-market-grid,
   .method-steps,
   .accuracy-grid,
   .portfolio-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .crypto-accuracy-grid dl {
     grid-template-columns: 1fr;
   }
 

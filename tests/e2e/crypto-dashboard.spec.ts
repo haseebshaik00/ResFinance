@@ -270,14 +270,38 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.getByText("Current forecast", { exact: true }),
   ).toBeVisible();
+  await expect(page.getByText("Savings month", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Investment Capital" }),
+  ).toBeVisible();
+  await expect(
+    page.locator(
+      ".crypto-top-row > .capital-card, .crypto-top-row > .risk-questionnaire-card",
+    ),
+  ).toHaveCount(2);
+  const setupCardWidths = await page
+    .locator(
+      ".crypto-top-row > .capital-card, .crypto-top-row > .risk-questionnaire-card",
+    )
+    .evaluateAll((cards) =>
+      cards.map((card) => card.getBoundingClientRect().width),
+    );
+  expect(Math.abs(setupCardWidths[0]! - setupCardWidths[1]!)).toBeLessThan(2);
+  const riskScore = page.getByRole("button", {
+    name: "Risk score 78 details",
+  });
+  await riskScore.hover();
+  await expect(page.locator(".risk-score-tooltip")).toContainText(
+    "Profile version 1; responses are wallet-scoped and informational only.",
+  );
   const forecastStatusButton = page.getByRole("button", {
     name: "Current forecast details",
   });
   await forecastStatusButton.hover();
-  await expect(page.getByRole("tooltip")).toContainText(
+  await expect(page.locator(".forecast-status-tooltip")).toContainText(
     "Generated 14 Nov 2026, 06:30 UTC",
   );
-  await expect(page.getByRole("tooltip")).toContainText(
+  await expect(page.locator(".forecast-status-tooltip")).toContainText(
     "Market cutoff 13 Nov 2026",
   );
   await expect(
@@ -291,6 +315,16 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   ).toBeVisible();
   await expect(
     page.getByText("Historical Error Range", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".crypto-provenance-panel")).toHaveAttribute(
+    "open",
+    "",
+  );
+  await expect(
+    page.getByText("Historical model accuracy", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Forecast provenance", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Portfolio Allocation" }),
@@ -342,7 +376,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(page.locator(".forecast-line")).toBeVisible();
   await expect(page.locator(".forecast-uncertainty-band")).toBeVisible();
   await forecastStatusButton.hover();
-  await expect(page.getByRole("tooltip")).toBeVisible();
+  await expect(page.locator(".forecast-status-tooltip")).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth > innerWidth,
@@ -367,7 +401,7 @@ test("shows stale reasons in the forecast status hover", async ({ page }) => {
     name: "Stale forecast details",
   });
   await forecastStatusButton.hover();
-  const tooltip = page.getByRole("tooltip");
+  const tooltip = page.locator(".forecast-status-tooltip");
   await expect(tooltip).toContainText("Forecast freshness warning");
   await expect(tooltip).toContainText(staleReasons[0]!);
 });
