@@ -2253,7 +2253,7 @@ code {
 }
 
 .phase2-dashboard .dashboard-header {
-  align-items: flex-start;
+  align-items: end;
 }
 
 .crypto-header-actions {
