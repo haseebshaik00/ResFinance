@@ -1,5 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, FlaskConical, ShieldCheck } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import {
+  AlertTriangle,
+  Check,
+  FlaskConical,
+  Pencil,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 
 import type {
   PortfolioRecommendation,
@@ -131,6 +138,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           }
           financePending={dashboard.financeOverview.isPending}
           month={savingsMonth}
+          recommendationPending={dashboard.recommendation.isPending}
           onChange={setCapital}
         />
         <RiskQuestionnaire
@@ -268,6 +276,7 @@ function InvestmentCapitalCard({
   financeError,
   financePending,
   month,
+  recommendationPending,
   onChange,
 }: {
   availableSavings: number | undefined;
@@ -276,8 +285,59 @@ function InvestmentCapitalCard({
   financeError: string | undefined;
   financePending: boolean;
   month: string;
+  recommendationPending: boolean;
   onChange: (value: string) => void;
 }) {
+  const [draftCapital, setDraftCapital] = useState(capital ?? "");
+  const [isEditing, setIsEditing] = useState(false);
+  const [scenarioActive, setScenarioActive] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const amountInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (capital !== null && !isEditing) setDraftCapital(capital);
+  }, [capital, isEditing]);
+
+  useEffect(() => {
+    if (availableSavings !== undefined) setScenarioActive(false);
+  }, [availableSavings]);
+
+  useEffect(() => {
+    if (isEditing) {
+      amountInput.current?.focus();
+      amountInput.current?.select();
+    }
+  }, [isEditing]);
+
+  function startEditing() {
+    setDraftCapital(capital ?? "");
+    setValidationError(null);
+    setIsEditing(true);
+  }
+
+  function cancelEditing() {
+    setDraftCapital(capital ?? "");
+    setValidationError(null);
+    setIsEditing(false);
+  }
+
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    try {
+      if (usdToMinorUnits(draftCapital) <= 0) {
+        throw new Error("Investment capital must be greater than zero.");
+      }
+      setValidationError(null);
+      setScenarioActive(true);
+      setIsEditing(false);
+      onChange(draftCapital);
+    } catch (error) {
+      setValidationError(
+        error instanceof Error ? error.message : "Enter a valid USD amount.",
+      );
+    }
+  }
+
   return (
     <section className="panel capital-card" aria-labelledby="capital-title">
       <div className="capital-card-heading">
@@ -287,17 +347,63 @@ function InvestmentCapitalCard({
         </div>
         <span className="capital-source">Available savings</span>
       </div>
-      <label className="capital-edit-field">
-        <span className="sr-only">Investment Capital (USD)</span>
-        <span aria-hidden="true">$</span>
-        <input
-          aria-label="Investment Capital (USD)"
-          disabled={financePending}
-          inputMode="decimal"
-          value={capital ?? ""}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      </label>
+      {isEditing ? (
+        <form className="capital-scenario-form" onSubmit={submit}>
+          <label className="capital-edit-field">
+            <span className="sr-only">Investment Capital (USD)</span>
+            <span aria-hidden="true">$</span>
+            <input
+              aria-label="Investment Capital (USD)"
+              disabled={financePending || recommendationPending}
+              inputMode="decimal"
+              ref={amountInput}
+              value={draftCapital}
+              onChange={(event) => setDraftCapital(event.target.value)}
+            />
+          </label>
+          <p className="capital-edit-hint">
+            Analyze an alternate amount without changing Finance.
+          </p>
+          <div className="capital-actions">
+            <button
+              className="capital-scenario-button"
+              disabled={financePending || recommendationPending}
+              type="submit"
+            >
+              <Check aria-hidden="true" size={15} />
+              {recommendationPending ? "Analyzing…" : "Analyze scenario"}
+            </button>
+            <button
+              className="capital-cancel-button"
+              disabled={financePending || recommendationPending}
+              onClick={cancelEditing}
+              type="button"
+            >
+              <X aria-hidden="true" size={15} />
+              Cancel
+            </button>
+          </div>
+          {validationError !== null && (
+            <p className="form-error" role="alert">
+              {validationError}
+            </p>
+          )}
+        </form>
+      ) : (
+        <div className="capital-amount-display">
+          <strong>{capital === null ? "—" : `$${capital}`}</strong>
+          <button
+            aria-label="Edit scenario amount"
+            className="capital-edit-button"
+            disabled={financePending}
+            onClick={startEditing}
+            title="Edit scenario amount"
+            type="button"
+          >
+            <Pencil aria-hidden="true" size={17} />
+          </button>
+        </div>
+      )}
       {financePending && (
         <p className="capital-disclaimer" role="status">
           Loading available savings from Personal Finance…
@@ -318,6 +424,15 @@ function InvestmentCapitalCard({
         Changing this amount runs a read-only scenario and never updates
         Finance.
       </p>
+      {scenarioActive && capital !== null && (
+        <p className="scenario-result">
+          <Check aria-hidden="true" size={16} />
+          <span>
+            <strong>Scenario active: </strong>${capital}. Finance default
+            unchanged.
+          </span>
+        </p>
+      )}
       {capitalError !== null && (
         <p className="form-error" role="alert">
           {capitalError}

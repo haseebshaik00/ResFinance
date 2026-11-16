@@ -396,10 +396,10 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     page.locator(".phase2-portfolio + .crypto-provenance-panel"),
   ).toHaveCount(1);
   await expect(
-    page.getByText("Historical model accuracy", { exact: true }),
+    page.getByText("Historical Model Accuracy", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("Forecast provenance", { exact: true }),
+    page.getByText("Forecast Provenance", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Portfolio Allocation" }),
