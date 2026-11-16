@@ -404,9 +404,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.getByRole("heading", { name: "Portfolio Allocation" }),
   ).toBeVisible();
-  await expect(page.getByLabel("Investment Capital (USD)")).toHaveValue(
-    "1000.00",
-  );
+  await expect(page.getByText("$1000.00", { exact: true })).toBeVisible();
   await expect(
     page.getByText(
       /Default: \$1,000\.00 available savings from Personal Finance/,
@@ -423,11 +421,14 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(page.getByText("Risk Questionnaire")).toBeVisible();
   await expect(page.getByText(/15-day/i)).toHaveCount(0);
 
+  await page.getByRole("button", { name: "Edit scenario amount" }).click();
   await page.getByLabel("Investment Capital (USD)").fill("2000.00");
+  await page.getByRole("button", { name: "Analyze scenario" }).click();
   await expect(page.getByText("$500.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$800.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$300.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$400.00", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Scenario active: \$2000\.00/)).toBeVisible();
 
   expect(
     await page.evaluate(

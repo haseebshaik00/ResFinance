@@ -723,10 +723,10 @@ function MethodProvenance({ forecast }: { forecast: SevenDayForecast }) {
   return (
     <>
       <details className="provenance-panel crypto-provenance-panel" open>
-        <summary>Historical model accuracy and provenance</summary>
+        <summary>Historical Model Accuracy and Provenance</summary>
         <div className="provenance-columns crypto-provenance-columns">
           <section className="provenance-column">
-            <h3>Historical model accuracy</h3>
+            <h3>Historical Model Accuracy</h3>
             <div className="crypto-accuracy-grid">
               {forecast.accuracy.map((item) => (
                 <article key={item.model_key}>
@@ -760,7 +760,7 @@ function MethodProvenance({ forecast }: { forecast: SevenDayForecast }) {
             </div>
           </section>
           <section className="provenance-column">
-            <h3>Forecast provenance</h3>
+            <h3>Forecast Provenance</h3>
             <p>
               Snapshot <code>{forecast.snapshot_id}</code>
             </p>

@@ -1387,9 +1387,14 @@ code {
 }
 
 .capital-amount-display {
+  gap: 0.65rem;
   justify-content: space-between;
-  padding-bottom: 0.45rem;
-  border-bottom: 1px solid var(--control-border);
+  padding: 0.48rem 0.65rem;
+  border: 1px solid
+    color-mix(in srgb, var(--warning) 82%, var(--control-border));
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--warning) 25%, var(--control-background));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--warning) 13%, transparent);
 }
 
 .capital-amount-display strong {
