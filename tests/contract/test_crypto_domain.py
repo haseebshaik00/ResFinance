@@ -51,7 +51,7 @@ def test_observation_normalizes_decimal_and_requires_explicit_missingness() -> N
         observation(decimal_value=None, missing=False)
 
 
-def test_observation_rejects_future_availability_or_naive_timestamps() -> None:
+def test_observation_rejects_future_availability_or_invalid_timestamps() -> None:
     with pytest.raises(ValueError, match="availability cannot precede"):
         observation(
             available_at_utc=datetime(2024, 12, 31, tzinfo=UTC),

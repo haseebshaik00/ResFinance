@@ -16,7 +16,7 @@ def test_finance_portfolio_and_ai_integration_is_evidence_bound_and_read_only() 
     record_finance(finance, actor)
     selector = ControlledSelector(
         FactSelection(
-            fact_ids=("savings.available", "crypto.forecast.gated"),
+            fact_ids=("savings.available", "crypto.risk.missing"),
             confidence=0.97,
         )
     )
@@ -32,8 +32,8 @@ def test_finance_portfolio_and_ai_integration_is_evidence_bound_and_read_only() 
     assert response.mode == "local-model"
     assert [item.fact_id for item in response.evidence] == [
         "savings.available",
-        "crypto.forecast.gated",
+        "crypto.risk.missing",
     ]
     assert "$1,900.00" in response.summary
-    assert "no model has an active promotion event" in response.summary
+    assert "No risk profile is recorded yet" in response.summary
     assert store.values == before

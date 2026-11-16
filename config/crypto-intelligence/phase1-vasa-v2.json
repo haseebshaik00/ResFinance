@@ -1,0 +1,23 @@
+{
+  "attention_heads": 2,
+  "dropout": 0.2,
+  "forecast_days": 7,
+  "lookback": 5,
+  "model_dimension": 16,
+  "patch_sizes": [4, 5],
+  "patch_stride": 2,
+  "seeds": [2025, 2026, 2027],
+  "training": {
+    "batch_size": 64,
+    "epochs": 30,
+    "learning_rate": 0.003,
+    "patience": 6,
+    "weight_decay": 0.0001
+  },
+  "transformer_layers": 1,
+  "volatility_hidden": 8,
+  "volatility_lookback_candidates": [7, 14, 30],
+  "walk_forward_folds": 3,
+  "walk_forward_test_days": 60,
+  "walk_forward_validation_days": 60
+}

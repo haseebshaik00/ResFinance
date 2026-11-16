@@ -1,0 +1,29 @@
+{
+  "cash_return_7d": "0",
+  "covariance_estimator": "Ledoit-Wolf",
+  "covariance_horizon_days": 7,
+  "covariance_lookback_days": 365,
+  "model_blend": "confidence-weighted",
+  "policy_version": "phase2-risk-profile-model-blend-v4",
+  "risk_aversion": "5.0",
+  "risk_profile_targets": [
+    {
+      "maximum_score": 44,
+      "minimum_score": 33,
+      "profile": "conservative",
+      "weights": {"BTC": "0.20", "ETH": "0.15", "SOL": "0.05", "cash": "0.60"}
+    },
+    {
+      "maximum_score": 67,
+      "minimum_score": 56,
+      "profile": "balanced",
+      "weights": {"BTC": "0.25", "ETH": "0.40", "SOL": "0.15", "cash": "0.20"}
+    },
+    {
+      "maximum_score": 100,
+      "minimum_score": 78,
+      "profile": "growth",
+      "weights": {"BTC": "0.30", "ETH": "0.35", "SOL": "0.25", "cash": "0.10"}
+    }
+  ]
+}

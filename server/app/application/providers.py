@@ -13,18 +13,6 @@ class MarketDataProvider(Protocol):
     ) -> Sequence[ProviderObservation]: ...
 
 
-class OnChainDataProvider(Protocol):
-    def observations(
-        self, *, asset: CryptoAsset, start_utc: datetime, end_utc: datetime
-    ) -> Sequence[ProviderObservation]: ...
-
-
-class SentimentDataProvider(Protocol):
-    def observations(
-        self, *, asset: CryptoAsset, start_utc: datetime, end_utc: datetime
-    ) -> Sequence[ProviderObservation]: ...
-
-
 class CryptoDataProvider(Protocol):
     provider: str
     adapter_id: str
@@ -42,7 +30,5 @@ class CryptoDataProvider(Protocol):
 __all__ = [
     "CryptoDataProvider",
     "MarketDataProvider",
-    "OnChainDataProvider",
     "ProviderObservation",
-    "SentimentDataProvider",
 ]

@@ -1,0 +1,111 @@
+{
+  "forecast": {
+    "assets": [
+      {
+        "asset": "BTC",
+        "current_price": "68096.3125056",
+        "predicted_prices": [
+          "67866.95252995",
+          "67609.84147664",
+          "67524.33024349",
+          "67559.78946955",
+          "67715.80526702",
+          "67917.13665791",
+          "68059.04467055"
+        ],
+        "predicted_return_7d": "-0.0005472813"
+      },
+      {
+        "asset": "ETH",
+        "current_price": "1923.37015483",
+        "predicted_prices": [
+          "1925.33550403",
+          "1925.90305115",
+          "1925.46060469",
+          "1927.31008759",
+          "1928.90577019",
+          "1932.67054911",
+          "1934.89336792"
+        ],
+        "predicted_return_7d": "0.0059911573"
+      },
+      {
+        "asset": "SOL",
+        "current_price": "77.8394437",
+        "predicted_prices": [
+          "77.67538353",
+          "77.45764437",
+          "77.39950812",
+          "77.49688402",
+          "77.75142506",
+          "78.15810558",
+          "78.40929813"
+        ],
+        "predicted_return_7d": "0.0073208955"
+      }
+    ],
+    "forecast_dates_utc": [
+      "2026-11-14",
+      "2026-11-15",
+      "2026-11-16",
+      "2026-11-17",
+      "2026-11-18",
+      "2026-11-19",
+      "2026-11-20"
+    ],
+    "generated_at_utc": "2026-11-14T07:22:42.305314Z",
+    "manifest_key": "phase1-run:phase1-vasa-v2-f07de01b517d4304823d07bb11a28b1b:manifest",
+    "market_data_cutoff_utc": "2026-11-13T00:00:00Z",
+    "model_key": "original-mspciformer",
+    "model_version": "phase1-market-only-v2",
+    "run_id": "phase1-vasa-v2-f07de01b517d4304823d07bb11a28b1b",
+    "snapshot_id": "ab57e3bf7fc0811dfb43fcca9bd399681479c30bd1662a5b2fc33e5b81f1e008",
+    "stale_reasons": [],
+    "status": "current"
+  },
+  "recommendation": {
+    "allocations": [
+      {
+        "amount_minor_units": 3981,
+        "asset": "BTC",
+        "weight": "0.0398084821"
+      },
+      {
+        "amount_minor_units": 2936,
+        "asset": "ETH",
+        "weight": "0.0293655101"
+      },
+      {
+        "amount_minor_units": 3201,
+        "asset": "SOL",
+        "weight": "0.0320095481"
+      }
+    ],
+    "capital_minor_units": 100000,
+    "capital_usd": "1000",
+    "cash_reserve": {
+      "amount_minor_units": 89882,
+      "weight": "0.8988164597"
+    },
+    "covariance_estimator": "Ledoit-Wolf",
+    "covariance_lookback_days": 365,
+    "covariance_repaired": false,
+    "diversification_prior": "inverse-volatility",
+    "estimated_portfolio_volatility_7d": "0.0072263648",
+    "model_confidence": "0.03390675112329580580854069685",
+    "policy_version": "phase2-model-informed-diversified-cash-v3",
+    "predicted_portfolio_return_7d": "0.0003884855",
+    "risk_aversion": "5.0",
+    "solver": "CLARABEL",
+    "solver_status": "optimal",
+    "warnings": [
+      "Experimental research output: predicted returns are uncertain and are not guaranteed profits.",
+      "This recommendation is informational only and does not execute trades or transfer assets.",
+      "USD cash reserve is deliberately left unallocated because the risk-adjusted crypto sleeve does not justify using all scenario capital.",
+      "The crypto sleeve uses a 3.39% forecast-model tilt; its remaining weight follows an inverse-volatility BTC/ETH/SOL diversification prior."
+    ]
+  },
+  "schema_version": 3,
+  "scope": "Milestone 6 local non-commercial research recommendation",
+  "trades_executed": false
+}

@@ -154,7 +154,7 @@ def _json_object(raw: str | None, label: str) -> dict[str, object]:
 
 def parser() -> argparse.ArgumentParser:
     value = argparse.ArgumentParser(
-        description="Dispatch a missed fixed-PST daily forward-completion workflow exactly once."
+        description="Dispatch a missed fixed-PST daily market-refresh workflow exactly once."
     )
     value.add_argument("--repository", default=DEFAULT_REPOSITORY)
     value.add_argument("--workflow", default=DEFAULT_WORKFLOW)

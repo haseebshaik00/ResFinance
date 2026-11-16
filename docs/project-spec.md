@@ -18,7 +18,7 @@ source_pdf: "/Users/haseebrahman/Downloads/ResFinance.pdf"
 | Fragmented Financial State | **ResilientDB** | Budgeting, expenses, shared balances, savings, and recommendations usually live in separate apps. ResilientDB becomes the shared source of truth, recording each meaningful event once and reflecting it across Personal Finance, Friends & Groups, and Crypto Intelligence. |
 | Manual & Error-Prone Settlement | **Smart Contracts** | Bill splitting is more than arithmetic: participants, shares, receivables/payables, and settlement status must stay consistent. Smart contracts enforce the rules and `OPEN -> PARTIALLY SETTLED -> SETTLED` transitions, then update personal finance correctly. |
 | Weak User Ownership of Transactions | **ResWallet** | Payments and settlements should not be silently executed by a central backend. ResWallet provides wallet-linked identity and user-controlled signing, so each payment or contract action is explicitly approved and remains auditable. |
-| Disconnected Savings & Crypto Decisions | **Our ML Model** | Savings tools rarely turn real affordability into investment decisions. The model uses actual/projected savings, Smart Savings Insights, market + sentiment + on-chain signals, adaptive gating, and MSPCIFormer to produce a risk-aware BTC/ETH/SOL portfolio. |
+| Opaque Crypto Scenarios | **Our ML Model** | Crypto allocation tools often hide forecast age, model error, and portfolio assumptions. The active workflow uses completed BTC/ETH/SOL daily prices, validation-selected MSPCIFormer forecasts, and transparent seven-day mean–variance optimization for a user-entered hypothetical amount. |
 
 ## 2. Product integration gap
 
@@ -90,21 +90,33 @@ Add equal/unequal splits, payer/share logic, reimbursements, and settlement. Res
 
 ### Phase 3 - BTC/ETH/SOL Data + REST AI Service
 
-Ingest historical/live market, sentiment/NLP, and on-chain data for BTC, ETH, and SOL only. Persist raw data, features, and metadata in ResilientDB; use Pandas/Polars in memory; expose REST endpoints.
+Persist historical and latest completed daily market observations for BTC,
+ETH, and SOL in ResilientDB and expose verified forecast/recommendation REST
+endpoints. The active forecast uses only completed daily market prices.
 
 ### Phase 4 - Research-Grade Forecasting Engine
 
-Train baselines, implement MSPCIFormer, and add adaptive gating across market, sentiment, and on-chain inputs. Use walk-forward evaluation and ablations against market-only and fixed-weight fusion.
+Implement Original MSPCIFormer and VASA-MSPCIFormer using market prices only,
+with direct Days 1–7 forecasts, chronological holdout, walk-forward evaluation,
+saved deployment preprocessing/checkpoint artifacts, and validation-only model
+selection.
 
-### Phase 5 - Risk Profiling, Portfolio Optimization + Full Local Integration
+### Phase 5 - Portfolio Optimization + Full Local Integration
 
-Combine forecasted returns, uncertainty, realized risk/covariance, liquidity, and downside risk with a continuous user risk score. Generate explainable BTC/ETH/SOL weights, backtest, and integrate the complete journey in the local validated environment. Deployment is a separate, deferred milestone and is not required to complete this phase.
+Combine raw predicted Day-7 returns with a 365-day Ledoit-Wolf covariance
+estimate scaled to seven days. Use fixed-lambda, long-only mean–variance
+optimization for the BTC/ETH/SOL sleeve. A wallet-scoped risk questionnaire
+selects fixed Conservative, Balanced, or Growth BTC/ETH/SOL/USD-cash policy
+weights. Calibrate the model blend from held-out evidence and use it only to
+refine the crypto sleeve; cash and total crypto exposure remain the user's risk
+decision. There are no coin caps. Integrate the result into the local
+dashboard. Deployment remains separately deferred.
 
 ### Final local delivery gate — Milestone 7: Deliverables — Cross-dashboard Integration & Local Handoff
 
-After the functional phases, package the complete local stack behind one documented startup lifecycle and prove one continuous, non-mocked browser journey through ResWallet, React, FastAPI, ResilientDB, ResContract, Crypto Intelligence, and Smart Insights. The first provider-backed adaptive candidate remains rejected because its MAE was worse than naive. The approved completion iteration subsequently: (1) evaluated a validation-calibrated adaptive-gating candidate on the predeclared untouched forward period and passed the unchanged MAE and 70 percent coverage rules; (2) appended an immutable promotion only after that qualifying run; (3) ingested current point-in-time BTC/ETH/SOL data, froze the final model, and persisted a provenance-complete current 15-day forecast snapshot; (4) proved the normal live recommendation, exact-cent allocations, Finance-derived default savings, non-mutating scenario analysis, and fail-closed stale/corrupt/unpromoted behavior; and (5) repeated all local suites plus the real two-wallet restart journey. Milestone 7 is complete for the declared local scope. Production hardening and deployment remain a separate, deferred Milestone 8.
+After the functional phases, package the complete local stack behind one documented startup lifecycle and prove one continuous, non-mocked browser journey through ResWallet, React, FastAPI, ResilientDB, ResContract, Crypto Intelligence, and Smart Insights. The active Crypto Intelligence path ingests completed BTC/ETH/SOL market data daily and performs inference-only refreshes from a verified MSPCIFormer/VASA checkpoint. Milestone 7 is complete for the declared local scope. Production hardening and deployment remain a separate, deferred Milestone 8.
 
-## 5. Forecasting research: 2 papers + 1 novelty
+## 5. Forecasting research: MSPCIFormer + VASA
 
 ### Paper 1 - MSPCIFormer
 
@@ -112,17 +124,12 @@ After the functional phases, package the complete local stack behind one documen
 
 Base multi-scale Transformer architecture for cryptocurrency forecasting.
 
-### Paper 2 - Gurgul et al.
+### Current research extension - VASA
 
-**Citation:** Gurgul et al. (2025)
-
-Motivates multimodal inputs from markets, blockchain/on-chain data, and sentiment/news NLP.
-
-### Our novelty - Adaptive Multi-Source Fusion/Gating
-
-Dynamically weights market, sentiment, and on-chain information before forecasting.
-
-**Model output:** Expected return, upside probability, and forecast interval. The model is evaluated with walk-forward tests and source/fusion ablations.
+The active market-only experiment compares Original MSPCIFormer with
+Volatility-Adaptive Scale Aggregation (VASA) for direct seven-day BTC/ETH/SOL
+prices and returns. VASA did not improve the primary holdout, so validation
+selected the original reimplementation.
 
 ## 6. Crypto Intelligence behavior
 
@@ -130,17 +137,21 @@ Dynamically weights market, sentiment, and on-chain information before forecasti
 
 The v1 cryptocurrency universe contains exactly three assets: Bitcoin, Ethereum, and Solana.
 
-### Default capital = monthly savings
+### Investment capital
 
-Actual/projected savings opens as the initial portfolio amount.
+The current month's available savings from Personal Finance is the default
+positive USD capital. The user may replace it only for a read-only hypothetical
+scenario; neither outcome changes Finance.
 
 ### Smart Savings Insights
 
 Explains realistic ways to increase investable surplus from spending history and recurring patterns.
 
-### Analyze Another Amount
+### Seven-day allocation
 
-Runs a separate what-if amount without changing Personal Finance or the saved financial record.
+The backend applies fixed-lambda mean–variance optimization to Phase 1 Day-7
+returns and seven-day historical covariance. It distributes 100% among BTC,
+ETH, and SOL with no shorts, leverage, custom coin caps, or risk questionnaire.
 
 ## 7. End-to-end user story
 
@@ -148,26 +159,32 @@ Runs a separate what-if amount without changing Personal Finance or the saved fi
 2. **Track** - Income, expenses, and budgets create a live personal finance view.
 3. **Split** - Alex pays a group bill; shares become obligations and receivables.
 4. **Settle** - Friends sign payments; the contract updates group and ledger state.
-5. **Save** - Updated actual/projected savings flows to Crypto Intelligence by default.
-6. **Improve** - Smart Savings Insights suggests practical ways to save more.
-7. **Explore** - Alex reviews BTC, ETH, and SOL data and three-source signals.
-8. **Forecast** - Adaptive gating + MSPCIFormer produces research-grade forecasts.
-9. **Assess** - A questionnaire creates a continuous risk score and constraints.
-10. **Build** - The optimizer converts forecasts + risk into BTC/ETH/SOL weights.
-11. **Override** - Analyze Another Amount runs a what-if without altering savings.
-12. **Monitor** - Forecasts, risk, and allocations refresh; provenance stays auditable.
+5. **Save** - Updated savings remains available to Personal Finance and Smart Insights.
+6. **Explore** - Alex reviews BTC, ETH, and SOL completed market prices.
+7. **Forecast** - The validation-selected MSPCIFormer produces seven direct daily prices.
+8. **Allocate** - Alex starts with the current month's available savings; an
+   optional replacement amount remains a read-only scenario.
+9. **Build** - Mean–variance optimization converts Day-7 returns and covariance into weights.
+10. **Monitor** - Forecast freshness, model error, solver status, and provenance stay visible.
 
 ### Complete product story
 
-Earn -> Spend -> Split -> Settle -> Update Personal Finance -> Save -> Improve Savings -> Explore BTC/ETH/SOL -> Forecast -> Assess Risk -> Build Portfolio -> Monitor.
+Earn -> Spend -> Split -> Settle -> Update Personal Finance -> Use Available Savings -> Explore BTC/ETH/SOL -> Forecast Seven Days -> Build Portfolio -> Monitor.
 
-The ledger stays shared and auditable; Analyze Another Amount remains an isolated scenario.
+The ledger stays shared and auditable; Crypto Intelligence remains an isolated,
+read-only scenario.
 
 ## Research core
 
-- MSPCIFormer (2026)
-- Gurgul et al. (2025)
-- Adaptive Multi-Source Fusion/Gating
+- New research direction: MSPCIFormer (2026) only, beginning with the isolated
+  market-only seven-day VASA experiment documented in
+  [`research/mspciformer-vasa-phase1-v2.md`](research/mspciformer-vasa-phase1-v2.md).
+- Retired Paper 2 and naïve-baseline evidence is preserved under
+  [`research/archive/paper2-multimodal-naive/`](research/archive/paper2-multimodal-naive/)
+  and is not used by the active dashboard or daily refresh.
+- Phase 2 now connects the verified selected checkpoint to the seven-day
+  mean–variance portfolio and UI documented in
+  [`research/phase2-seven-day-portfolio.md`](research/phase2-seven-day-portfolio.md).
 
 ## Deployment summary — on hold
 

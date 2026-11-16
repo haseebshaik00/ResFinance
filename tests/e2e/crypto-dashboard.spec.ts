@@ -2,11 +2,78 @@ import { expect, test } from "@playwright/test";
 
 import { approveWalletLogin, prepareWalletLogin } from "./wallet-login";
 
-test("shows the promotion gate and records a versioned risk profile", async ({
-  page,
-}) => {
+const assets = [
+  {
+    asset: "BTC",
+    current_price: "68000.00",
+    predicted_prices: [
+      "68100",
+      "68200",
+      "68300",
+      "68400",
+      "68500",
+      "68600",
+      "68700",
+    ],
+    predicted_daily_returns: [
+      "0.001",
+      "0.001",
+      "0.001",
+      "0.001",
+      "0.001",
+      "0.001",
+      "0.001",
+    ],
+    predicted_return_7d: "0.0102941176",
+    p10_prices: ["67600", "67650", "67700", "67750", "67800", "67850", "67900"],
+    p50_prices: ["68100", "68200", "68300", "68400", "68500", "68600", "68700"],
+    p90_prices: ["68600", "68750", "68900", "69050", "69200", "69350", "69500"],
+  },
+  {
+    asset: "ETH",
+    current_price: "1900.00",
+    predicted_prices: ["1905", "1910", "1915", "1920", "1925", "1930", "1938"],
+    predicted_daily_returns: [
+      "0.002",
+      "0.002",
+      "0.002",
+      "0.002",
+      "0.002",
+      "0.002",
+      "0.004",
+    ],
+    predicted_return_7d: "0.02",
+    p10_prices: ["1885", "1888", "1891", "1894", "1897", "1900", "1905"],
+    p50_prices: ["1905", "1910", "1915", "1920", "1925", "1930", "1938"],
+    p90_prices: ["1925", "1932", "1939", "1946", "1953", "1960", "1971"],
+  },
+  {
+    asset: "SOL",
+    current_price: "78.00",
+    predicted_prices: ["78.2", "78.4", "78.6", "78.8", "79", "79.2", "79.56"],
+    predicted_daily_returns: [
+      "0.002",
+      "0.002",
+      "0.002",
+      "0.002",
+      "0.002",
+      "0.002",
+      "0.004",
+    ],
+    predicted_return_7d: "0.02",
+    p10_prices: ["77.4", "77.6", "77.8", "78", "78.2", "78.4", "78.7"],
+    p50_prices: ["78.2", "78.4", "78.6", "78.8", "79", "79.2", "79.56"],
+    p90_prices: ["79", "79.2", "79.4", "79.6", "79.8", "80", "80.42"],
+  },
+];
+
+let forecastStatus: "current" | "stale" = "current";
+let staleReasons: string[] = [];
+
+test.beforeEach(async ({ page }) => {
+  forecastStatus = "current";
+  staleReasons = [];
   await prepareWalletLogin(page);
-  let profileSaved = false;
   await page.route("**/api/v1/auth/refresh", async (route) => {
     await route.fulfill({
       status: 200,
@@ -14,7 +81,7 @@ test("shows the promotion gate and records a versioned risk profile", async ({
       body: JSON.stringify({
         access_token: "e2e-access-token",
         token_type: "Bearer",
-        expires_at: "2026-10-14T08:10:00Z",
+        expires_at: "2026-11-14T08:10:00Z",
         actor_address: `0x${"a".repeat(40)}`,
       }),
     });
@@ -26,347 +93,565 @@ test("shows the promotion gate and records a versioned risk profile", async ({
       body: JSON.stringify({ status: "ok", service: "resfinance-api" }),
     });
   });
-  await page.route("**/api/v1/crypto/risk-profile", async (route) => {
-    profileSaved = true;
-    await route.fulfill({
-      status: 201,
-      contentType: "application/json",
-      body: JSON.stringify({
-        event_id: "evt_risk_e2e",
-        projection_version: 1,
-        occurred_at_utc: "2026-10-14T08:00:00Z",
-        deduplicated: false,
-      }),
-    });
-  });
-  await page.route("**/api/v1/crypto/overview?month=*", async (route) => {
+  await page.route("**/api/v1/finance/overview?month=*", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
-        month: "2026-10",
-        risk_profile: profileSaved
-          ? {
-              answers: {
-                investment_horizon: 2,
-                risk_tolerance: 2,
-                liquidity_needs: 2,
-              },
-              score: 67,
-              policy_version: "risk-questionnaire-v2",
-              source_event_id: "evt_risk_e2e",
-              recorded_at_utc: "2026-10-14T08:00:00Z",
-            }
-          : null,
-        risk_projection_version: profileSaved ? 1 : 0,
-        forecast: null,
-        recommendation: null,
-        default_capital: { currency: "USD", minor_units: 270000 },
-        savings_formula_version: "finance-savings-v1",
-        savings_calculation_id: "savings_e2e",
-        savings_source_event_ids: ["evt_income", "evt_expense"],
+        summary: {
+          savings: {
+            available: { currency: "USD", minor_units: 100000 },
+          },
+        },
       }),
     });
   });
+  await page.route("**/api/v1/crypto/forecast", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        snapshot_id: "forecast-phase2-e2e",
+        run_id: "phase1-vasa-v2-e2e",
+        manifest_key: "phase1-run:phase1-vasa-v2-e2e:manifest",
+        model_key: "original-mspciformer",
+        model_name: "Original MSPCIFormer reimplementation",
+        model_version: "phase1-market-only-v2",
+        generated_at_utc: "2026-11-14T06:30:00Z",
+        market_data_cutoff_utc: "2026-11-13T00:00:00Z",
+        forecast_dates_utc: [
+          "2026-11-14",
+          "2026-11-15",
+          "2026-11-16",
+          "2026-11-17",
+          "2026-11-18",
+          "2026-11-19",
+          "2026-11-20",
+        ],
+        assets,
+        status: forecastStatus,
+        stale_reasons: staleReasons,
+        refreshed_from_checkpoint: false,
+        quality_checks: {
+          finite: true,
+          positive_prices: true,
+          fallback_used: false,
+        },
+        accuracy: ["original-mspciformer", "vasa-mspciformer"].map(
+          (model_key) => ({
+            model_key,
+            mape: model_key === "original-mspciformer" ? "0.044" : "0.045",
+            return_7d_mae: "0.058",
+            directional_accuracy: "0.50",
+            btc_day_7_mae_usd: "3582",
+            eth_day_7_mae_usd: "174",
+            sol_day_7_mae_usd: "9",
+          }),
+        ),
+        research_status: "experimental",
+      }),
+    });
+  });
+  await page.route("**/api/v1/crypto/risk-profile", async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({
+          event_id: "evt-risk-profile-e2e",
+          projection_version: 1,
+          occurred_at_utc: "2026-11-14T06:30:00Z",
+          deduplicated: false,
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        projection_version: 1,
+        profile: {
+          answers: {
+            investment_horizon: 2,
+            risk_tolerance: 2,
+            liquidity_needs: 1,
+          },
+          score: 78,
+          policy_version: "risk-questionnaire-v3",
+          source_event_id: "evt-risk-profile-e2e",
+          recorded_at_utc: "2026-11-14T06:30:00Z",
+        },
+      }),
+    });
+  });
+  await page.route("**/api/v1/crypto/recommendations", async (route) => {
+    const capital = route.request().postDataJSON().capital
+      .minor_units as number;
+    const weights = [0.25, 0.4, 0.15];
+    const cashWeight = 0.2;
+    const amounts = [
+      Math.round(capital * weights[0]),
+      Math.round(capital * weights[1]),
+    ];
+    amounts.push(Math.round(capital * weights[2]));
+    const cashAmount = capital - amounts[0] - amounts[1] - amounts[2];
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        capital: { currency: "USD", minor_units: capital },
+        forecast_snapshot_id: "forecast-phase2-e2e",
+        forecast_status: "current",
+        model_key: "original-mspciformer",
+        model_version: "phase1-market-only-v2",
+        expected_returns_7d: assets.map((item) => ({
+          asset: item.asset,
+          predicted_return_7d: item.predicted_return_7d,
+        })),
+        predicted_portfolio_return_7d: "0.0161",
+        estimated_portfolio_volatility_7d: "0.045",
+        risk_aversion: "5.0",
+        covariance_lookback_days: 365,
+        covariance_estimator: "Ledoit-Wolf",
+        covariance_repaired: false,
+        solver: "CLARABEL",
+        solver_status: "optimal",
+        policy_version: "phase2-risk-profile-model-blend-v4",
+        risk_profile: "growth",
+        risk_score: 78,
+        risk_profile_event_id: "evt-risk-profile-e2e",
+        risk_policy_version: "risk-questionnaire-v3",
+        model_confidence: "0.20",
+        model_blend: "confidence-weighted",
+        strategic_allocations: ["BTC", "ETH", "SOL"].map((asset, index) => ({
+          asset,
+          weight: weights[index].toString(),
+          amount: { currency: "USD", minor_units: amounts[index] },
+        })),
+        strategic_cash_reserve: {
+          label: "USD cash reserve",
+          weight: cashWeight.toString(),
+          amount: { currency: "USD", minor_units: cashAmount },
+        },
+        tactical_adjustments: ["BTC", "ETH", "SOL"].map((asset) => ({
+          asset,
+          weight: "0",
+        })),
+        allocations: ["BTC", "ETH", "SOL"].map((asset, index) => ({
+          asset,
+          weight: weights[index].toString(),
+          amount: { currency: "USD", minor_units: amounts[index] },
+        })),
+        cash_reserve: {
+          label: "USD cash reserve",
+          weight: cashWeight.toString(),
+          amount: { currency: "USD", minor_units: cashAmount },
+        },
+        crypto_allocation_weight: "0.6",
+        total_allocation_weight: "1.0",
+        warnings: [
+          "Experimental research output: predicted returns are uncertain.",
+        ],
+      }),
+    });
+  });
+});
+
+test("renders the seven-day forecast and updates optimizer amounts", async ({
+  page,
+}) => {
   await page.goto("/crypto");
   await approveWalletLogin(page);
 
   await expect(
-    page.getByRole("link", { name: "Crypto Intelligence", exact: true }),
-  ).toHaveAttribute("aria-current", "page");
-  await expect(
-    page.getByRole("heading", { name: "Savings, translated into choices!" }),
-  ).toBeVisible();
-  const capitalCard = page.locator(".capital-card");
-  await expect(
-    capitalCard.getByText("$2,700.00", { exact: true }),
+    page.getByRole("heading", { name: "Crypto Intelligence" }),
   ).toBeVisible();
   await expect(
-    capitalCard.getByRole("button", { name: "Edit scenario amount" }),
+    page.getByText("Current forecast", { exact: true }),
   ).toBeVisible();
-  await expect(
-    page
-      .locator(".summary-grid")
-      .getByText("finance-savings-v1", { exact: true }),
-  ).toHaveCount(0);
-  await expect(page.getByText("Policy v1", { exact: true })).toHaveCount(0);
-  await page.getByText("Data Freshness and Provenance").click();
-  await expect(
-    page.getByText(
-      /Formula finance-savings-v1; Finance calculation savings_e2e/,
+  await expect(page.getByText("Savings month", { exact: true })).toBeVisible();
+  const forecastStatusBox = await page
+    .locator(".crypto-header-actions .forecast-status")
+    .boundingBox();
+  const savingsMonthBox = await page
+    .locator(".crypto-header-actions .month-control")
+    .boundingBox();
+  expect(forecastStatusBox).not.toBeNull();
+  expect(savingsMonthBox).not.toBeNull();
+  expect(savingsMonthBox!.y).toBeGreaterThan(forecastStatusBox!.y);
+  expect(
+    Math.abs(
+      forecastStatusBox!.x +
+        forecastStatusBox!.width -
+        (savingsMonthBox!.x + savingsMonthBox!.width),
     ),
-  ).toBeVisible();
-  await expect(page.getByText("savings_e2e")).toBeVisible();
+  ).toBeLessThan(2);
+  const cryptoHeroBox = await page
+    .locator(".phase2-dashboard .dashboard-header > div")
+    .first()
+    .boundingBox();
+  expect(cryptoHeroBox).not.toBeNull();
+  const monthBottomOffset =
+    cryptoHeroBox!.y +
+    cryptoHeroBox!.height -
+    (savingsMonthBox!.y + savingsMonthBox!.height);
+  expect(monthBottomOffset).toBeGreaterThanOrEqual(8);
+  expect(monthBottomOffset).toBeLessThan(16);
+  const forecastStatusTrigger = page.getByRole("button", {
+    name: "Current forecast details",
+  });
+  await forecastStatusTrigger.hover();
+  const forecastStatusTooltip = page.locator(".forecast-status-tooltip");
+  await expect(forecastStatusTooltip).toBeVisible();
+  const tooltipIsTopmostAtBottom = await forecastStatusTooltip.evaluate(
+    (tooltip) => {
+      const { left, top, width, height } = tooltip.getBoundingClientRect();
+      tooltip.style.pointerEvents = "auto";
+      const isTopmost =
+        document
+          .elementFromPoint(left + width / 2, top + height - 8)
+          ?.closest(".forecast-status-tooltip") === tooltip;
+      tooltip.style.pointerEvents = "";
+      return isTopmost;
+    },
+  );
+  expect(tooltipIsTopmostAtBottom).toBe(true);
+  const savingsMonthTrigger = page.locator(
+    ".crypto-header-actions .reporting-month-trigger",
+  );
+  await savingsMonthTrigger.click();
+  const savingsMonthMenu = page.locator(
+    ".crypto-header-actions .reporting-month-menu",
+  );
+  await expect(savingsMonthMenu).toBeVisible();
+  await expect(page.locator(".crypto-header-actions")).toHaveCSS(
+    "z-index",
+    "1",
+  );
+  const menuIsTopmostAtCenter = await savingsMonthMenu.evaluate((menu) => {
+    const { left, top, width, height } = menu.getBoundingClientRect();
+    return (
+      document
+        .elementFromPoint(left + width / 2, top + height / 2)
+        ?.closest(".reporting-month-menu") === menu
+    );
+  });
+  expect(menuIsTopmostAtCenter).toBe(true);
+  await savingsMonthTrigger.press("Escape");
+  await expect(savingsMonthMenu).toBeHidden();
+  await expect(
+    page.locator(".phase2-portfolio .portfolio-setup-row .capital-card"),
+  ).toContainText("Investment Capital");
+  await expect(
+    page.locator(
+      ".phase2-portfolio .portfolio-setup-row > .capital-card, .phase2-portfolio .portfolio-setup-row > .risk-questionnaire-card",
+    ),
+  ).toHaveCount(2);
+  const setupCardWidths = await page
+    .locator(
+      ".phase2-portfolio .portfolio-setup-row > .capital-card, .phase2-portfolio .portfolio-setup-row > .risk-questionnaire-card",
+    )
+    .evaluateAll((cards) =>
+      cards.map((card) => card.getBoundingClientRect().width),
+    );
+  expect(Math.abs(setupCardWidths[0]! - setupCardWidths[1]!)).toBeLessThan(2);
+  const riskScore = page.getByRole("button", {
+    name: "Risk score 78 details",
+  });
+  const portfolioActions = page.locator(
+    ".portfolio-heading-actions > .methodology-info, .portfolio-heading-actions > a, .portfolio-heading-actions > .risk-score",
+  );
+  await expect(portfolioActions).toHaveCount(3);
+  const portfolioActionBounds = await portfolioActions.evaluateAll((actions) =>
+    actions.map((action) => action.getBoundingClientRect()),
+  );
+  expect(
+    portfolioActionBounds.every(
+      (action) =>
+        Math.abs(action.height - portfolioActionBounds[0]!.height) < 1,
+    ),
+  ).toBe(true);
+  expect(
+    portfolioActionBounds.every(
+      (action) => Math.abs(action.top - portfolioActionBounds[0]!.top) < 1,
+    ),
+  ).toBe(true);
+  await riskScore.hover();
+  await expect(page.locator(".risk-score-tooltip")).toContainText(
+    "[Profile version 1]",
+  );
+  await expect(page.locator(".risk-score-tooltip")).toContainText(
+    "Your answers set the BTC, ETH, SOL, and cash targets.",
+  );
+  await expect(page.locator(".risk-score-tooltip")).toContainText(
+    "The forecast can refine only the crypto sleeve.",
+  );
+  await expect(page.locator(".risk-score-tooltip")).toContainText(
+    "The responses are wallet-scoped and informational only.",
+  );
+  const forecastStatusButton = page.getByRole("button", {
+    name: "Current forecast details",
+  });
+  await forecastStatusButton.hover();
+  await expect(page.locator(".forecast-status-tooltip")).toContainText(
+    "Generated 14 Nov 2026, 06:30 UTC",
+  );
+  await expect(page.locator(".forecast-status-tooltip")).toContainText(
+    "Market cutoff 13 Nov 2026",
+  );
   await expect(
     page.getByRole("heading", {
-      name: "No forecast is eligible for portfolio use.",
+      name: "Crypto Market Overview",
+      exact: true,
     }),
   ).toBeVisible();
-  const savingsMonth = page.getByRole("button", { name: /Savings month/ });
-  await savingsMonth.click();
-  const savingsMonthMenu = page.getByRole("dialog", {
-    name: "Choose savings month",
-  });
-  await expect(savingsMonthMenu).toBeVisible();
-  await savingsMonthMenu.getByRole("button", { name: "Oct" }).click();
-  await expect(savingsMonth).toHaveAccessibleName("Savings month October 2026");
-  await expect(savingsMonthMenu).toHaveCount(0);
+  await expect(page.locator(".phase2-market-layout")).toHaveCount(1);
+  await expect(page.locator(".phase2-market-section")).toHaveCount(1);
   await expect(
-    page.getByText(/No forecast has passed the required quality checks/),
+    page.locator(".phase2-market-layout > .phase2-market-section"),
+  ).toHaveCount(1);
+  await expect(page.locator(".phase2-market-section")).toHaveAttribute(
+    "data-animated",
+    "true",
+  );
+  await expect(page.locator(".phase2-market-card")).toHaveCount(3);
+  await expect(
+    page.locator(".phase2-market-section + .phase2-outlook"),
+  ).toHaveCount(1);
+  await expect(page.getByText("$68,700.00", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("img", {
+      name: /BTC observed price.*Historical Error Range summarizes held-out error.*not a validated 80% prediction interval/,
+    }),
   ).toBeVisible();
-  await expect(page.getByText(/milestone/i)).toHaveCount(0);
   await expect(
-    capitalCard.getByText(
-      "Read Only · Edit the amount to explore other scenarios",
+    page.getByText("Historical Error Range", { exact: true }),
+  ).toBeVisible();
+  const provenancePanel = page.locator(".crypto-provenance-panel");
+  await expect(provenancePanel).not.toHaveAttribute("open");
+  await expect(
+    page.locator(".phase2-portfolio + .crypto-provenance-panel"),
+  ).toHaveCount(1);
+  await expect(
+    page.getByText("Historical Model Accuracy", { exact: true }),
+  ).not.toBeVisible();
+  await expect(
+    page.getByText("Forecast Provenance", { exact: true }),
+  ).not.toBeVisible();
+  await provenancePanel.locator("summary").click();
+  await expect(
+    page.getByText("Historical Model Accuracy", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Forecast Provenance", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Portfolio Allocation" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Explore risk-aware 7-day portfolio recommendations across BTC, ETH, SOL, and USD cash.",
+    ),
+  ).toBeVisible();
+  await page
+    .getByRole("button", {
+      name: "How to use the Crypto Intelligence dashboard",
+    })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "Crypto Intelligence guide",
+  );
+  await expect(page.getByRole("dialog")).toContainText(
+    "Recommendations are informational only",
+  );
+  await page.getByRole("button", { name: "Close dashboard guide" }).click();
+  await expect(
+    page.locator(".portfolio-section-heading + .phase2-portfolio"),
+  ).toHaveCount(1);
+  await expect(page.getByLabel("Investment Capital (USD)")).toHaveValue(
+    "1000.00",
+  );
+  await expect(
+    page.getByText(
+      /Default Investment Capital: \$1,000\.00 for .*Alternate amounts are read-only/,
     ),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Analyze Another Amount" }),
+    page.getByRole("button", { name: "Analyze Scenario" }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".capital-source", { hasText: "Available savings" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Default scenario: Using available savings/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Edit scenario amount" }),
   ).toHaveCount(0);
+  await expect(page.getByText("$250.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$400.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$150.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$200.00", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("USD cash reserve", { exact: true }),
+  ).toBeVisible();
+  const methodologyButton = page.getByRole("button", {
+    name: "How recommendations are calculated",
+  });
+  await methodologyButton.hover();
+  await expect(page.locator(".methodology-info-tooltip")).toContainText(
+    "Model confidence: 20.00%; strategic targets are blended with the forecast/covariance model mix.",
+  );
+  await expect(
+    page
+      .locator(".phase2-portfolio .portfolio-setup-row")
+      .getByText("Risk Questionnaire"),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "How long can this hypothetical allocation remain invested?",
+    ),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Growth Profile · Risk Score 78 · Cash 20.00%"),
+  ).toBeVisible();
+  const savingsAllocationHeading = page.getByRole("heading", {
+    name: "Savings Allocation",
+  });
+  await expect(savingsAllocationHeading).toBeVisible();
+  const allocationProfile = page.getByText(
+    "Growth Profile · Risk Score 78 · Cash 20.00%",
+  );
+  const [savingsAllocationBox, allocationProfileBox] = await Promise.all([
+    savingsAllocationHeading.boundingBox(),
+    allocationProfile.boundingBox(),
+  ]);
+  expect(savingsAllocationBox).not.toBeNull();
+  expect(allocationProfileBox).not.toBeNull();
+  expect(savingsAllocationBox!.x).toBeLessThan(allocationProfileBox!.x);
+  await expect(page.locator(".allocation-donut-center-label")).toContainText(
+    "AllocationBreakdown",
+  );
+  const firstAllocationSliceGroup = page
+    .locator(".allocation-donut-chart .recharts-pie-sector")
+    .first();
+  const firstAllocationSlice = firstAllocationSliceGroup.locator("path");
+  const idleSlicePath = await firstAllocationSlice.getAttribute("d");
+  await firstAllocationSliceGroup.hover();
+  await expect(firstAllocationSlice).toHaveClass(/is-active/);
+  await expect
+    .poll(() => firstAllocationSlice.getAttribute("d"))
+    .not.toBe(idleSlicePath);
+  await expect(page.getByText(/15-day/i)).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Save risk profile" }).click();
-  await expect(page.getByText("Score 67", { exact: true })).toBeVisible();
+  await page.getByLabel("Investment Capital (USD)").fill("2000.00");
+  await page.getByRole("button", { name: "Analyze Scenario" }).click();
+  await expect(page.getByText("$500.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$800.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$300.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("$400.00", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Scenario active: \$2000\.00/)).toBeVisible();
+  await expect(
+    page.locator(".capital-source.is-scenario-active", {
+      hasText: "Scenario active",
+    }),
+  ).toBeVisible();
+
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > innerWidth,
+    ),
+  ).toBe(false);
+  expect(
+    await page
+      .locator(".portfolio-section-heading")
+      .evaluate((heading) =>
+        Array.from(heading.children).every(
+          (child) => child.scrollWidth <= child.clientWidth,
+        ),
+      ),
+  ).toBe(true);
+  await page.waitForTimeout(1_000);
   await page.screenshot({
-    path: "test-results/crypto-dashboard.png",
+    path: "test-results/crypto-phase2-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator(".forecast-line")).toBeVisible();
+  await expect(page.locator(".forecast-uncertainty-band")).toBeVisible();
+  await expect(page.locator(".phase2-chart")).toHaveAttribute(
+    "data-animated",
+    "true",
+  );
+  await forecastStatusButton.hover();
+  await expect(page.locator(".forecast-status-tooltip")).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > innerWidth,
+    ),
+  ).toBe(false);
+  await page.screenshot({
+    path: "test-results/crypto-phase2-mobile.png",
     fullPage: true,
   });
 });
 
-test("renders promoted forecast overlays and reconciled allocations", async ({
+test("keeps historical model provenance collapsed until requested", async ({
   page,
 }) => {
-  await prepareWalletLogin(page);
-  await page.route("**/api/v1/auth/refresh", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        access_token: "e2e-access-token",
-        token_type: "Bearer",
-        expires_at: "2026-10-14T08:10:00Z",
-        actor_address: `0x${"a".repeat(40)}`,
-      }),
-    });
-  });
-  await page.route("**/api/v1/health", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ status: "ok", service: "resfinance-api" }),
-    });
-  });
-  const priceHistory = ["BTC", "ETH", "SOL"].flatMap((asset, assetIndex) =>
-    [10, 11, 12, 13, 14].map((day, index) => ({
-      asset,
-      observed_at_utc: `2026-10-${day}T00:00:00Z`,
-      price_usd: String((assetIndex + 1) * 100 + index * 2),
-      source_record_id: `${asset.toLowerCase()}-${day}`,
-    })),
-  );
-  await page.route("**/api/v1/crypto/overview?month=*", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        month: "2026-10",
-        risk_profile: {
-          answers: {
-            investment_horizon: 2,
-            risk_tolerance: 2,
-            liquidity_needs: 2,
-          },
-          score: 67,
-          policy_version: "risk-questionnaire-v2",
-          source_event_id: "evt_risk_e2e",
-          recorded_at_utc: "2026-10-14T08:00:00Z",
-        },
-        risk_projection_version: 1,
-        forecast: {
-          snapshot_id: "forecast_e2e",
-          as_of_utc: "2026-10-14T08:00:00Z",
-          expires_at_utc: "2026-10-16T08:00:00Z",
-          horizon_days: 15,
-          run_id: "run_e2e",
-          model_name: "adaptive-gating",
-          model_hash: "1".repeat(64),
-          dataset_hash: "2".repeat(64),
-          promotion_event_id: "3".repeat(64),
-          scope: "research",
-          forecasts: ["BTC", "ETH", "SOL"].map((asset) => ({
-            asset,
-            expected_return: "0.03",
-            probability_up: "0.6",
-            p10_return: "-0.05",
-            p50_return: "0",
-            p90_return: "0.1",
-          })),
-          price_history: priceHistory,
-        },
-        recommendation: {
-          capital: { currency: "USD", minor_units: 270000 },
-          source_kind: "finance_savings",
-          savings_calculation_id: "savings_e2e",
-          savings_source_event_ids: ["evt_income", "evt_expense"],
-          risk_score: 50,
-          risk_profile_event_id: "evt_risk_e2e",
-          policy_version: "portfolio-policy-v1",
-          forecast_snapshot_id: "forecast_e2e",
-          promotion_event_id: "3".repeat(64),
-          solver: "CLARABEL",
-          fallback_used: false,
-          covariance_repaired: false,
-          allocations: [
-            {
-              asset: "BTC",
-              weight: "0.50",
-              amount: { currency: "USD", minor_units: 135000 },
-              cap: "0.80",
-            },
-            {
-              asset: "ETH",
-              weight: "0.35",
-              amount: { currency: "USD", minor_units: 94500 },
-              cap: "0.60",
-            },
-            {
-              asset: "SOL",
-              weight: "0.15",
-              amount: { currency: "USD", minor_units: 40500 },
-              cap: "0.225",
-            },
-          ],
-          warnings: [
-            "Research output is informational and does not execute trades or transfer assets.",
-          ],
-        },
-        default_capital: { currency: "USD", minor_units: 270000 },
-        savings_formula_version: "finance-savings-v1",
-        savings_calculation_id: "savings_e2e",
-        savings_source_event_ids: ["evt_income", "evt_expense"],
-      }),
-    });
-  });
-  await page.route("**/api/v1/crypto/scenarios", async (route) => {
-    expect(route.request().postDataJSON()).toEqual({
-      amount: { currency: "USD", minor_units: 123456 },
-    });
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        capital: { currency: "USD", minor_units: 123456 },
-        source_kind: "scenario",
-        allocations: [],
-        warnings: [],
-      }),
-    });
-  });
+  await page.goto("/crypto");
+  await approveWalletLogin(page);
+
+  const provenancePanel = page.locator(".crypto-provenance-panel");
+  await expect(provenancePanel).not.toHaveAttribute("open");
+  await expect(
+    page.getByText("Historical Model Accuracy", { exact: true }),
+  ).not.toBeVisible();
+
+  await provenancePanel.locator("summary").click();
+
+  await expect(provenancePanel).toHaveAttribute("open", "");
+  await expect(
+    page.getByText("Historical Model Accuracy", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Forecast Provenance", { exact: true }),
+  ).toBeVisible();
+});
+
+test("shows stale reasons in the forecast status hover", async ({ page }) => {
+  forecastStatus = "stale";
+  staleReasons = [
+    "Market data is one day behind the latest completed UTC day.",
+  ];
 
   await page.goto("/crypto");
   await approveWalletLogin(page);
 
-  const capitalPanel = page.locator(".capital-card");
-  const riskPanel = page.locator(".risk-questionnaire-card");
-  await expect(capitalPanel).toBeVisible();
-  await expect(riskPanel).toBeVisible();
-  expect(
-    await capitalPanel.evaluate(
-      (element) => getComputedStyle(element, "::before").backgroundColor,
-    ),
-  ).toBe("rgb(255, 140, 160)");
-  expect(
-    await riskPanel.evaluate(
-      (element) => getComputedStyle(element, "::before").backgroundColor,
-    ),
-  ).toBe("rgb(242, 189, 90)");
-  await expect(capitalPanel.locator(".capital-source")).toHaveCSS(
-    "color",
-    "rgb(70, 214, 189)",
-  );
-  await expect(
-    capitalPanel.getByRole("button", { name: "Edit scenario amount" }),
-  ).toHaveCSS("color", "rgb(242, 189, 90)");
-  await expect(riskPanel.locator(".freshness-pill")).toHaveCSS(
-    "color",
-    "rgb(70, 214, 189)",
-  );
-  expect(
-    await riskPanel.evaluate(
-      (element) => getComputedStyle(element).backgroundImage,
-    ),
-  ).toContain("radial-gradient");
-  await page.screenshot({
-    path: "test-results/crypto-panels-themed.png",
-    fullPage: false,
+  const forecastStatusButton = page.getByRole("button", {
+    name: "Stale forecast details",
   });
+  await forecastStatusButton.hover();
+  const tooltip = page.locator(".forecast-status-tooltip");
+  await expect(tooltip).toContainText("Forecast freshness warning");
+  await expect(tooltip).toContainText(staleReasons[0]!);
+});
 
-  await expect(
-    page.getByRole("img", {
-      name: "BTC historical USD prices with 15-day P10, P50, and P90 forecast overlays ending 29 Oct 2026",
-    }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Observed through", { exact: true }),
-  ).toBeVisible();
-  await expect(page.getByText("14 Oct 2026", { exact: true })).toBeVisible();
-  await expect(
-    page.getByText("15 calendar days", { exact: true }),
-  ).toBeVisible();
-  await expect(page.getByText("Forecast ends", { exact: true })).toBeVisible();
-  await expect(page.getByText("29 Oct 2026", { exact: true })).toBeVisible();
-  await expect(page.getByText("$108.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("0.00%", { exact: true })).toBeVisible();
-  await expect(
-    page.getByText(/P50 matches the latest observed price/),
-  ).toBeVisible();
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth > window.innerWidth,
-    ),
-  ).toBe(false);
-  await page.setViewportSize({ width: 390, height: 844 });
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth > window.innerWidth,
-    ),
-  ).toBe(false);
-  await page.screenshot({
-    path: "test-results/crypto-panels-themed-mobile.png",
-    fullPage: true,
+test("shows a meaningful forecast failure", async ({ page }) => {
+  await page.route("**/api/v1/crypto/forecast", async (route) => {
+    await route.fulfill({
+      status: 503,
+      contentType: "application/problem+json",
+      body: JSON.stringify({
+        detail: "seven-day forecast is unavailable: verified artifact missing",
+      }),
+    });
   });
+  await page.goto("/crypto");
+  await approveWalletLogin(page);
   await expect(
-    page.getByRole("heading", { name: "Portfolio allocation" }),
+    page.getByRole("heading", { name: "Crypto Intelligence is unavailable." }),
   ).toBeVisible();
-  await expect(page.getByText("$1,350.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("$945.00", { exact: true })).toBeVisible();
-  await expect(page.getByText("$405.00", { exact: true })).toBeVisible();
-  const capitalCard = page.locator(".capital-card");
-  await capitalCard
-    .getByRole("button", { name: "Edit scenario amount" })
-    .click();
-  await expect(capitalCard).toHaveClass(/is-editing/);
-  await expect(capitalCard.locator(".capital-edit-field")).toBeVisible();
-  await capitalCard.getByLabel("Scenario amount (USD)").fill("1234.56");
-  await capitalCard.getByRole("button", { name: "Analyze scenario" }).click();
-  await expect(
-    capitalCard.getByText(/Scenario active: \$1,234.56/),
-  ).toBeVisible();
-  await expect(
-    capitalCard.getByText("Finance default unchanged.", {
-      exact: false,
-    }),
-  ).toBeVisible();
-
-  await page.setViewportSize({ width: 1280, height: 720 });
-  await page.getByRole("button", { name: "Switch to Light Mode" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth > window.innerWidth,
-    ),
-  ).toBe(false);
-  await page.screenshot({
-    path: "test-results/crypto-panels-themed-light.png",
-    fullPage: false,
-  });
+  await expect(page.getByText(/verified artifact missing/)).toBeVisible();
 });

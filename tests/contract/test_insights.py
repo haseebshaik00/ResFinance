@@ -42,11 +42,6 @@ class MemoryKeyValueStore:
         return [self.values[key] for key in sorted(self.values) if key.startswith(prefix)]
 
 
-class NoForecasts:
-    def latest_forecast_snapshot(self) -> None:
-        return None
-
-
 class ControlledSelector:
     model_id = "test/local-instruction-model"
     model_revision = "a" * 40
@@ -78,7 +73,7 @@ def services(
         clock=lambda: NOW,
     )
     finance = FinanceService(events)
-    portfolio = PortfolioService(events, NoForecasts(), finance)
+    portfolio = PortfolioService(events)
     insights = InsightsService(
         finance,
         portfolio,
@@ -300,11 +295,6 @@ def test_authenticated_api_exposes_read_only_insights_and_notifications() -> Non
     assert body["fact_bundle_id"].startswith("facts_")
     assert body["insight"]["mode"] == "template-fallback"
     assert any(item["severity"] == "urgent" for item in body["notifications"])
-    assert any(item["href"] == "/crypto" for item in body["notifications"])
-    assert any(
-        item["title"] == "Crypto Intelligence is gated"
-        for item in body["notifications"]
-    )
 
     query = client.post(
         "/api/v1/insights/query",

@@ -14,18 +14,19 @@ The canonical eight-milestone convention is defined in [`docs/milestones/milesto
 ## Product journey
 
 ```text
-Earn → Spend → Split → Settle → Update Finance → Calculate Savings → Explore BTC/ETH/SOL → Forecast → Assess Risk → Build Portfolio
+Earn → Spend → Split → Settle → Update Finance → Explore BTC/ETH/SOL → Forecast 7 Days → Allocate a Scenario Amount
 ```
 
 A user connects ResWallet, manages personal finances, splits expenses with
-friends, approves contractual settlements, and uses the resulting savings as
-the default amount for a risk-aware crypto portfolio analysis.
+friends, approves contractual settlements, and uses available savings from
+Personal Finance as the default capital for an experimental seven-day crypto
+allocation.
 
 ## Product areas
 
 | Personal Finance | Friends & Groups | Crypto Intelligence |
 | --- | --- | --- |
-| <ul><li>Record income, expenses, budgets, and recurring items with a fixed, direction-aware category catalog.</li><li>Track contract-confirmed receivables and payables from shared expenses.</li><li>Review any period with an in-app, keyboard-accessible Reporting month picker.</li><li>Keep Cash flow, transactions, and planning panels aligned while long records scroll with matching visible rails.</li><li>View cash-flow summaries, budget alerts, and actual or projected savings.</li><li>Receive practical, evidence-linked Smart Savings Insights.</li><li>Preserve append-only audit history through compensating corrections.</li></ul> | <ul><li>Create groups and add shared expenses, choosing which members share each expense and splitting it equally or by exact amounts.</li><li>Require each participant to approve or reject obligations with ResWallet.</li><li>Settle with internal, non-redeemable credits and immutable receipts.</li><li>Reflect confirmed obligations and settlements back into Personal Finance.</li></ul> | <ul><li>Analyze <strong>BTC, ETH, and SOL only</strong> using point-in-time market, sentiment, and on-chain data.</li><li>Choose a savings month with the same accessible in-app calendar used by Personal Finance.</li><li>Review eligible forecasts with uncertainty, freshness, and provenance.</li><li>Complete a risk questionnaire and receive an explainable long-only portfolio.</li><li>Reconcile integer-cent allocations exactly to Finance savings or a separate non-mutating scenario amount.</li></ul> |
+| <ul><li>Record income, expenses, budgets, and recurring items with a fixed, direction-aware category catalog.</li><li>Track contract-confirmed receivables and payables from shared expenses.</li><li>Review any period with an in-app, keyboard-accessible Reporting month picker.</li><li>Keep Cash flow, transactions, and planning panels aligned while long records scroll with matching visible rails.</li><li>View cash-flow summaries, budget alerts, and actual or projected savings.</li><li>Receive practical, evidence-linked Smart Savings Insights.</li><li>Preserve append-only audit history through compensating corrections.</li></ul> | <ul><li>Create groups and add shared expenses, choosing which members share each expense and splitting it equally or by exact amounts.</li><li>Require each participant to approve or reject obligations with ResWallet.</li><li>Settle with internal, non-redeemable credits and immutable receipts.</li><li>Reflect confirmed obligations and settlements back into Personal Finance.</li></ul> | <ul><li>Analyze <strong>BTC, ETH, and SOL only</strong> from completed daily market prices.</li><li>View a P10/P50/P90 <strong>Historical Error Range</strong> derived from immutable held-out residuals; it summarizes past error, is not a validated 80% prediction interval, and never supplies portfolio inputs.</li><li>Complete a wallet-scoped questionnaire that selects a conservative, balanced, or growth strategic allocation.</li><li>Use current-month available savings from Personal Finance as the default capital; edits remain read-only scenarios.</li><li>Receive a confidence-weighted forecast/covariance blend within the selected BTC/ETH/SOL sleeve while the policy fixes USD cash.</li><li>Reconcile all crypto and cash amounts to exact cents without executing trades or changing Finance.</li></ul> |
 
 ## Architecture
 
@@ -36,7 +37,7 @@ the default amount for a risk-aware crypto portfolio analysis.
 | Apache ResilientDB | Only persistent store for application events, research data, forecasts, and artifacts |
 | ResWallet | Extension-held identity, local key custody, login signing, and explicit action approval |
 | ResContract | Authoritative obligation, settlement-credit, and receipt transitions |
-| Ingestion and ML workers | Provider collection, reproducible research, forecasts, and evaluation |
+| Ingestion and ML workers | Daily market refresh, reproducible MSPCIFormer/VASA research, and forecasts |
 | Read-only AI | Evidence-linked explanations without write, wallet, settlement, or trading authority |
 
 The application uses append-only, schema-versioned events; deterministic and
@@ -84,6 +85,8 @@ docs/          Product, architecture, milestone evidence, and development refere
 - [REST API Contract](docs/rest-api-contract.md)
 - [Security Contract](docs/security.md)
 - [Research Protocol](docs/research-protocol.md)
+- [Active MSPCIFormer VASA two-model protocol](docs/research/mspciformer-vasa-phase1-v2.md)
+- [Seven-day portfolio recommendation](docs/research/phase2-seven-day-portfolio.md)
 - [Provider coverage and terms review](docs/provider-terms-review.md)
 - [ResilientDB ecosystem development references](docs/development-references.md)
 - [Canonical Milestone Convention](docs/milestones/milestones.md)
@@ -105,12 +108,12 @@ git config core.hooksPath .githooks
 The checks can also be run directly with `./scripts/verify_ci.sh`.
 
 After it is merged to `main` and a dedicated local runner is registered, the
-daily Crypto Intelligence workflow runs at 6:00 AM fixed PST, persists the
-research state in ResilientDB, and commits dated evidence JSON under
+daily Crypto Intelligence market-refresh workflow runs at 6:00 AM fixed PST,
+persists completed BTC/ETH/SOL market observations in ResilientDB, and commits dated evidence JSON under
 `config/crypto-intelligence/`. The optional macOS catch-up launcher dispatches
 one missed daily run shortly after login or wake, without duplicating an
 existing run. Runner setup, GitHub CLI authorization, and failure behavior are
-documented in the [Local Operator Guide](docs/local-operator-guide.md#daily-crypto-intelligence-forward-completion).
+documented in the [Local Operator Guide](docs/local-operator-guide.md#daily-runner-and-catch-up).
 
 ## Contributors
 

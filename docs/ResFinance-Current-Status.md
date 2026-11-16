@@ -1,6 +1,6 @@
 # ResFinance Current Status
 
-Last updated: 2026-11-01
+Last updated: 2026-11-17
 
 ResFinance uses the eight-milestone convention in
 [`milestones/milestones.md`](milestones/milestones.md). Milestones 1–7 are complete for the
@@ -158,48 +158,70 @@ Evidence:
 
 **Status:** Complete for local, non-commercial research mechanics.
 
-- Implemented Coin Metrics, CoinGecko, DefiLlama, and bounded GDELT adapters for
-  exactly `BTC | ETH | SOL`, with availability timestamps, provenance, response
-  hashes, license dispositions, explicit missingness, and idempotent ingestion.
-- Persisted immutable observations, point-in-time feature rows, source masks,
-  dataset manifests, research manifests, and encrypted model artifacts only in
-  ResilientDB.
-- Implemented deterministic baselines, LSTM, the clean-room three-asset
-  MSPCIFormer adaptation, masked Adaptive Multi-Source Gating, ablations,
-  chronological walk-forward evaluation, conformal intervals, and immutable
-  promotion gates.
-- The deterministic synthetic candidate was correctly rejected because its MAE
-  was worse than naive. That rejection proves gate enforcement and is not a
-  model-performance claim.
-- Repeated deterministic CPU runs produced identical dataset and prediction
-  hashes, and all 39 encrypted research artifacts restored byte-for-byte from
-  the real four-replica ResilientDB stack.
+- The active system ingests completed Coin Metrics BTC/ETH/SOL daily prices,
+  with provenance-complete, idempotent ResilientDB records.
+- The retained Phase 1 experiment compares the clean-room Original
+  MSPCIFormer and VASA-MSPCIFormer on direct seven-day prices. Validation
+  selected the original model for the current forecast artifact.
+- The fixed-PST daily market refresh adds the latest completed market day; the
+  dashboard uses the saved checkpoint for inference-only refreshes and labels
+  incomplete coverage as stale.
+- The prior multimodal financial/blockchain/social pipeline and naïve baseline
+  are retired. Its dated evidence remains archived and is not active product
+  behavior.
 
 Evidence:
 [`milestones/milestone5-crypto-intelligence-research.md`](milestones/milestone5-crypto-intelligence-research.md).
 
 ## Milestone 6: Crypto Intelligence — Risk & Portfolio Dashboard
 
-**Status:** Complete for local development.
+**Status:** Complete for the active local seven-day research workflow. The
+earlier 15-day questionnaire/capped workflow remains immutable legacy evidence.
 
-- Delivered the versioned risk questionnaire, constrained long-only
-  BTC/ETH/SOL optimization, Finance-linked default capital, exact-cent
-  allocations, immutable forecast provenance, and non-mutating amount
-  scenarios.
-- Simplified the active risk policy to three 1–3 responses—investment horizon,
-  risk tolerance, and liquidity needs—with the documented nine-point score
-  formula. Earlier five-question profiles remain auditable but must be
-  replaced before they can inform a new recommendation.
-- Implemented Ledoit-Wolf covariance, 15-day scaling, positive-semidefinite
-  repair, CLARABEL/SCS solving, and a constrained minimum-variance fallback.
-- Delivered the Crypto Intelligence dashboard and fail-closed handling for
-  stale, synthetic, corrupted, or unpromoted forecast inputs.
-- Made the price outlook's 15-calendar-day span explicit with daily time-scale
-  spacing, observed-through and forecast-end dates, endpoint values and
-  returns, and an explanation when the P50 median is a no-change forecast.
-- Reused the accessible in-app month picker for the Crypto Intelligence
-  savings-month control, keeping the calendar interaction and dark-theme
-  treatment consistent with Personal Finance.
+- Connected the verified validation-selected Phase 1 v2 checkpoint and saved
+  preprocessing to a seven-day forecast API. A request reuses the checkpoint;
+  it never retrains. Newer stored completed observations can trigger
+  inference-only refresh, while unavailable inputs fail explicitly and old
+  dates remain visibly stale.
+- The encrypted, append-only `risk-questionnaire-v3` now scores liquidity
+  needs inversely: `100 × (horizon + tolerance + (4 - liquidity)) / 9`,
+  rounded to the nearest whole number. Higher liquidity needs therefore reduce
+  the risk score. Historical v1 and v2 records remain auditable but require a
+  fresh v3 response before a portfolio recommendation. The questionnaire chooses
+  Conservative, Balanced, or Growth strategic BTC/ETH/SOL/USD-cash targets.
+  Fixed-lambda seven-day mean-variance optimization uses raw Day-7 predicted
+  returns and 365 aligned daily returns with Ledoit-Wolf covariance. The
+  forecast affects only the selected crypto sleeve through its held-out
+  calibration confidence; the questionnaire fixes cash and total crypto
+  exposure. There is no arbitrary percentage-point tactical tilt cap.
+- CLARABEL and SCS solve the same objective. Total solver failure is explicit;
+  there is no equal-weight or minimum-variance substitution. Crypto and cash
+  USD cents reconcile to 100% and the exact entered capital.
+- Replaced the active Crypto Intelligence page with BTC/ETH/SOL overview cards,
+  a seven-day P10/P50/P90 chart and a P10–P90 **Historical Error Range** derived
+  from the selected model's immutable held-out residuals, a USD capital input
+  defaulted from the current month's Personal Finance available savings, an
+  allocation donut/table, model error, provenance, freshness warnings,
+  methodology, and responsive light/dark presentation. An edited capital value
+  remains a read-only scenario. The Historical Error
+  Range summarizes past held-out error; it is not a validated 80% prediction
+  interval, is visualization-only, and does not affect the optimizer's existing
+  point-forecast inputs. No trading control exists.
+- Consolidated the allocation and calculation-methodology views into one
+  responsive Portfolio Allocation panel. The allocation donut, exact-cent
+  table, metrics, research disclaimer, four methodology steps, and model facts
+  remain visible; historical accuracy and provenance continue in the adjacent
+  disclosure.
+- Refined the Crypto Intelligence presentation: the capital card now pairs its
+  **Investment Capital** label with **Savings from Personal Finance**, while
+  the allocation donut uses the center label **Allocation Breakdown** and
+  consistently readable static asset labels.
+- The executed v4 $1,000 Balanced-profile result fixes $200 cash and starts
+  from $250 BTC / $400 ETH / $150 SOL. Its 3.39067511% model confidence
+  produces $267.20 BTC / $386.44 ETH / $146.36 SOL / $200 cash, with
+  0.32404561% predicted return and 5.82373217% estimated seven-day volatility.
+  Evidence is in
+  [`config/crypto-intelligence/phase2-risk-profile-model-blend-v4-2026-11-14.json`](../config/crypto-intelligence/phase2-risk-profile-model-blend-v4-2026-11-14.json).
 
 Evidence:
 [`milestones/milestone6-crypto-intelligence-dashboard.md`](milestones/milestone6-crypto-intelligence-dashboard.md).
@@ -238,13 +260,11 @@ Evidence:
   performs the research and evidence commit. The workflow also makes a late
   duplicate delivery a successful no-op once the dated evidence exists. The
   dispatcher requires a Keychain-backed GitHub CLI login on the runner account.
-- Kept the original provider-backed candidate rejected. A separately
-  predeclared forward candidate tied naive MAE at `0.0529717654`, achieved
-  `88.05%` interval coverage, passed the unchanged promotion gate, and produced
-  a provenance-linked 15-day BTC/ETH/SOL snapshot.
-- Verified the normal recommendation, exact-cent allocations, Finance-derived
-  default amount, non-mutating scenario, fail-closed invalid inputs, restart
-  persistence, and read-only Insights behavior.
+- Retired the prior Paper 2 workflow and its legacy snapshot path. The current
+  scheduler records only completed BTC/ETH/SOL market observations for
+  inference-only forecast refreshes.
+- Retained VASA and the original clean-room MSPCIFormer comparison, alongside
+  the wallet-scoped risk profile and read-only Insights behavior.
 
 Evidence:
 [`milestones/milestone7-cross-dashboard-local-handoff.md`](milestones/milestone7-cross-dashboard-local-handoff.md)

@@ -1,0 +1,8 @@
+{
+  "cash_return_7d": "0",
+  "covariance_estimator": "Ledoit-Wolf",
+  "covariance_horizon_days": 7,
+  "covariance_lookback_days": 365,
+  "policy_version": "phase2-mean-variance-cash-v2",
+  "risk_aversion": "5.0"
+}

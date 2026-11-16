@@ -97,26 +97,35 @@ There is intentionally no public obligation-write endpoint. Receivables and paya
 
 Every Group write is append-only, encrypted before ResilientDB, version checked, and idempotency keyed. Contract receipts are verified against live obligation and credit state before Finance changes. Responses label credits as non-redeemable, non-monetary, and without cash value.
 
-## Crypto risk and portfolio
+## Crypto seven-day forecast and portfolio
 
-- `GET /api/v1/crypto/overview?month=YYYY-MM` returns the versioned risk
-  profile, Finance-owned default capital, promoted forecast evidence when
-  available, and a constrained portfolio recommendation when every gate passes.
-- `POST /api/v1/crypto/risk-profile` appends an idempotent encrypted
-  `risk-questionnaire-v2` profile event and requires the expected profile
-  version. It accepts three required answers from 1 through 3:
-  `investment_horizon`, `risk_tolerance`, and `liquidity_needs`; the score is
-  the nearest whole-number result of `100 × (investment_horizon +
-  risk_tolerance + liquidity_needs) / 9`.
-- `POST /api/v1/crypto/scenarios` returns an isolated allocation for positive
-  integer USD cents. It appends no event and carries no Finance savings source.
+- `GET /api/v1/crypto/forecast` returns the verified validation-selected Phase
+  1 model, current completed-day prices, seven daily predicted prices and
+  returns, P10/P50/P90 price paths derived from the selected model's immutable
+  held-out residuals, UTC forecast dates, freshness, quality checks, run
+  provenance, and historical Original/VASA holdout errors. The UI labels the
+  P10–P90 band as the **Historical Error Range**: it summarizes past held-out
+  error and is not a validated 80% prediction interval. The paths support
+  visualization only and are not portfolio inputs.
+- `POST /api/v1/crypto/recommendations` accepts one positive integer-cent USD
+  amount and returns the saved risk profile, strategic BTC/ETH/SOL/USD-cash
+  targets, exact-cent final amounts, confidence-weighted forecast/covariance
+  tactical adjustments, seven-day predicted portfolio return and volatility,
+  solver status, snapshot identity, and warnings. `GET` and `POST`
+  `/api/v1/crypto/risk-profile` read and append the wallet-scoped questionnaire
+  projection used by the active seven-day recommendation.
 
-Forecast records require a matching immutable promotion event, research run,
-adaptive-gating model artifact hash, and dataset hash. The API rejects stale
-forecasts. The normal runtime also rejects synthetic acceptance fixtures. A
-recommendation carries the risk event, forecast snapshot, promotion event,
-portfolio policy, Finance calculation, Finance source events, solver path, caps,
-weights, exact integer-cent allocations, and a no-trading warning.
+Forecast records require a v2 Phase 1 manifest whose selected model, checkpoint,
+preprocessing, artifact hashes, and forecast agree. Inference may refresh only
+from that saved bundle and stored completed observations; it never retrains per
+request. Stale forecasts keep their dates and return explicit reasons. The
+portfolio has a wallet-scoped questionnaire, no asset caps, and no trading
+action. Its policy-selected USD cash reserve is not a crypto asset,
+stablecoin, custody balance, or execution instruction. Solver or provenance
+failure is explicit and does not produce fallback weights.
+
+The historical 15-day overview, risk-profile, and scenario contracts remain in
+repository history/evidence but are not mounted by the active API.
 
 ## Read-only Smart Savings Insights
 

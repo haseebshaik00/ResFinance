@@ -72,7 +72,7 @@ test("approves and settles an obligation partially and fully", async ({
       body: JSON.stringify({
         access_token: "groups-e2e-token",
         token_type: "Bearer",
-        expires_at: "2026-10-14T18:00:00Z",
+        expires_at: new Date(Date.now() + 6 * 60 * 60_000).toISOString(),
         actor_address: debtor,
       }),
     }),
@@ -1084,7 +1084,8 @@ async function mockVault(page: Page, outcome: VaultOutcome) {
       };
       if (
         message.source !== "resfinance-page" ||
-        message.type !== "SIGN_INTENT"
+        message.type !== "SIGN_INTENT" ||
+        message.intent?.action === "auth.login"
       )
         return;
       const intent = message.intent!;

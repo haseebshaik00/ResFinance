@@ -11,7 +11,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Reconcile a local group from ResContract")
     parser.add_argument("--group-id", required=True)
     args = parser.parse_args()
-    _, _, groups, _, _ = services_from_environment()
+    _, _, groups, _, _, _ = services_from_environment()
     if groups is None:
         raise RuntimeError("group reconciliation services are not configured")
     results = groups.reconcile_group(args.group_id)

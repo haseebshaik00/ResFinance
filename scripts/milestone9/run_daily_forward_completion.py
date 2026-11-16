@@ -70,17 +70,16 @@ def run_daily_forward_completion(
     completed = runner(command, cwd=ROOT, check=False, text=True)
     if not plan.output_path.is_file():
         raise RuntimeError(
-            "forward completion did not write its dated evidence file "
+            "market refresh did not write its dated evidence file "
             f"(exit {completed.returncode})"
         )
     evidence = _load_evidence(plan.output_path)
     if evidence.get("current_cutoff_date") != plan.cutoff_date.isoformat():
         raise RuntimeError("forward evidence cutoff does not match the daily plan")
-    published = evidence.get("live_forecast_snapshot_published")
-    if completed.returncode == 0 and published is not True:
-        raise RuntimeError("successful forward completion did not publish a snapshot")
-    if completed.returncode == 2 and published is not False:
-        raise RuntimeError("rejected forward completion has inconsistent evidence")
+    if completed.returncode != 0:
+        raise RuntimeError(f"daily market refresh failed with exit {completed.returncode}")
+    if evidence.get("market_data_ingested") is not True:
+        raise RuntimeError("successful daily refresh did not ingest market data")
     print(
         json.dumps(
             {
@@ -98,7 +97,7 @@ def run_daily_forward_completion(
 def parser() -> argparse.ArgumentParser:
     value = argparse.ArgumentParser(
         description=(
-            "Run the fixed-PST daily Crypto Intelligence forward completion and "
+            "Run the fixed-PST daily Crypto Intelligence market refresh and "
             "write dated, commit-safe evidence under config/crypto-intelligence."
         )
     )

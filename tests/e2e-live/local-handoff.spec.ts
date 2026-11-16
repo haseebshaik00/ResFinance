@@ -65,75 +65,47 @@ test("real ResWallet and services preserve the local journey through restart", a
       }),
     );
 
-    const cryptoProjection = waitForGet(ownerPage, /\/crypto\/overview\?/);
+    const forecastResponse = waitForGet(ownerPage, /\/crypto\/forecast$/);
+    const recommendationResponse = waitForPost(
+      ownerPage,
+      /\/crypto\/recommendations$/,
+    );
     await ownerPage
       .getByRole("link", { name: "Crypto Intelligence", exact: true })
       .click();
-    const crypto = (await (await cryptoProjection).json()) as {
-      default_capital: { minor_units: number };
-      savings_formula_version: string;
-      savings_source_event_ids: string[];
-      forecast: { promotion_event_id: string; horizon_days: number } | null;
-      recommendation: Recommendation | null;
+    const forecast = (await (await forecastResponse).json()) as {
+      assets: Array<{ asset: string; predicted_prices: string[] }>;
+      forecast_dates_utc: string[];
+      model_name: string;
     };
-    expect(crypto.default_capital.minor_units).toBe(400_000);
-    expect(crypto.savings_formula_version).toBe("finance-savings-v1");
-    expect(crypto.savings_source_event_ids.length).toBeGreaterThanOrEqual(2);
-    expect(crypto.forecast).toEqual(
-      expect.objectContaining({
-        promotion_event_id: expect.any(String),
-        horizon_days: 15,
-      }),
+    expect(forecast.model_name).toContain("MSPCIFormer");
+    expect(forecast.forecast_dates_utc).toHaveLength(7);
+    expect(forecast.assets).toHaveLength(3);
+    expect(forecast.assets.every((item) => item.predicted_prices.length === 7)).toBe(
+      true,
     );
-    expect(crypto.recommendation).toBeNull();
-    const promotedOverview = waitForGet(ownerPage, /\/crypto\/overview\?/);
+    await expect(
+      ownerPage.getByRole("heading", { name: "Seven-Day Price Outlook" }),
+    ).toBeVisible();
     await ownerPage.getByRole("button", { name: "Save risk profile" }).click();
-    const promoted = (await (await promotedOverview).json()) as {
-      default_capital: { minor_units: number };
-      recommendation: Recommendation | null;
+    const recommendation = (await (await recommendationResponse).json()) as {
+      allocations: Array<{ amount: { minor_units: number } }>;
+      capital: { minor_units: number };
+      cash_reserve: { amount: { minor_units: number } };
+      risk_score: number;
     };
-    expect(promoted.default_capital.minor_units).toBe(400_000);
-    expect(promoted.recommendation?.source_kind).toBe("finance_savings");
-    expect(allocationTotal(promoted.recommendation)).toBe(400_000);
+    expect(recommendation.capital.minor_units).toBe(100_000);
+    expect(allocationTotal(recommendation)).toBe(100_000);
+    expect(recommendation.risk_score).toBe(50);
     await expect(ownerPage.getByText(/Score 50/)).toBeVisible();
     await expect(
-      ownerPage.getByRole("heading", { name: "Portfolio allocation" }),
+      ownerPage.getByRole("heading", { name: "Portfolio Allocation" }),
     ).toBeVisible();
     await expect(
-      ownerPage.getByRole("heading", { name: "Price outlook" }),
+      ownerPage.getByRole("heading", { name: "Seven-Day Price Outlook" }),
     ).toBeVisible();
-    await ownerPage.getByLabel("Scenario amount (USD)").fill("2500.00");
-    const scenarioResponse = waitForPost(ownerPage, /\/crypto\/scenarios$/);
-    await ownerPage.getByRole("button", { name: "Analyze amount" }).click();
-    const scenarioHttp = await scenarioResponse;
-    expect(scenarioHttp.status()).toBe(200);
-    const scenario = (await scenarioHttp.json()) as Recommendation;
-    expect(scenario.source_kind).toBe("scenario");
-    expect(scenario.savings_calculation_id).toBeNull();
-    expect(allocationTotal(scenario)).toBe(250_000);
-    await expect(
-      ownerPage.getByText(/Scenario active: \$2,500.00/),
-    ).toBeVisible();
-    await expect(
-      ownerPage.getByText("Your Finance default is unchanged.", {
-        exact: false,
-      }),
-    ).toBeVisible();
-    const financeAfterScenario = waitForGet(ownerPage, /\/finance\/overview\?/);
-    await ownerPage.getByRole("link", { name: "Personal Finance" }).click();
-    const unchangedFinance = (await (await financeAfterScenario).json()) as {
-      summary: { savings: { available: { minor_units: number } } };
-    };
-    expect(unchangedFinance.summary.savings.available.minor_units).toBe(
-      400_000,
-    );
-    const savingsCard = ownerPage
-      .getByLabel("Finance summary")
-      .locator("article")
-      .filter({ hasText: "Available savings" });
-    await expect(savingsCard).toContainText("$4,000.00");
     console.log(
-      "milestone9:e2e promoted forecast, exact-cent allocations, and non-mutating scenario verified",
+      "milestone9:e2e seven-day forecast and questionnaire-led allocation verified",
     );
 
     await ownerPage.getByRole("link", { name: "Personal Finance" }).click();
@@ -178,7 +150,7 @@ test("real ResWallet and services preserve the local journey through restart", a
       .getByRole("link", { name: "Crypto Intelligence", exact: true })
       .click();
     await expect(
-      ownerPage.getByRole("heading", { name: "Portfolio allocation" }),
+      ownerPage.getByRole("heading", { name: "Portfolio Allocation" }),
     ).toBeVisible();
 
     const loggedOut = ownerPage.waitForResponse(
@@ -208,18 +180,15 @@ test("real ResWallet and services preserve the local journey through restart", a
   }
 });
 
-type Recommendation = {
-  source_kind: "finance_savings" | "scenario";
-  savings_calculation_id: string | null;
+function allocationTotal(recommendation: {
   allocations: Array<{ amount: { minor_units: number } }>;
-};
-
-function allocationTotal(recommendation: Recommendation | null): number {
-  if (recommendation === null)
-    throw new Error("recommendation was not returned");
-  return recommendation.allocations.reduce(
-    (total, allocation) => total + allocation.amount.minor_units,
-    0,
+  cash_reserve: { amount: { minor_units: number } };
+}): number {
+  return (
+    recommendation.allocations.reduce(
+      (total, allocation) => total + allocation.amount.minor_units,
+      0,
+    ) + recommendation.cash_reserve.amount.minor_units
   );
 }
 
