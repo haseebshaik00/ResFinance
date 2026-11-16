@@ -227,10 +227,14 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
         </section>
       </div>
 
-      <div className="portfolio-section-heading">
+      <div className="dashboard-section-heading portfolio-section-heading">
         <div>
           <p className="section-kicker">Model Informed Diversification</p>
           <h2 id="allocation-title">Portfolio Allocation</h2>
+          <p className="section-description">
+            Review a risk-aware seven-day allocation across BTC, ETH, SOL, and
+            USD cash.
+          </p>
         </div>
       </div>
       <section

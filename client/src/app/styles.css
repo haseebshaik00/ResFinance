@@ -3137,19 +3137,12 @@ code {
 }
 
 .portfolio-section-heading {
-  align-items: start;
-  display: flex;
-  justify-content: space-between;
-  margin: 0 0 0.65rem;
-  padding-inline: 0.15rem;
-  position: relative;
-  z-index: 4;
+  margin: 0 0 1rem;
 }
 
 .portfolio-section-heading h2 {
-  margin: 0;
-  font-size: 1.35rem;
-  letter-spacing: -0.025em;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
 }
 
 .portfolio-heading-actions {

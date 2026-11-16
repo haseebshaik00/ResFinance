@@ -450,6 +450,11 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     page.getByRole("heading", { name: "Portfolio Allocation" }),
   ).toBeVisible();
   await expect(
+    page.getByText(
+      "Review a risk-aware seven-day allocation across BTC, ETH, SOL, and USD cash.",
+    ),
+  ).toBeVisible();
+  await expect(
     page.locator(".portfolio-section-heading + .phase2-portfolio"),
   ).toHaveCount(1);
   await expect(page.getByLabel("Investment Capital (USD)")).toHaveValue(
