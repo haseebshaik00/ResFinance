@@ -158,40 +158,17 @@ Evidence:
 
 **Status:** Complete for local, non-commercial research mechanics.
 
-- Implemented Coin Metrics, CoinGecko, DefiLlama, and bounded GDELT adapters for
-  exactly `BTC | ETH | SOL`, with availability timestamps, provenance, response
-  hashes, license dispositions, explicit missingness, and idempotent ingestion.
-- Persisted immutable observations, point-in-time feature rows, source masks,
-  dataset manifests, research manifests, and encrypted model artifacts only in
-  ResilientDB.
-- Implemented deterministic baselines, LSTM, the clean-room three-asset
-  MSPCIFormer adaptation, masked Adaptive Multi-Source Gating, ablations,
-  chronological walk-forward evaluation, conformal intervals, and immutable
-  promotion gates.
-- The deterministic synthetic candidate was correctly rejected because its MAE
-  was worse than naive. That rejection proves gate enforcement and is not a
-  model-performance claim.
-- Repeated deterministic CPU runs produced identical dataset and prediction
-  hashes, and all 39 encrypted research artifacts restored byte-for-byte from
-  the real four-replica ResilientDB stack.
-- Completed an isolated Phase 1 market-only MSPCIFormer experiment on real
-  BTC/ETH/SOL daily data through 2026-11-13. The clean-room VASA novelty
-  conditioned scale weights on trailing volatility but slightly degraded
-  untouched Day-7 MAE for all three assets versus the original reimplementation.
-  Validation selected the original model for the separate research-only latest
-  seven-day forecast.
-- Persisted the raw Coin Metrics archive and all predictions, metrics,
-  checkpoints, figures, configuration, and latest forecast in ResilientDB.
-  Bounded evidence is recorded in
-  [`config/crypto-intelligence/phase1-vasa-2026-11-14.json`](../config/crypto-intelligence/phase1-vasa-2026-11-14.json).
-  That v1 evidence remains byte-for-byte preserved. The active v2 run removes
-  naive persistence from registration, evaluation, plots, selection, and UI
-  metadata while retaining the same Original-versus-VASA conclusion. Its new
-  manifest is `phase1-run:phase1-vasa-v2-f07de01b517d4304823d07bb11a28b1b:manifest`,
-  with bounded evidence in
-  [`config/crypto-intelligence/phase1-vasa-v2-2026-11-14.json`](../config/crypto-intelligence/phase1-vasa-v2-2026-11-14.json)
-  and the report in
-  [`research/mspciformer-vasa-phase1-v2.md`](research/mspciformer-vasa-phase1-v2.md).
+- The active system ingests completed Coin Metrics BTC/ETH/SOL daily prices,
+  with provenance-complete, idempotent ResilientDB records.
+- The retained Phase 1 experiment compares the clean-room Original
+  MSPCIFormer and VASA-MSPCIFormer on direct seven-day prices. Validation
+  selected the original model for the current forecast artifact.
+- The fixed-PST daily market refresh adds the latest completed market day; the
+  dashboard uses the saved checkpoint for inference-only refreshes and labels
+  incomplete coverage as stale.
+- The prior multimodal financial/blockchain/social pipeline and naïve baseline
+  are retired. Its dated evidence remains archived and is not active product
+  behavior.
 
 Evidence:
 [`milestones/milestone5-crypto-intelligence-research.md`](milestones/milestone5-crypto-intelligence-research.md).
@@ -272,13 +249,11 @@ Evidence:
   performs the research and evidence commit. The workflow also makes a late
   duplicate delivery a successful no-op once the dated evidence exists. The
   dispatcher requires a Keychain-backed GitHub CLI login on the runner account.
-- Kept the original provider-backed candidate rejected. A separately
-  predeclared forward candidate tied naive MAE at `0.0529717654`, achieved
-  `88.05%` interval coverage, passed the unchanged promotion gate, and produced
-  a provenance-linked 15-day BTC/ETH/SOL snapshot.
-- Verified the normal recommendation, exact-cent allocations, Finance-derived
-  default amount, non-mutating scenario, fail-closed invalid inputs, restart
-  persistence, and read-only Insights behavior.
+- Retired the prior Paper 2 workflow and its legacy snapshot path. The current
+  scheduler records only completed BTC/ETH/SOL market observations for
+  inference-only forecast refreshes.
+- Retained VASA and the original clean-room MSPCIFormer comparison, alongside
+  the wallet-scoped risk profile and read-only Insights behavior.
 
 Evidence:
 [`milestones/milestone7-cross-dashboard-local-handoff.md`](milestones/milestone7-cross-dashboard-local-handoff.md)

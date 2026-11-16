@@ -298,24 +298,19 @@ question, then choose **Save risk profile**. This produces score `50`.
 Show:
 
 1. Default capital equals Finance available savings.
-2. Forecast status is **15 days**.
-3. The snapshot as-of date and promotion provenance.
+2. Forecast status is **7 days**.
+3. The forecast as-of date and selected-model provenance.
 4. BTC, ETH, and SOL chart switching.
 5. The P10, P50, and P90 **Historical Error Range**, explaining that it
    summarizes held-out error rather than a validated 80% prediction interval.
-6. The constrained portfolio allocation.
-7. Allocation amounts sum to exactly `$4,000.00`.
+6. The risk-profile result and no-trading boundary.
 
-Be explicit about the accepted model result:
+Explain that the validation-selected original MSPCIFormer checkpoint provides
+the current seven-day market-price forecast. VASA remains a retained comparison
+model; neither result is investment advice or an instruction to trade.
 
-> The promoted candidate passed the unchanged gate by tying the naive MAE and
-> exceeding the interval-coverage requirement. Validation selected a zero
-> reliability coefficient, so expected-return output currently abstains to the
-> naive baseline. The recommendation is therefore conservative and should not
-> be presented as market outperformance or investment advice.
-
-Open **Calculation and evidence provenance** and show that the forecast is
-authorized by an immutable promotion event.
+Open **Calculation and evidence provenance** and show the saved-checkpoint and
+market-observation provenance.
 
 ### Part E — Analyze Another Amount without changing Finance
 
@@ -501,4 +496,4 @@ and verification, not as a substitute for the presenter profiles.
 - [Milestone 7 operator guide](local-operator-guide.md)
 - [Research protocol](research-protocol.md)
 - [Security contract](security.md)
-- [`config/milestone9-forward-completion-attestation.json`](../config/milestone9-forward-completion-attestation.json)
+- [Archived Paper 2 evidence](research/archive/paper2-multimodal-naive/)

@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
-from scripts.milestone9.run_full_research import load_research_key
+from scripts.milestone5.research_key import load_research_key
 from server.app.application.phase2_portfolio import (
     Phase2PortfolioService,
     load_phase2_policy,

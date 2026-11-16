@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from typing import Any, cast
 
 from server.app.application.ports import ImmutableStoreResult, KeyValueStore
-from server.app.domain.crypto import CryptoAsset, ObservationChannel, ProviderObservation
+from server.app.domain.crypto import ObservationChannel, ProviderObservation
 from server.app.infrastructure.encryption import canonical_json_bytes
 
 
@@ -119,9 +119,7 @@ class CryptoResearchRepository:
         )
 
     def observations(self) -> list[ProviderObservation]:
-        values: list[str] = []
-        for prefix in ("mkt:", "chain:", "sent:"):
-            values.extend(self._store.range_values(prefix))
+        values = self._store.range_values("mkt:")
         records = [ProviderObservation.from_dict(self._load(value)) for value in values]
         for encoded in self._store.range_values("observation-archive:"):
             manifest = self._load(encoded)
@@ -209,125 +207,6 @@ class CryptoResearchRepository:
     def ingestion_attempts(self) -> list[dict[str, Any]]:
         return [self._load(value) for value in self._store.range_values("ingest:")]
 
-    def put_feature_dataset(
-        self,
-        *,
-        dataset_hash: str,
-        rows: Sequence[dict[str, object]],
-        manifest: dict[str, object],
-    ) -> tuple[ImmutableStoreResult, ...]:
-        if not rows:
-            raise ValueError("feature dataset cannot be empty")
-        manifest_core = {key: value for key, value in manifest.items() if key != "dataset_hash"}
-        expected_dataset_hash = hashlib.sha256(canonical_json_bytes(manifest_core)).hexdigest()
-        if manifest.get("dataset_hash") != dataset_hash or dataset_hash != expected_dataset_hash:
-            raise ValueError("feature dataset hash does not match its manifest")
-        if manifest.get("row_count") != len(rows):
-            raise ValueError("feature manifest row count does not match")
-        rows_sha256 = hashlib.sha256(canonical_json_bytes(rows)).hexdigest()
-        if manifest.get("rows_sha256") != rows_sha256:
-            raise ValueError("feature rows checksum does not match its manifest")
-        results: list[ImmutableStoreResult] = []
-        row_keys: set[str] = set()
-        for row in rows:
-            asset = CryptoAsset.parse(str(row["asset"])).value
-            timestamp = str(row["timestamp_utc"])
-            key = f"feat:{dataset_hash}:{asset}:{_safe_key_part(timestamp)}"
-            if key in row_keys:
-                raise ValueError("feature dataset contains a duplicate asset/timestamp row")
-            row_keys.add(key)
-            row_core = {key: value for key, value in row.items() if key != "row_sha256"}
-            expected_row_hash = hashlib.sha256(canonical_json_bytes(row_core)).hexdigest()
-            if row.get("row_sha256") != expected_row_hash:
-                raise ValueError("feature row checksum does not match")
-            results.append(self._put_immutable(key, row))
-        results.append(self._put_immutable(f"dataset:{dataset_hash}:manifest", manifest))
-        return tuple(results)
-
-    def put_feature_dataset_archive(
-        self,
-        *,
-        dataset_hash: str,
-        rows: Sequence[dict[str, object]],
-        manifest: dict[str, object],
-    ) -> tuple[ImmutableStoreResult, ...]:
-        self._validate_feature_dataset(
-            dataset_hash=dataset_hash,
-            rows=rows,
-            manifest=manifest,
-        )
-        payload = canonical_json_bytes({"manifest": manifest, "rows": list(rows)})
-        compressed = zlib.compress(payload, level=9)
-        chunks = [
-            compressed[offset : offset + self._ARCHIVE_CHUNK_BYTES]
-            for offset in range(0, len(compressed), self._ARCHIVE_CHUNK_BYTES)
-        ]
-        archive_manifest = {
-            "schema_version": 1,
-            "dataset_hash": dataset_hash,
-            "encoding": "zlib-json-v1",
-            "row_count": len(rows),
-            "content_sha256": hashlib.sha256(payload).hexdigest(),
-            "uncompressed_size_bytes": len(payload),
-            "compressed_size_bytes": len(compressed),
-            "compressed_sha256": hashlib.sha256(compressed).hexdigest(),
-            "chunk_size_bytes": self._ARCHIVE_CHUNK_BYTES,
-            "chunk_hashes": [hashlib.sha256(chunk).hexdigest() for chunk in chunks],
-        }
-        results: list[ImmutableStoreResult] = []
-        archive_key = f"dataset-archive:{dataset_hash}:manifest"
-        encoded_archive = canonical_json_bytes(archive_manifest).decode()
-        existing = self._store.get(archive_key)
-        if existing is not None:
-            if existing != encoded_archive:
-                raise ImmutableResearchRecordConflict(
-                    f"immutable feature archive conflict: {archive_key}"
-                )
-            results.append(
-                ImmutableStoreResult(
-                    key=archive_key,
-                    record_id=hashlib.sha256(encoded_archive.encode()).hexdigest(),
-                    deduplicated=True,
-                )
-            )
-            return tuple(results)
-        for index, chunk in enumerate(chunks):
-            key = f"dataset-archive-chunk:{dataset_hash}:{index:06d}"
-            encoded_chunk = base64.b64encode(chunk).decode("ascii")
-            self._store.put(key, encoded_chunk)
-            results.append(
-                ImmutableStoreResult(
-                    key=key,
-                    record_id=hashlib.sha256(chunk).hexdigest(),
-                    deduplicated=False,
-                )
-            )
-        self._store.put(archive_key, encoded_archive)
-        results.append(
-            ImmutableStoreResult(
-                key=archive_key,
-                record_id=hashlib.sha256(encoded_archive.encode()).hexdigest(),
-                deduplicated=False,
-            )
-        )
-        return tuple(results)
-
-    def feature_rows(self, dataset_hash: str) -> list[dict[str, Any]]:
-        values = self._store.range_values(f"feat:{dataset_hash}:")
-        if values:
-            rows = [self._load(value) for value in values]
-        else:
-            _, rows = self._restore_feature_archive(dataset_hash)
-        rows.sort(key=lambda row: (str(row["timestamp_utc"]), str(row["asset"])))
-        return rows
-
-    def dataset_manifest(self, dataset_hash: str) -> dict[str, Any]:
-        encoded = self._store.get(f"dataset:{dataset_hash}:manifest")
-        if encoded is not None:
-            return self._load(encoded)
-        manifest, _ = self._restore_feature_archive(dataset_hash)
-        return manifest
-
     @staticmethod
     def observation_key(observation: ProviderObservation) -> str:
         timestamp = _timestamp_key(observation.observed_at_utc)
@@ -339,9 +218,7 @@ class CryptoResearchRepository:
                 f"mkt:{observation.asset.value}:{observation.interval}:{timestamp}:"
                 f"{provider}:{revision}:{metric}"
             )
-        if observation.channel is ObservationChannel.ON_CHAIN:
-            return f"chain:{observation.asset.value}:{metric}:{timestamp}:{provider}:{revision}"
-        return f"sent:{observation.asset.value}:{timestamp}:{provider}:{revision}:{metric}"
+        raise ValueError("the active market-only repository accepts market observations only")
 
     def _put_license(self, observation: ProviderObservation) -> None:
         identity = (observation.provider, observation.provider_revision)
@@ -362,84 +239,6 @@ class CryptoResearchRepository:
             },
         )
         self._license_cache.add(identity)
-
-    def _restore_feature_archive(
-        self, dataset_hash: str
-    ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
-        encoded = self._store.get(f"dataset-archive:{dataset_hash}:manifest")
-        if encoded is None:
-            raise KeyError(dataset_hash)
-        manifest = self._load(encoded)
-        if (
-            manifest.get("schema_version") != 1
-            or manifest.get("dataset_hash") != dataset_hash
-            or manifest.get("encoding") != "zlib-json-v1"
-        ):
-            raise CorruptResearchRecord("feature archive manifest is invalid")
-        chunk_hashes = manifest.get("chunk_hashes")
-        if not isinstance(chunk_hashes, list) or not all(
-            isinstance(value, str) for value in chunk_hashes
-        ):
-            raise CorruptResearchRecord("feature archive chunk hashes are invalid")
-        chunks: list[bytes] = []
-        for index, expected_hash in enumerate(chunk_hashes):
-            encoded_chunk = self._store.get(f"dataset-archive-chunk:{dataset_hash}:{index:06d}")
-            if encoded_chunk is None:
-                raise CorruptResearchRecord("feature archive chunk is missing")
-            try:
-                chunk = base64.b64decode(encoded_chunk, validate=True)
-            except ValueError as exc:
-                raise CorruptResearchRecord("feature archive chunk is not valid base64") from exc
-            if hashlib.sha256(chunk).hexdigest() != expected_hash:
-                raise CorruptResearchRecord("feature archive chunk checksum mismatch")
-            chunks.append(chunk)
-        compressed = b"".join(chunks)
-        if hashlib.sha256(compressed).hexdigest() != manifest.get("compressed_sha256"):
-            raise CorruptResearchRecord("feature archive checksum mismatch")
-        try:
-            payload = zlib.decompress(compressed)
-        except zlib.error as exc:
-            raise CorruptResearchRecord("feature archive decompression failed") from exc
-        if len(payload) != manifest.get("uncompressed_size_bytes"):
-            raise CorruptResearchRecord("feature archive size mismatch")
-        if hashlib.sha256(payload).hexdigest() != manifest.get("content_sha256"):
-            raise CorruptResearchRecord("feature archive content checksum mismatch")
-        value = json.loads(payload)
-        if not isinstance(value, dict):
-            raise CorruptResearchRecord("feature archive content is invalid")
-        dataset_manifest = value.get("manifest")
-        rows = value.get("rows")
-        if not isinstance(dataset_manifest, dict):
-            raise CorruptResearchRecord("feature archive dataset manifest is invalid")
-        if not isinstance(rows, list) or len(rows) != manifest.get("row_count"):
-            raise CorruptResearchRecord("feature archive rows are invalid")
-        if not all(isinstance(item, dict) for item in rows):
-            raise CorruptResearchRecord("feature archive row must be an object")
-        if dataset_manifest.get("dataset_hash") != dataset_hash:
-            raise CorruptResearchRecord("feature archive dataset hash mismatch")
-        return (
-            cast(dict[str, Any], dataset_manifest),
-            [cast(dict[str, Any], item) for item in rows],
-        )
-
-    @staticmethod
-    def _validate_feature_dataset(
-        *,
-        dataset_hash: str,
-        rows: Sequence[dict[str, object]],
-        manifest: dict[str, object],
-    ) -> None:
-        if not rows:
-            raise ValueError("feature dataset cannot be empty")
-        manifest_core = {key: value for key, value in manifest.items() if key != "dataset_hash"}
-        expected_dataset_hash = hashlib.sha256(canonical_json_bytes(manifest_core)).hexdigest()
-        if manifest.get("dataset_hash") != dataset_hash or dataset_hash != expected_dataset_hash:
-            raise ValueError("feature dataset hash does not match its manifest")
-        if manifest.get("row_count") != len(rows):
-            raise ValueError("feature manifest row count does not match")
-        rows_sha256 = hashlib.sha256(canonical_json_bytes(rows)).hexdigest()
-        if manifest.get("rows_sha256") != rows_sha256:
-            raise ValueError("feature rows checksum does not match its manifest")
 
     def _put_immutable(self, key: str, document: dict[str, object]) -> ImmutableStoreResult:
         encoded = canonical_json_bytes(document).decode("utf-8")

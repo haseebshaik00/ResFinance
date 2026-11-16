@@ -36,7 +36,7 @@ hypothetical USD amount for an experimental seven-day crypto allocation.
 | Apache ResilientDB | Only persistent store for application events, research data, forecasts, and artifacts |
 | ResWallet | Extension-held identity, local key custody, login signing, and explicit action approval |
 | ResContract | Authoritative obligation, settlement-credit, and receipt transitions |
-| Ingestion and ML workers | Provider collection, reproducible research, forecasts, and evaluation |
+| Ingestion and ML workers | Daily market refresh, reproducible MSPCIFormer/VASA research, and forecasts |
 | Read-only AI | Evidence-linked explanations without write, wallet, settlement, or trading authority |
 
 The application uses append-only, schema-versioned events; deterministic and
@@ -84,7 +84,6 @@ docs/          Product, architecture, milestone evidence, and development refere
 - [REST API Contract](docs/rest-api-contract.md)
 - [Security Contract](docs/security.md)
 - [Research Protocol](docs/research-protocol.md)
-- [Historical MSPCIFormer VASA Phase 1 v1 report](docs/research/mspciformer-vasa-phase1.md)
 - [Active MSPCIFormer VASA two-model protocol](docs/research/mspciformer-vasa-phase1-v2.md)
 - [Seven-day portfolio recommendation](docs/research/phase2-seven-day-portfolio.md)
 - [Provider coverage and terms review](docs/provider-terms-review.md)
@@ -108,12 +107,12 @@ git config core.hooksPath .githooks
 The checks can also be run directly with `./scripts/verify_ci.sh`.
 
 After it is merged to `main` and a dedicated local runner is registered, the
-daily Crypto Intelligence workflow runs at 6:00 AM fixed PST, persists the
-research state in ResilientDB, and commits dated evidence JSON under
+daily Crypto Intelligence market-refresh workflow runs at 6:00 AM fixed PST,
+persists completed BTC/ETH/SOL market observations in ResilientDB, and commits dated evidence JSON under
 `config/crypto-intelligence/`. The optional macOS catch-up launcher dispatches
 one missed daily run shortly after login or wake, without duplicating an
 existing run. Runner setup, GitHub CLI authorization, and failure behavior are
-documented in the [Local Operator Guide](docs/local-operator-guide.md#daily-crypto-intelligence-forward-completion).
+documented in the [Local Operator Guide](docs/local-operator-guide.md#daily-runner-and-catch-up).
 
 ## Contributors
 

@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import math
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
-from pathlib import Path
 
 from ml.evaluation.phase1 import TrainingConfig
 from ml.runs.phase1 import Phase1Config, run_phase1_research
@@ -19,7 +17,6 @@ from server.app.infrastructure.phase1_forecast_repository import Phase1ForecastR
 from tests.contract.test_authentication import MemoryKeyValueStore
 
 NOW = datetime(2026, 11, 14, 12, tzinfo=UTC)
-HISTORICAL_EVIDENCE_SHA256 = "4b2fa48c32584dffd2c1e11b7d1db6b918d7da730bc3b9c340fa07e426398b2f"
 
 
 def test_phase1_v2_artifacts_feed_the_seven_day_optimizer_without_retraining() -> None:
@@ -118,13 +115,6 @@ def test_phase1_v2_artifacts_feed_the_seven_day_optimizer_without_retraining() -
     )
     assert recommendation.policy_version == "phase2-risk-profile-model-blend-v4"
     assert recommendation.risk_profile == "growth"
-
-
-def test_historical_three_model_evidence_remains_byte_for_byte_unchanged() -> None:
-    path = Path("config/crypto-intelligence/phase1-vasa-2026-11-14.json")
-    assert hashlib.sha256(path.read_bytes()).hexdigest() == HISTORICAL_EVIDENCE_SHA256
-    value = json.loads(path.read_text(encoding="utf-8"))
-    assert "naive-persistence" in value["comparison"]
 
 
 def _observations(days: int) -> list[ProviderObservation]:

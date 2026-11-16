@@ -4,7 +4,7 @@ Status: Approved planning baseline for local implementation; cloud deployment is
 
 Last reviewed: 2026-10-22
 
-Implementation status: Milestones 1–7 passed for local development and research under the canonical convention in [`milestones/milestones.md`](milestones/milestones.md). Milestone 7 includes cross-dashboard integration, the local lifecycle, explicit workers, operator guide, continuous real-service browser proof, the original provider-data research run, and the predeclared untouched-forward completion protocol. The validation-locked candidate abstained to the naive return forecast, tied its forward MAE, exceeded required interval coverage, passed the unchanged immutable gate, and published a provenance-complete current-cutoff snapshot. Milestone 8 production hardening and deployment remains on hold.
+Implementation status: Milestones 1–7 passed for local development and research under the canonical convention in [`milestones/milestones.md`](milestones/milestones.md). The active Crypto Intelligence flow is a market-only MSPCIFormer/VASA seven-day forecast with daily completed-market-data refresh and inference-only checkpoint use. Milestone 8 production hardening and deployment remains on hold.
 
 Deployment status: On hold pending a separate, evidence-backed ResilientDB cloud feasibility review. Current work is limited to local development, integration, research, and end-to-end validation.
 
@@ -51,7 +51,7 @@ Non-negotiable boundaries:
 │ Application services and domain events                            │
 │ ├── ResilientDB repository adapter                                │
 │ ├── ResContract private gateway                                   │
-│ ├── Market/sentiment/on-chain provider adapters                   │
+│ ├── Market-data provider adapters                                 │
 │ └── Hugging Face inference adapters                               │
 └───────────────┬─────────────────┬───────────────────┬──────────────┘
                 │                 │                   │
@@ -91,8 +91,8 @@ Non-negotiable boundaries:
 Use one FastAPI codebase with clear module boundaries rather than premature microservices:
 
 - **API process:** REST, validation, authentication, orchestration, OpenAPI.
-- **Ingestion worker:** market, on-chain, and sentiment collection.
-- **ML worker:** datasets, training, evaluation, forecasts, and artifact persistence.
+- **Ingestion worker:** completed BTC/ETH/SOL market-price collection.
+- **ML worker:** market-only research, verified artifacts, and inference refresh.
 - **Reconciliation worker:** repairs event indexes and contract-to-finance saga interruptions.
 - **AI worker:** grounded, read-only explanations with deterministic fallback.
 
@@ -241,39 +241,13 @@ Research direction as of 2026-11-14:
   [`research/mspciformer-vasa-phase1-v2.md`](research/mspciformer-vasa-phase1-v2.md)
   and [`research/phase2-seven-day-portfolio.md`](research/phase2-seven-day-portfolio.md).
 
-The following V1 description records the existing legacy runtime architecture;
-it is not the input contract for the new Phase 1 experiment.
+Active data and model:
 
-Data adapters:
-
-- Coin Metrics Community for daily BTC/ETH/SOL price, volume, capitalization, and available BTC/ETH on-chain metrics.
-- CoinGecko for current quotes and UI fallback.
-- DefiLlama for SOL TVL and stablecoin-supply proxies because the audited Coin Metrics Community catalog does not expose comparable native SOL on-chain series.
-- GDELT GKG historical tone/coverage and DOC API live news metadata; do not persist full copyrighted articles.
-- `facebook/bart-large-mnli`, pinned by model revision and hash, for supplemental bullish/bearish/neutral headline classification.
-
-The adapters retain source URL/query, retrieval time, provider revision, license metadata, row counts, checksums, availability time, and missingness. Official references: [Coin Metrics API v4](https://docs.coinmetrics.io/api/v4/), [CoinGecko API](https://www.coingecko.com/en/api), [DefiLlama API](https://api-docs.defillama.com/), and [GDELT DOC 2.0](https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/). The current coverage and permission disposition is maintained in [`provider-terms-review.md`](provider-terms-review.md); conditional or blocked sources are not production-approved merely because a probe succeeds.
-
-Research dataset V1:
-
-- Daily UTC observations from 2020-04-10 through 2025-01-01.
-- Exactly BTC, ETH, and SOL.
-- Market, sentiment, and asset-specific on-chain/proxy channels.
-- Point-in-time joins using source availability timestamps.
-- Missing-source masks are model inputs; unavailable metrics are not silently imputed as zero.
-
-Model:
-
-- Separate market, sentiment, and on-chain encoders.
-- Masked softmax Adaptive Multi-Source Gating per asset and time step.
-- Multi-scale patching, channel-independent Transformer blocks, and learnable aggregation following the MSPCIFormer design.
-- Horizons: 1, 3, 5, 7, and 15 days.
-- Heads for expected return, direction probability, and p10/p50/p90 quantiles.
-- Split-conformal calibration on validation windows.
-- Required ablations: market-only, fixed equal fusion, adaptive gating, and one-source-removed variants.
-- Baselines: naive last value/zero return, linear model, and an LSTM or equivalent sequence baseline.
-
-The published MSPCIFormer experiment used eight input assets and only ADA/BTC/ETH targets; this project is therefore a documented three-asset adaptation, not an exact reproduction. The paper and author repository remain provenance inputs, but source code must not be copied until its absent license is resolved: [MSPCIFormer paper](https://onlinelibrary.wiley.com/doi/10.1111/exsy.70343), [author repository](https://github.com/cmajorsolo/MSPCIFormer). The Gurgul baseline was adapted only in the historical multimodal program and is not an architectural dependency of the new Phase 1 direction: [arXiv paper](https://arxiv.org/abs/2311.14759), [journal DOI](https://doi.org/10.1016/j.ijforecast.2025.02.007).
+- Coin Metrics Community supplies daily BTC/ETH/SOL closing prices; CoinGecko supports current-display quotes.
+- The market-only clean-room MSPCIFormer/VASA adaptation produces direct seven-day price paths.
+- Original and VASA variants use the same chronology, inputs, and evaluation protocol. Validation selects the deployed model; the dashboard never retrains it.
+- The published MSPCIFormer paper remains a provenance input; author repository code is not copied without a compatible license or permission.
+- Retired multimodal and naïve-baseline records are archival material only.
 
 Every research run persists:
 
@@ -393,21 +367,27 @@ Feasibility implementations are narrow, disposable spikes unless the platform fo
 
 ### Milestone 5: Crypto Intelligence — Crypto Ingestion, Feature Store & Reproducible ML Research
 
-**Status:** complete for local, non-commercial research mechanics; ingestion, feature-store, and reproducible ML evidence is recorded in [`milestones/milestone5-crypto-intelligence-research.md`](milestones/milestone5-crypto-intelligence-research.md). The deterministic smoke model was not promoted, and no statistical or investment-performance claim is made.
+**Status:** complete for the active local, non-commercial market-research path;
+evidence is recorded in [`milestones/milestone5-crypto-intelligence-research.md`](milestones/milestone5-crypto-intelligence-research.md).
 
-- Add Coin Metrics, CoinGecko, DefiLlama, and GDELT adapters.
-- Persist immutable raw observations, derived features, availability masks, licenses, and checksums.
+- Add Coin Metrics market-data ingestion and CoinGecko display quotes.
+- Persist immutable BTC/ETH/SOL market observations, licenses, and checksums.
 - Enforce the three-asset enum at every boundary.
 
 **Ingestion acceptance:** a repeat ingestion is idempotent, provider failure does not corrupt existing data, point-in-time joins pass leakage tests, and any fourth asset is rejected.
 
 #### Reproducible ML research work
 
-- Implement baselines, the three-asset MSPCIFormer adaptation, Adaptive Multi-Source Gating, walk-forward evaluation, conformal intervals, ablations, and artifact persistence.
-- Add deterministic smoke datasets generated in test code and a full research-run manifest.
-- Promote models only through explicit evaluation criteria and an immutable promotion event.
+- Implement the three-asset clean-room MSPCIFormer and VASA adaptation,
+  chronological evaluation, and artifact persistence.
+- Add deterministic smoke data generated in test code and a full research-run
+  manifest.
+- Select the dashboard checkpoint by validation evidence; inference refreshes
+  use that saved checkpoint without retraining.
 
-**Research acceptance:** repeated CPU smoke runs have identical dataset/prediction hashes; full runs retain complete provenance; adaptive gating is reported against every required baseline without overstating statistical significance.
+**Research acceptance:** repeated CPU smoke runs have identical
+dataset/prediction hashes; full runs retain complete provenance; the two active
+architectures are compared without overstating statistical significance.
 
 ### Milestone 6: Crypto Intelligence — Risk & Portfolio Dashboard
 
@@ -436,7 +416,10 @@ no trading or Finance mutation occurs.
 
 ### Milestone 7: Deliverables — Cross-dashboard Integration & Local Handoff
 
-**Status:** complete for local development and research. Cross-dashboard and Local Handoff evidence is recorded in [`milestones/milestone7-cross-dashboard-local-handoff.md`](milestones/milestone7-cross-dashboard-local-handoff.md), with operating instructions in [`local-operator-guide.md`](local-operator-guide.md). The first provider-data candidate remains rejected; the later predeclared untouched-forward candidate passed the unchanged gate and its live recommendation passed the real-stack browser journey.
+**Status:** complete for local development and research. Cross-dashboard and
+local-handoff evidence is recorded in
+[`milestones/milestone7-cross-dashboard-local-handoff.md`](milestones/milestone7-cross-dashboard-local-handoff.md),
+with operating instructions in [`local-operator-guide.md`](local-operator-guide.md).
 
 - Complete cross-dashboard navigation and in-app notifications.
 
@@ -447,18 +430,16 @@ no trading or Finance mutation occurs.
 - Package a one-command local startup with preflight checks, bounded health waits, status, clean shutdown, and an explicitly confirmed reset path.
 - Prove one continuous, non-mocked browser journey through the real ResWallet extension, React client, FastAPI API, four-replica ResilientDB stack, ResContract, local workers, and read-only AI path.
 - Provide isolated multi-wallet browser profiles and deterministic non-secret fixtures for Finance, Groups, settlement, Crypto Intelligence, notifications, and Smart Insights.
-- Run approved full-scale BTC/ETH/SOL research and promote a forecast only if it passes the existing immutable evaluation criteria. Never weaken the gate merely to complete the milestone.
+- Refresh completed BTC/ETH/SOL market observations on the local scheduled
+  runner and retain an auditable bounded receipt.
 - Produce an operator handoff covering prerequisites, resource requirements, model/data provisioning, troubleshooting, restart recovery, cleanup, known limitations, and acceptance evidence.
 
-The approved completion iteration adds these five required work packages:
-
-1. Develop a predeclared adaptive-gating candidate on a revised protocol with an untouched forward holdout. Its adaptive MAE must be no worse than naive and its interval coverage must be at least 70 percent. The already-observed five-fold test results may not be used for model or calibration selection.
-2. Write the immutable `research.model-promoted` event only after that candidate passes the unchanged promotion gate. A rejected or incomplete run cannot be promoted.
-3. Ingest current BTC/ETH/SOL provider observations under `available_at` point-in-time rules, freeze the promoted final model, generate current 15-day returns, upside probabilities, and uncertainty intervals, and persist a forecast snapshot linked to the exact dataset, model artifact, research run, and promotion event.
-4. Prove the normal Crypto Intelligence recommendation path, exact-cent allocation reconciliation, Finance-derived default savings, non-mutating `Analyze Another Amount`, and fail-closed behavior for stale, corrupted, or unpromoted forecasts.
-5. Repeat the complete Python, client, ResWallet, build, lint, type-check, and real two-wallet/restart acceptance suites. Mark Milestone 7 complete only after the live recommendation succeeds through the real local stack.
-
-**Local Handoff acceptance:** after documented prerequisites, one command starts the complete local stack and reaches healthy state; the predeclared untouched-forward evaluation passes the unchanged promotion criteria; an immutable promotion and provenance-complete current-cutoff snapshot exist; and a real-browser test without API interception completes the wallet-authenticated Finance → Groups → settlement → Finance → Crypto Intelligence recommendation → non-mutating scenario → Insights journey, including exact-cent allocation and controlled restart. Stale, corrupted, and unpromoted forecast inputs must fail closed. If any condition fails, the safe gated state remains correct but Milestone 7 remains incomplete.
+**Local Handoff acceptance:** after documented prerequisites, one command starts
+the complete local stack and reaches healthy state; a real-browser test without
+API interception completes the wallet-authenticated Finance → Groups →
+settlement → Crypto Intelligence → Insights journey; and an overdue daily
+market refresh produces a bounded receipt without training or replacing the
+saved checkpoint.
 
 ### Milestone 8: Future Scope — Production Hardening & Deployment (On Hold)
 

@@ -33,7 +33,6 @@ class Phase1ResearchIntegrationTest(unittest.TestCase):
             set(metrics),
             {"original-mspciformer", "vasa-mspciformer"},
         )
-        self.assertNotIn("naive-persistence", result.artifacts["metrics.json"].decode())
         self.assertEqual(
             result.manifest["active_models"],
             ["original-mspciformer", "vasa-mspciformer"],
@@ -41,7 +40,6 @@ class Phase1ResearchIntegrationTest(unittest.TestCase):
         self.assertIn("latest-forecast.json", result.artifacts)
         self.assertIn("deployment-preprocessing.json", result.artifacts)
         self.assertIn("actual-vs-predicted.svg", result.artifacts)
-        self.assertTrue(result.evidence["historical_naive_evidence_preserved"])
 
 
 def _observations(days: int) -> list[ProviderObservation]:

@@ -1,4 +1,4 @@
-name: Daily Crypto Intelligence Forward Completion
+name: Daily Crypto Intelligence Market Refresh
 
 on:
   schedule:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: daily-crypto-intelligence-forward-completion
+  group: daily-crypto-intelligence-market-refresh
   cancel-in-progress: false
 
 jobs:
@@ -64,7 +64,7 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Run dated forward completion
+      - name: Run dated market refresh
         id: forward
         if: steps.existing-evidence.outputs.exists != 'true'
         run: |
@@ -92,7 +92,7 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: crypto-intelligence-forward-completion-${{ steps.forward.outputs.run_date }}
+          name: crypto-intelligence-market-refresh-${{ steps.forward.outputs.run_date }}
           path: ${{ steps.forward.outputs.output_path }}
           if-no-files-found: error
           retention-days: 90
@@ -110,7 +110,7 @@ jobs:
             echo "No new daily evidence to commit."
             exit 0
           fi
-          git commit -m "chore(research): record forward completion $RUN_DATE"
+          git commit -m "chore(research): record market refresh $RUN_DATE"
           git pull --rebase origin main
           git push origin HEAD:main
 
@@ -125,6 +125,6 @@ jobs:
             exit 1
           fi
           if [[ "$FORWARD_EXIT_CODE" != "0" ]]; then
-            echo "Forward completion produced auditable evidence but exited $FORWARD_EXIT_CODE." >&2
+            echo "Market refresh produced auditable evidence but exited $FORWARD_EXIT_CODE." >&2
             exit "$FORWARD_EXIT_CODE"
           fi

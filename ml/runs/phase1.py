@@ -41,7 +41,7 @@ from ml.models.vasa_mspciformer import (
     parameter_count,
 )
 from ml.runs.checkpoints import deterministic_checkpoint
-from ml.runs.runner import _provenance
+from ml.runs.provenance import run_provenance
 from server.app.domain.crypto import ProviderObservation
 from server.app.infrastructure.encryption import canonical_json_bytes
 
@@ -305,7 +305,7 @@ def run_phase1_research(
     artifact_hashes = {
         name: hashlib.sha256(content).hexdigest() for name, content in artifacts.items()
     }
-    provenance = _provenance(Path.cwd())
+    provenance = run_provenance(Path.cwd())
     manifest: dict[str, object] = {
         "schema_version": 2,
         "run_id": run_id,
@@ -338,7 +338,6 @@ def run_phase1_research(
         "selected_latest_forecast_model": selected_model,
         "active_models": list(models),
         "comparison_protocol": "original-mspciformer-versus-vasa-only",
-        "historical_naive_evidence_rewritten": False,
         "artifact_hashes": artifact_hashes,
         "author_repository_code_copied": False,
         "author_repository_reference_commit": "6c0970462aa0412b2c664fefdbabc71cc17fb775",
@@ -636,7 +635,6 @@ def _evidence(
         "comparison": comparison,
         "relative_comparisons": metrics["relative_comparisons"],
         "active_models": ["original-mspciformer", "vasa-mspciformer"],
-        "historical_naive_evidence_preserved": True,
         "latest_forecast": latest,
         "artifact_hashes": artifact_hashes,
         "full_artifacts_persisted_in_resilientdb": True,

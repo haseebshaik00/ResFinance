@@ -1,5 +1,5 @@
-"""Reproducible research-run orchestration."""
+"""Reproducible market-only research-run orchestration."""
 
-from ml.runs.runner import ResearchResult, SmokeRunConfig, run_smoke_research
+from ml.runs.phase1 import Phase1Config, Phase1RunResult, run_phase1_research
 
-__all__ = ["ResearchResult", "SmokeRunConfig", "run_smoke_research"]
+__all__ = ["Phase1Config", "Phase1RunResult", "run_phase1_research"]

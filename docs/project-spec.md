@@ -92,8 +92,7 @@ Add equal/unequal splits, payer/share logic, reimbursements, and settlement. Res
 
 Persist historical and latest completed daily market observations for BTC,
 ETH, and SOL in ResilientDB and expose verified forecast/recommendation REST
-endpoints. Historical sentiment/on-chain ingestion remains auditable but is not
-an input to the active forecast.
+endpoints. The active forecast uses only completed daily market prices.
 
 ### Phase 4 - Research-Grade Forecasting Engine
 
@@ -115,27 +114,15 @@ dashboard. Deployment remains separately deferred.
 
 ### Final local delivery gate — Milestone 7: Deliverables — Cross-dashboard Integration & Local Handoff
 
-After the functional phases, package the complete local stack behind one documented startup lifecycle and prove one continuous, non-mocked browser journey through ResWallet, React, FastAPI, ResilientDB, ResContract, Crypto Intelligence, and Smart Insights. The first provider-backed adaptive candidate remains rejected because its MAE was worse than naive. The approved completion iteration subsequently: (1) evaluated a validation-calibrated adaptive-gating candidate on the predeclared untouched forward period and passed the unchanged MAE and 70 percent coverage rules; (2) appended an immutable promotion only after that qualifying run; (3) ingested current point-in-time BTC/ETH/SOL data, froze the final model, and persisted a provenance-complete current 15-day forecast snapshot; (4) proved the normal live recommendation, exact-cent allocations, Finance-derived default savings, non-mutating scenario analysis, and fail-closed stale/corrupt/unpromoted behavior; and (5) repeated all local suites plus the real two-wallet restart journey. Milestone 7 is complete for the declared local scope. Production hardening and deployment remain a separate, deferred Milestone 8.
+After the functional phases, package the complete local stack behind one documented startup lifecycle and prove one continuous, non-mocked browser journey through ResWallet, React, FastAPI, ResilientDB, ResContract, Crypto Intelligence, and Smart Insights. The active Crypto Intelligence path ingests completed BTC/ETH/SOL market data daily and performs inference-only refreshes from a verified MSPCIFormer/VASA checkpoint. Milestone 7 is complete for the declared local scope. Production hardening and deployment remain a separate, deferred Milestone 8.
 
-## 5. Forecasting research: 2 papers + 1 novelty
+## 5. Forecasting research: MSPCIFormer + VASA
 
 ### Paper 1 - MSPCIFormer
 
 **Citation:** Zhao, Crane & Bezbradica (2026)
 
 Base multi-scale Transformer architecture for cryptocurrency forecasting.
-
-### Paper 2 - Gurgul et al.
-
-**Citation:** Gurgul et al. (2025)
-
-Motivates multimodal inputs from markets, blockchain/on-chain data, and sentiment/news NLP.
-
-### Historical novelty - Adaptive Multi-Source Fusion/Gating
-
-This retired research path dynamically weighted market, sentiment, and
-on-chain information. It remains immutable historical evidence and is not an
-input contract for the current dashboard.
 
 ### Current research extension - VASA
 
@@ -190,9 +177,9 @@ read-only scenario.
 - New research direction: MSPCIFormer (2026) only, beginning with the isolated
   market-only seven-day VASA experiment documented in
   [`research/mspciformer-vasa-phase1-v2.md`](research/mspciformer-vasa-phase1-v2.md).
-- Legacy runtime evidence only: Gurgul et al. (2025) and Adaptive Multi-Source
-  Fusion/Gating. These remain auditable as legacy 15-day evidence but are
-  retired from the active dashboard and new forecasting experiments.
+- Retired Paper 2 and naïve-baseline evidence is preserved under
+  [`research/archive/paper2-multimodal-naive/`](research/archive/paper2-multimodal-naive/)
+  and is not used by the active dashboard or daily refresh.
 - Phase 2 now connects the verified selected checkpoint to the seven-day
   mean–variance portfolio and UI documented in
   [`research/phase2-seven-day-portfolio.md`](research/phase2-seven-day-portfolio.md).

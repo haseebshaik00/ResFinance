@@ -27,8 +27,6 @@ from server.app.infrastructure.encryption import AesGcmCipher
 from server.app.infrastructure.event_repository import EncryptedEventRepository
 from server.app.infrastructure.huggingface_insights import HuggingFaceInstructionSelector
 from server.app.infrastructure.phase1_forecast_repository import Phase1ForecastRepository
-from server.app.infrastructure.portfolio_repository import PortfolioResearchRepository
-from server.app.infrastructure.research_repository import ResearchRunRepository
 from server.app.infrastructure.resilientdb_cli import ResilientDBCliStore
 
 
@@ -122,12 +120,7 @@ def services_from_environment() -> tuple[
             store,
             AesGcmCipher(research_key, key_id="local-research-blob-key-v1"),
         )
-        research = ResearchRunRepository(store, blobs)
-        portfolio = PortfolioService(
-            repository,
-            PortfolioResearchRepository(store, research),
-            finance,
-        )
+        portfolio = PortfolioService(repository)
         phase2 = Phase2PortfolioService(
             Phase1ForecastRepository(store, blobs, CryptoResearchRepository(store)),
             policy=phase2_policy,
@@ -144,8 +137,7 @@ def services_from_environment() -> tuple[
         store,
         AesGcmCipher(research_key, key_id="local-research-blob-key-v1"),
     )
-    research = ResearchRunRepository(store, blobs)
-    portfolio = PortfolioService(repository, PortfolioResearchRepository(store, research), finance)
+    portfolio = PortfolioService(repository)
     phase2 = Phase2PortfolioService(
         Phase1ForecastRepository(store, blobs, CryptoResearchRepository(store)),
         policy=phase2_policy,

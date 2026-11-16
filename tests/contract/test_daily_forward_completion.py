@@ -43,15 +43,7 @@ def test_plan_rejects_same_day_or_future_cutoff(tmp_path: Path) -> None:
         )
 
 
-@pytest.mark.parametrize(
-    ("exit_code", "published"),
-    ((0, True), (2, False)),
-)
-def test_daily_run_preserves_success_and_rejection_evidence(
-    tmp_path: Path,
-    exit_code: int,
-    published: bool,
-) -> None:
+def test_daily_run_requires_market_refresh_evidence(tmp_path: Path) -> None:
     plan = build_plan(run_date=date(2026, 11, 12), output_directory=tmp_path)
     captured: tuple[str, ...] | None = None
 
@@ -65,12 +57,12 @@ def test_daily_run_preserves_success_and_rejection_evidence(
             json.dumps(
                 {
                     "current_cutoff_date": "2026-11-11",
-                    "live_forecast_snapshot_published": published,
+                    "market_data_ingested": True,
                 }
             ),
             encoding="utf-8",
         )
-        return subprocess.CompletedProcess(command, exit_code)
+        return subprocess.CompletedProcess(command, 0)
 
     result = run_daily_forward_completion(
         plan,
@@ -78,7 +70,7 @@ def test_daily_run_preserves_success_and_rejection_evidence(
         runner=runner,
     )
 
-    assert result == exit_code
+    assert result == 0
     assert captured == (
         "/test/.venv/bin/python",
         "-m",

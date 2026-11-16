@@ -11,7 +11,7 @@ from typing import Any, cast
 
 from ml.evaluation.phase1 import TrainingConfig
 from ml.runs.phase1 import Phase1Config, run_phase1_research
-from scripts.milestone9.run_full_research import load_research_key
+from scripts.milestone5.research_key import load_research_key
 from server.app.domain.crypto import CryptoAsset
 from server.app.infrastructure.blob_repository import EncryptedBlobRepository
 from server.app.infrastructure.crypto_repository import CryptoResearchRepository

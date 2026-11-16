@@ -134,7 +134,7 @@ def _verify_gh_auth(
 
 def parser() -> argparse.ArgumentParser:
     value = argparse.ArgumentParser(
-        description="Install the macOS login/wake catch-up launcher for daily forward completion."
+        description="Install the macOS login/wake catch-up launcher for the daily market refresh."
     )
     value.add_argument("--repository", default=DEFAULT_REPOSITORY)
     value.add_argument("--workflow", default=DEFAULT_WORKFLOW)

@@ -4,7 +4,6 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from decimal import Decimal
 from typing import Protocol
 
 from server.app.application.finance import FinanceOverview, FinanceService
@@ -214,12 +213,8 @@ class InsightsService:
                 )
         facts.extend(self._finance_obligation_facts(finance, month))
         facts.extend(self._group_facts(actor_address))
-        crypto = self._portfolio.overview(
-            actor_address=actor_address,
-            month=month,
-            now_utc=self._clock(),
-        )
-        if crypto.risk_profile is None:
+        risk = self._portfolio.risk_profile(actor_address=actor_address)
+        if risk.profile is None:
             facts.append(
                 self._fact(
                     "crypto.risk.missing",
@@ -235,42 +230,10 @@ class InsightsService:
                 self._fact(
                     "crypto.risk.score",
                     "crypto",
-                    f"The recorded risk score is {crypto.risk_profile.score} out of 100.",
-                    crypto.risk_profile.policy_version,
-                    (crypto.risk_profile.source_event_id,),
-                    crypto.risk_profile.recorded_at_utc,
-                )
-            )
-        if crypto.forecast is None:
-            facts.append(
-                self._fact(
-                    "crypto.forecast.gated",
-                    "crypto",
-                    "No forecast is eligible for portfolio use because no model "
-                    "has an active promotion event.",
-                    "forecast-promotion-v1",
-                    ("state:no-eligible-forecast",),
-                    self._clock(),
-                )
-            )
-        elif crypto.recommendation is not None:
-            allocation = ", ".join(
-                f"{item.asset.value} {Decimal(item.weight) * 100:.1f}%"
-                for item in crypto.recommendation.allocations
-            )
-            facts.append(
-                self._fact(
-                    "crypto.portfolio.allocation",
-                    "crypto",
-                    f"The constrained analytical allocation is {allocation}; "
-                    "it does not execute trades.",
-                    crypto.recommendation.policy_version,
-                    (
-                        crypto.recommendation.forecast_snapshot_id,
-                        crypto.recommendation.promotion_event_id,
-                        crypto.recommendation.risk_profile_event_id,
-                    ),
-                    crypto.forecast.as_of_utc,
+                    f"The recorded risk score is {risk.profile.score} out of 100.",
+                    risk.profile.policy_version,
+                    (risk.profile.source_event_id,),
+                    risk.profile.recorded_at_utc,
                 )
             )
         return AuthorizedFactBundle.build(
@@ -346,10 +309,10 @@ class InsightsService:
             _NON_ADVICE,
             "The assistant cannot perform any action or change the saved record.",
         ]
-        if any(fact.fact_id == "crypto.forecast.gated" for fact in evidence):
+        if any(fact.fact_id == "crypto.risk.missing" for fact in evidence):
             caveats.append(
-                "No BTC, ETH, or SOL recommendation is available without a "
-                "promoted forecast."
+                "Record a risk profile before using the Crypto Intelligence "
+                "dashboard."
             )
         return InsightResponse(
             summary=" ".join(fact.statement for fact in evidence),
@@ -490,19 +453,19 @@ class InsightsService:
                         fact_ids=(fact.fact_id,),
                     )
                 )
-        gated = next(
-            (fact for fact in bundle.facts if fact.fact_id == "crypto.forecast.gated"),
+        missing_risk = next(
+            (fact for fact in bundle.facts if fact.fact_id == "crypto.risk.missing"),
             None,
         )
-        if gated is not None:
+        if missing_risk is not None:
             values.append(
                 InsightNotification(
-                    notification_id="notice:crypto.forecast.gated",
+                    notification_id="notice:crypto.risk.missing",
                     severity="info",
-                    title="Crypto Intelligence is gated",
-                    message=gated.statement,
+                    title="Complete your Crypto Intelligence risk profile",
+                    message=missing_risk.statement,
                     href="/crypto",
-                    fact_ids=(gated.fact_id,),
+                    fact_ids=(missing_risk.fact_id,),
                 )
             )
         return tuple(values)

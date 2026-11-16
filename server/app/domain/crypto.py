@@ -24,6 +24,8 @@ class CryptoAsset(StrEnum):
 
 class ObservationChannel(StrEnum):
     MARKET = "market"
+    # Retained solely so immutable historical observation archives remain
+    # readable; the active repository accepts market observations only.
     ON_CHAIN = "on_chain"
     SENTIMENT = "sentiment"
 

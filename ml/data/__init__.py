@@ -1,10 +1,5 @@
-"""Deterministic research datasets and sequence preparation."""
+"""Market-only datasets for the active seven-day forecast workflow."""
 
-from ml.data.datasets import ResearchSequenceDataset, build_sequence_dataset
-from ml.data.synthetic import generate_synthetic_feature_dataset
+from ml.data.market_daily import ASSETS, FORECAST_DAYS
 
-__all__ = [
-    "ResearchSequenceDataset",
-    "build_sequence_dataset",
-    "generate_synthetic_feature_dataset",
-]
+__all__ = ["ASSETS", "FORECAST_DAYS"]

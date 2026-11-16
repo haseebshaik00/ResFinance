@@ -18,11 +18,6 @@ from server.app.infrastructure.huggingface_insights import HuggingFaceInstructio
 from server.app.infrastructure.resilientdb_cli import DockerResilientDBEventStore
 
 
-class NoForecasts:
-    def latest_forecast_snapshot(self) -> None:
-        return None
-
-
 class TrackingStore:
     def __init__(self, wrapped: DockerResilientDBEventStore) -> None:
         self._wrapped = wrapped
@@ -128,7 +123,7 @@ def main() -> int:
         month=now.strftime("%Y-%m"),
         limit_minor_units=100_000,
     )
-    portfolio = PortfolioService(events, NoForecasts(), finance)
+    portfolio = PortfolioService(events)
     selector = (
         HuggingFaceInstructionSelector(model_path=args.model_dir)
         if args.model_dir is not None

@@ -9,11 +9,9 @@ The active experiment compares only:
 1. Original MSPCIFormer clean-room reimplementation.
 2. VASA-MSPCIFormer, with volatility-conditioned scale aggregation.
 
-Naive persistence is not registered, evaluated, plotted, selected, or exposed
-by the active v2 pipeline. The historical v1 run remains immutable and its
-three-model report remains available in
-[`mspciformer-vasa-phase1.md`](mspciformer-vasa-phase1.md). No old metric,
-checkpoint, manifest, artifact, hash, or chart was deleted or rewritten.
+Only the two active trained architectures are registered, evaluated, plotted,
+selected, or exposed by the v2 pipeline. Retired Paper 2 material is isolated
+under [`archive/paper2-multimodal-naive/`](archive/paper2-multimodal-naive/).
 
 The sole architectural base paper remains Zhao, Crane, and Bezbradica (2026),
 [MSPCIFormer](https://doi.org/10.1111/exsy.70343). This is a clean-room,
@@ -83,8 +81,8 @@ day, the original dates remain visible and the forecast is marked stale.
 
 Review copies are written only under
 `.resfinance-local/research/phase1-vasa-v2/`; the historical v1 directory is
-not overwritten. The checked-in bounded evidence is
-[`../../config/crypto-intelligence/phase1-vasa-v2-2026-11-14.json`](../../config/crypto-intelligence/phase1-vasa-v2-2026-11-14.json).
+not overwritten. Dated historical copies are isolated from the active workflow
+under [`archive/paper2-multimodal-naive/`](archive/paper2-multimodal-naive/).
 
 This research is experimental and non-commercial. It does not establish
 profitable forecasting, production readiness, investment advice, or trading
