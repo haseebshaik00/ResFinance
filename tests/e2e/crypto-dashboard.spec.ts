@@ -393,6 +393,11 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.locator(".phase2-market-layout > .phase2-market-section"),
   ).toHaveCount(1);
+  await expect(page.locator(".phase2-market-section")).toHaveAttribute(
+    "data-animated",
+    "true",
+  );
+  await expect(page.locator(".phase2-market-card")).toHaveCount(3);
   await expect(
     page.locator(".phase2-market-section + .phase2-outlook"),
   ).toHaveCount(1);

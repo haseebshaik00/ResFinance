@@ -2435,6 +2435,7 @@ code {
 
 .phase2-market-card {
   --market-asset-color: var(--btc-color);
+  --market-card-index: 0;
   background: linear-gradient(
     135deg,
     color-mix(
@@ -2466,6 +2467,63 @@ code {
 
 .phase2-market-card.sol {
   --market-asset-color: var(--sol-color);
+}
+
+@keyframes market-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.55rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes market-card-accent-flow {
+  0%,
+  100% {
+    filter: brightness(1);
+    opacity: 0.88;
+  }
+  50% {
+    filter: brightness(1.35);
+    opacity: 1;
+  }
+}
+
+@keyframes market-card-return-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2);
+  }
+}
+
+.phase2-market-section[data-animated="false"] .phase2-market-card {
+  opacity: 0;
+  transform: translateY(0.55rem);
+}
+
+.phase2-market-section[data-animated="true"] .phase2-market-card {
+  animation: market-card-enter 0.55s ease-out both;
+  animation-delay: calc(var(--market-card-index) * 0.12s);
+}
+
+.phase2-market-section[data-animated="true"] .phase2-market-card::before {
+  animation: market-card-accent-flow 2.4s ease-in-out infinite;
+  animation-delay: calc(0.55s + var(--market-card-index) * 0.18s);
+}
+
+.phase2-market-section[data-animated="true"]
+  .phase2-market-card
+  dl
+  div:last-child
+  dd {
+  animation: market-card-return-pulse 2.4s ease-in-out infinite;
+  animation-delay: calc(0.7s + var(--market-card-index) * 0.18s);
 }
 
 .phase2-market-card-header {
@@ -6152,5 +6210,20 @@ td.expense {
     transition: none;
     background-image: none;
     background: var(--budget-bar-color, var(--income));
+  }
+
+  .phase2-market-section .phase2-market-card,
+  .phase2-market-section[data-animated="true"] .phase2-market-card,
+  .phase2-market-section[data-animated="true"] .phase2-market-card::before,
+  .phase2-market-section[data-animated="true"]
+    .phase2-market-card
+    dl
+    div:last-child
+    dd {
+    opacity: 1;
+    filter: none;
+    animation: none;
+    transition: none;
+    transform: none;
   }
 }

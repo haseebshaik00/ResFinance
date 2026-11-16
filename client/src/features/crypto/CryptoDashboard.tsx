@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from "react";
 import {
   AlertTriangle,
   Check,
@@ -14,6 +21,7 @@ import type {
   SevenDayForecast,
 } from "../../lib/api/client";
 import { MonthPicker } from "../../components/MonthPicker";
+import { useAnimateWhenVisible } from "../../lib/useAnimateWhenVisible";
 import {
   currentMonth,
   formatUsd,
@@ -140,10 +148,10 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           <div className="section-heading compact">
             <div>
               <p className="section-kicker">
-                Market observation & Price Outlook
+                Model observation & Price Outlook
               </p>
               <h2 id="forecast-chart-title">
-                Crypto Market Overview & Model Output: 7-Day Price Forecast
+                AI-Powered 7-Day Price Forecast
               </h2>
             </div>
             <div className="forecast-chart-actions">
@@ -631,25 +639,29 @@ function RiskScore({
 }
 
 function MarketOverview({ forecast }: { forecast: SevenDayForecast }) {
+  const { ref, animated } = useAnimateWhenVisible<HTMLElement>();
   return (
     <section
+      ref={ref}
       className="phase2-market-section"
+      data-animated={animated ? "true" : "false"}
       aria-labelledby="market-overview-title"
     >
       <div className="phase2-market-intro">
         <div>
           <p className="section-kicker">BTC · ETH · SOL market snapshot</p>
           <h3 id="market-overview-title">Crypto Market Overview</h3>
-          <p>Observed cutoff price and the model&apos;s Day 7 reference.</p>
+          <p>Observed Cutoff Price and the model&apos;s Day 7 Reference.</p>
         </div>
       </div>
       <div className="phase2-market-grid">
-        {forecast.assets.map((item) => {
+        {forecast.assets.map((item, index) => {
           const change = Number(item.predicted_return_7d);
           return (
             <article
               className={`phase2-market-card ${item.asset.toLowerCase()} ${change >= 0 ? "positive" : "negative"}`}
               key={item.asset}
+              style={{ "--market-card-index": index } as CSSProperties}
             >
               <div className="phase2-market-card-header">
                 <img
