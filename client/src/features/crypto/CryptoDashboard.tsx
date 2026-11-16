@@ -10,17 +10,27 @@ import {
   AlertTriangle,
   Check,
   CircleHelp,
+  FileText,
   FlaskConical,
   Pencil,
   ShieldCheck,
   X,
 } from "lucide-react";
+import {
+  Cell,
+  Label,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  type PieLabelRenderProps,
+} from "recharts";
 
 import type {
   PortfolioRecommendation,
   SevenDayForecast,
 } from "../../lib/api/client";
 import { MonthPicker } from "../../components/MonthPicker";
+import { chartFontFamily } from "../../lib/chartTooltip";
 import { useAnimateWhenVisible } from "../../lib/useAnimateWhenVisible";
 import {
   currentMonth,
@@ -37,6 +47,7 @@ import {
 import { useCryptoDashboard } from "./useCryptoDashboard";
 
 type Asset = "BTC" | "ETH" | "SOL";
+type AllocationAsset = Asset | "USD";
 const ASSETS: Asset[] = ["BTC", "ETH", "SOL"];
 const ASSET_NAMES: Record<Asset, string> = {
   BTC: "Bitcoin",
@@ -48,6 +59,19 @@ const ASSET_LOGOS: Record<Asset, string> = {
   ETH: "/patterns/icons/eth.png",
   SOL: "/patterns/icons/sol.png",
 };
+const USD_LOGO = "/patterns/icons/usd.png";
+const ASSET_COLORS: Record<AllocationAsset, string> = {
+  BTC: "var(--btc-color)",
+  ETH: "var(--eth-color)",
+  SOL: "var(--sol-color)",
+  USD: "var(--cash-color)",
+};
+const PIE_ANIMATION_MS = 900;
+const DONUT_INNER_RADIUS = 46;
+const DONUT_OUTER_RADIUS = 70;
+const DONUT_LABEL_OFFSET = 30;
+const DONUT_LABEL_SIDE_EXTRA = 12;
+const DONUT_ACTIVE_EXPAND = 8;
 
 function formatSavingsMonth(month: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -150,9 +174,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
               <p className="section-kicker">
                 Model observation & Price Outlook
               </p>
-              <h2 id="forecast-chart-title">
-                AI-Powered 7-Day Price Forecast
-              </h2>
+              <h2 id="forecast-chart-title">AI-Powered 7-Day Price Forecast</h2>
             </div>
             <div className="forecast-chart-actions">
               <div className="asset-switcher" aria-label="Chart asset">
@@ -211,8 +233,25 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
       >
         <div className="section-heading">
           <div>
-            <p className="section-kicker">Model-informed diversification</p>
+            <p className="section-kicker">Model Informed Diversification</p>
             <h2 id="allocation-title">Portfolio Allocation</h2>
+          </div>
+          <div className="portfolio-heading-actions">
+            <MethodologyInfo
+              forecast={forecast}
+              modelConfidence={dashboard.recommendation.data?.model_confidence}
+              warnings={dashboard.recommendation.data?.warnings ?? []}
+            />
+            <a
+              aria-label="Open portfolio allocation research PDF"
+              className="dashboard-info-button portfolio-research-link"
+              href="https://github.com/haseebshaik00/ResFinance/blob/feat/haseeb-base-crypto-research/docs/research/ResFinance-Research-Flow.pdf"
+              rel="noreferrer"
+              target="_blank"
+              title="Research behind this allocation"
+            >
+              <FileText size={22} aria-hidden="true" />
+            </a>
           </div>
         </div>
         <div className="portfolio-setup-row" aria-label="Portfolio setup">
@@ -269,7 +308,6 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
               recommendation={dashboard.recommendation.data}
             />
           )}
-        <MethodologySection forecast={forecast} />
       </section>
 
       <MethodProvenance forecast={forecast} />
@@ -386,7 +424,7 @@ function InvestmentCapitalCard({
   }
 
   return (
-    <section className="panel capital-card" aria-labelledby="capital-title">
+    <section className="capital-card" aria-labelledby="capital-title">
       <div className="capital-card-heading">
         <div>
           <p className="section-kicker">Investment Capital</p>
@@ -538,7 +576,7 @@ function RiskQuestionnaire({
   ] as const;
   return (
     <section
-      className="panel risk-questionnaire-card"
+      className="risk-questionnaire-card"
       aria-labelledby="risk-profile-title"
     >
       <div className="section-heading compact">
@@ -568,9 +606,9 @@ function RiskQuestionnaire({
                 }))
               }
             >
-              <option value={1}>1 — Low</option>
-              <option value={2}>2 — Medium</option>
-              <option value={3}>3 — High</option>
+              <option value={1}>1 - Low</option>
+              <option value={2}>2 - Medium</option>
+              <option value={3}>3 - High</option>
             </select>
           </label>
         ))}
@@ -583,8 +621,8 @@ function RiskQuestionnaire({
           {pending
             ? "Saving…"
             : profile === null
-              ? "Save risk profile"
-              : "Update risk profile"}
+              ? "Save Risk Profile"
+              : "Update Risk Profile"}
         </button>
       </div>
       {error !== undefined && (
@@ -698,6 +736,18 @@ function MarketOverview({ forecast }: { forecast: SevenDayForecast }) {
   );
 }
 
+type AllocationSlice = {
+  key: AllocationAsset;
+  name: string;
+  shortName: string;
+  weight: string;
+  amount: number;
+  color: string;
+  logo: string;
+  adjustmentLabel: string;
+  value: number;
+};
+
 function RecommendationPanel({
   recommendation,
 }: {
@@ -710,47 +760,49 @@ function RecommendationPanel({
       ),
     [recommendation.allocations],
   );
-  const percentages = allocations.map((item) => Number(item.weight) * 100);
-  const btcEnd = percentages[0] ?? 0;
-  const ethEnd = btcEnd + (percentages[1] ?? 0);
-  const solEnd = ethEnd + (percentages[2] ?? 0);
-  const gradient = `conic-gradient(#6555a5 0 ${btcEnd}%, #2c9c91 ${btcEnd}% ${ethEnd}%, #d49735 ${ethEnd}% ${solEnd}%, #607184 ${solEnd}% 100%)`;
-  const adjustments = new Map(
-    recommendation.tactical_adjustments.map((item) => [
-      item.asset,
-      item.weight,
-    ]),
+  const adjustments = useMemo(
+    () =>
+      new Map(
+        recommendation.tactical_adjustments.map((item) => [
+          item.asset,
+          item.weight,
+        ]),
+      ),
+    [recommendation.tactical_adjustments],
   );
+  const slices = useMemo<AllocationSlice[]>(
+    () => [
+      ...allocations.map((item) => ({
+        key: item.asset,
+        name: ASSET_NAMES[item.asset],
+        shortName: item.asset,
+        weight: item.weight,
+        amount: item.amount.minor_units,
+        color: ASSET_COLORS[item.asset],
+        logo: ASSET_LOGOS[item.asset],
+        adjustmentLabel: formatForecastReturn(
+          Number(adjustments.get(item.asset) ?? 0),
+        ),
+        value: Math.max(Number(item.weight), 0),
+      })),
+      {
+        key: "USD",
+        name: "USD cash reserve",
+        shortName: "USD",
+        weight: recommendation.cash_reserve.weight,
+        amount: recommendation.cash_reserve.amount.minor_units,
+        color: ASSET_COLORS.USD,
+        logo: USD_LOGO,
+        adjustmentLabel: "Fixed",
+        value: Math.max(Number(recommendation.cash_reserve.weight), 0),
+      },
+    ],
+    [allocations, adjustments, recommendation.cash_reserve],
+  );
+
   return (
     <div className="recommendation-layout">
-      <div className="allocation-donut-wrap">
-        <div
-          className="allocation-donut"
-          style={{ background: gradient }}
-          role="img"
-          aria-label={allocations
-            .map(
-              (item) =>
-                `${item.asset} ${formatAllocationWeight(item.weight)}, ${formatUsd(item.amount.minor_units)}`,
-            )
-            .concat(
-              `USD cash reserve ${formatAllocationWeight(recommendation.cash_reserve.weight)}, ${formatUsd(recommendation.cash_reserve.amount.minor_units)}`,
-            )
-            .join("; ")}
-        >
-          <span>
-            <strong>
-              {formatAllocationWeight(recommendation.crypto_allocation_weight)}
-            </strong>
-            <small>crypto sleeve</small>
-          </span>
-        </div>
-        <span
-          className={`forecast-status-pill ${recommendation.forecast_status}`}
-        >
-          {recommendation.forecast_status} inputs
-        </span>
-      </div>
+      <AllocationDonut slices={slices} />
       <div className="allocation-table-wrap">
         <p className="panel-note">
           {recommendation.risk_profile} profile · score{" "}
@@ -770,8 +822,16 @@ function RecommendationPanel({
             {allocations.map((item) => (
               <tr key={item.asset}>
                 <th>
-                  <i className={`asset-dot ${item.asset.toLowerCase()}`} />
-                  {item.asset}
+                  <span className="allocation-asset">
+                    <img
+                      alt=""
+                      className="allocation-asset-logo"
+                      height={22}
+                      src={ASSET_LOGOS[item.asset]}
+                      width={22}
+                    />
+                    <span>{item.asset}</span>
+                  </span>
                 </th>
                 <td>{formatAllocationWeight(item.weight)}</td>
                 <td className="tactical-adjustment">
@@ -784,8 +844,16 @@ function RecommendationPanel({
             ))}
             <tr className="cash-reserve-row">
               <th>
-                <i className="asset-dot cash" />
-                USD cash reserve
+                <span className="allocation-asset">
+                  <img
+                    alt=""
+                    className="allocation-asset-logo"
+                    height={22}
+                    src={USD_LOGO}
+                    width={22}
+                  />
+                  <span>USD cash reserve</span>
+                </span>
               </th>
               <td>
                 {formatAllocationWeight(recommendation.cash_reserve.weight)}
@@ -810,86 +878,312 @@ function RecommendationPanel({
             </tr>
           </tfoot>
         </table>
-        <div className="portfolio-metrics">
-          <span>
-            <small>Predicted portfolio return</small>
-            <strong>
-              {formatForecastReturn(
-                Number(recommendation.predicted_portfolio_return_7d),
-              )}
-            </strong>
-          </span>
-          <span>
-            <small>Estimated 7-day volatility</small>
-            <strong>
-              {formatForecastReturn(
-                Number(recommendation.estimated_portfolio_volatility_7d),
-              )}
-            </strong>
-          </span>
+        <div className="portfolio-summary-footer">
+          <div className="portfolio-metrics">
+            <span>
+              <small>Predicted portfolio return</small>
+              <strong>
+                {formatForecastReturn(
+                  Number(recommendation.predicted_portfolio_return_7d),
+                )}
+              </strong>
+            </span>
+            <span>
+              <small>Estimated 7-day volatility</small>
+              <strong>
+                {formatForecastReturn(
+                  Number(recommendation.estimated_portfolio_volatility_7d),
+                )}
+              </strong>
+            </span>
+          </div>
         </div>
-        <p className="panel-note">
-          Model confidence:{" "}
-          {(Number(recommendation.model_confidence) * 100).toFixed(2)}%;
-          strategic targets are blended with the forecast/covariance model mix.
-        </p>
       </div>
-      {recommendation.warnings.map((warning) => (
-        <p className="panel-note recommendation-warning" key={warning}>
-          {warning}
-        </p>
-      ))}
     </div>
   );
 }
 
-function MethodologySection({ forecast }: { forecast: SevenDayForecast }) {
+function AllocationDonut({ slices }: { slices: AllocationSlice[] }) {
+  const { ref, animated } = useAnimateWhenVisible<HTMLDivElement>();
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [introDone, setIntroDone] = useState(false);
+  const ariaLabel = slices
+    .map(
+      (slice) =>
+        `${slice.name} ${formatAllocationWeight(slice.weight)}, ${formatUsd(slice.amount)}`,
+    )
+    .join("; ");
+
+  useEffect(() => {
+    if (!animated) return;
+    const timer = window.setTimeout(() => setIntroDone(true), PIE_ANIMATION_MS);
+    return () => window.clearTimeout(timer);
+  }, [animated]);
+
   return (
-    <section className="portfolio-methodology" aria-labelledby="method-title">
-      <div className="section-heading compact">
-        <div>
-          <p className="section-kicker">Transparent methodology</p>
-          <h2 id="method-title">How Recommendations Are Calculated</h2>
-        </div>
-        <FlaskConical aria-hidden="true" size={28} />
+    <div className="allocation-donut-wrap">
+      <div
+        ref={ref}
+        className="allocation-donut-chart"
+        data-animated={animated ? "true" : "false"}
+        role="img"
+        aria-label={ariaLabel}
+      >
+        <ResponsiveContainer
+          key={animated ? "animated" : "idle"}
+          width="100%"
+          height="100%"
+        >
+          <PieChart margin={{ top: 44, right: 96, bottom: 44, left: 72 }}>
+            <Pie
+              animationBegin={0}
+              animationDuration={PIE_ANIMATION_MS}
+              animationEasing="ease-out"
+              cx="50%"
+              cy="50%"
+              data={slices}
+              dataKey="value"
+              innerRadius={DONUT_INNER_RADIUS}
+              isAnimationActive={animated && !introDone}
+              label={(props) => renderAllocationSliceLabel(props, activeIndex)}
+              labelLine={renderAllocationLabelLine}
+              nameKey="shortName"
+              onMouseEnter={(_, index) => setActiveIndex(index)}
+              onMouseLeave={() => setActiveIndex(null)}
+              outerRadius={(dataPoint) => {
+                const point = dataPoint as AllocationSlice;
+                return point.key === slices[activeIndex ?? -1]?.key
+                  ? DONUT_OUTER_RADIUS + DONUT_ACTIVE_EXPAND
+                  : DONUT_OUTER_RADIUS;
+              }}
+              paddingAngle={2.5}
+              stroke="var(--surface)"
+              strokeWidth={2}
+            >
+              {slices.map((slice) => (
+                <Cell
+                  key={slice.key}
+                  fill={slice.color}
+                  style={{ cursor: "pointer" }}
+                />
+              ))}
+              <Label
+                content={(props) => renderSavingsAllocationCenter(props)}
+                position="center"
+              />
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
       </div>
-      <ol className="method-steps">
-        <li>
-          <strong>Forecast</strong>
-          <span>Validation-selected MSPCIFormer predicts Days 1–7.</span>
-        </li>
-        <li>
-          <strong>Return</strong>
-          <span>Day-7 price ÷ observed price − 1.</span>
-        </li>
-        <li>
-          <strong>Risk</strong>
-          <span>Ledoit–Wolf daily covariance over 365 days, scaled ×7.</span>
-        </li>
-        <li>
-          <strong>Allocate</strong>
-          <span>
-            The questionnaire fixes crypto exposure and USD cash. The forecast
-            applies a confidence-weighted BTC/ETH/SOL model blend inside that
-            selected crypto sleeve.
-          </span>
-        </li>
-      </ol>
-      <div className="method-facts">
-        <span>
-          Model <strong>{forecast.model_name}</strong>
-        </span>
-        <span>
-          Horizon <strong>Seven days</strong>
-        </span>
-        <span>
-          Status <strong>Experimental</strong>
-        </span>
-        <span>
-          Execution <strong>No trades</strong>
-        </span>
+    </div>
+  );
+}
+
+function allocationLabelPoint(
+  cx: number,
+  cy: number,
+  midAngle: number,
+): { x: number; y: number; onRight: boolean } {
+  const radian = Math.PI / 180;
+  const cos = Math.cos(-midAngle * radian);
+  const sin = Math.sin(-midAngle * radian);
+  const onRight = cos >= 0;
+  const labelRadius =
+    DONUT_OUTER_RADIUS +
+    DONUT_LABEL_OFFSET +
+    (onRight ? DONUT_LABEL_SIDE_EXTRA : 0);
+  return {
+    x: cx + labelRadius * cos + (onRight ? 10 : -4),
+    y: cy + labelRadius * sin,
+    onRight,
+  };
+}
+
+function renderAllocationLabelLine(props: {
+  cx?: number | string;
+  cy?: number | string;
+  midAngle?: number;
+  outerRadius?: number | string;
+  stroke?: string;
+}) {
+  const cx = Number(props.cx ?? 0);
+  const cy = Number(props.cy ?? 0);
+  const midAngle = Number(props.midAngle ?? 0);
+  const outerRadius = Number(props.outerRadius ?? DONUT_OUTER_RADIUS);
+  const radian = Math.PI / 180;
+  const cos = Math.cos(-midAngle * radian);
+  const sin = Math.sin(-midAngle * radian);
+  const start = {
+    x: cx + (outerRadius + 4) * cos,
+    y: cy + (outerRadius + 4) * sin,
+  };
+  const end = allocationLabelPoint(cx, cy, midAngle);
+  return (
+    <path
+      d={`M${start.x},${start.y}L${end.x},${end.y}`}
+      fill="none"
+      stroke="var(--control-border)"
+      strokeWidth={1}
+    />
+  );
+}
+
+function renderSavingsAllocationCenter(props: unknown) {
+  const viewBox = (props as { viewBox?: Record<string, number | undefined> })
+    .viewBox;
+  const cx = Number(viewBox?.cx ?? 0);
+  const cy = Number(viewBox?.cy ?? 0);
+  const holeRadius = Math.max(
+    Number(viewBox?.innerRadius ?? DONUT_INNER_RADIUS) - 2,
+    28,
+  );
+  return (
+    <g className="allocation-donut-center-label" pointerEvents="none">
+      <circle
+        cx={cx}
+        cy={cy}
+        fill="var(--surface)"
+        r={holeRadius}
+        stroke="color-mix(in srgb, var(--control-border) 80%, transparent)"
+        strokeWidth={1}
+      />
+      <text
+        fill="var(--page-text)"
+        fontFamily={chartFontFamily}
+        textAnchor="middle"
+        x={cx}
+        y={cy}
+      >
+        <tspan fontSize={12} fontWeight={800} x={cx} dy="-0.35em">
+          Savings
+        </tspan>
+        <tspan fontSize={12} fontWeight={800} x={cx} dy="1.2em">
+          Allocation
+        </tspan>
+      </text>
+    </g>
+  );
+}
+
+function renderAllocationSliceLabel(
+  props: PieLabelRenderProps,
+  activeIndex: number | null,
+) {
+  const { cx = 0, cy = 0, payload, index } = props;
+  const midAngle = Number(props.midAngle ?? 0);
+  const slice = payload as AllocationSlice | undefined;
+  if (slice === undefined) return null;
+
+  const isActive = index === activeIndex;
+  const { x, y, onRight } = allocationLabelPoint(
+    Number(cx),
+    Number(cy),
+    midAngle,
+  );
+  const scale = isActive ? 1.18 : 1;
+
+  return (
+    <text
+      className={`allocation-donut-label${isActive ? " is-active" : ""}${slice.key === "USD" ? " is-cash" : ""}`}
+      dominantBaseline="central"
+      fill="var(--page-text)"
+      fontFamily={chartFontFamily}
+      textAnchor={onRight ? "start" : "end"}
+      transform={`translate(${x} ${y}) scale(${scale}) translate(${-x} ${-y})`}
+      x={x}
+      y={y}
+    >
+      <tspan fontSize={11} fontWeight={800} x={x} dy="-0.4em">
+        {slice.shortName}
+      </tspan>
+      <tspan
+        fill={slice.key === "USD" ? "var(--page-text)" : "var(--page-muted)"}
+        fontSize={10}
+        fontWeight={600}
+        x={x}
+        dy="1.25em"
+      >
+        {formatAllocationWeight(slice.weight)} · {formatUsd(slice.amount)}
+      </tspan>
+    </text>
+  );
+}
+
+function MethodologyInfo({
+  forecast,
+  modelConfidence,
+  warnings,
+}: {
+  forecast: SevenDayForecast;
+  modelConfidence?: string | undefined;
+  warnings: string[];
+}) {
+  return (
+    <div className="methodology-info">
+      <button
+        aria-describedby="methodology-info-tooltip"
+        aria-label="How recommendations are calculated"
+        className="dashboard-info-button methodology-info-trigger"
+        type="button"
+      >
+        <FlaskConical size={22} aria-hidden="true" />
+      </button>
+      <div
+        className="methodology-info-tooltip"
+        id="methodology-info-tooltip"
+        role="tooltip"
+      >
+        <p className="methodology-info-title">
+          How recommendations are calculated
+        </p>
+        <ol className="methodology-info-steps">
+          <li>
+            <span className="methodology-info-label">Forecast</span>
+            <span>Validation-selected MSPCIFormer predicts Days 1–7.</span>
+          </li>
+          <li>
+            <span className="methodology-info-label">Return</span>
+            <span>Day-7 price ÷ observed price − 1.</span>
+          </li>
+          <li>
+            <span className="methodology-info-label">Risk</span>
+            <span>Ledoit–Wolf daily covariance over 365 days, scaled ×7.</span>
+          </li>
+          <li>
+            <span className="methodology-info-label">Allocate</span>
+            <span>
+              The questionnaire fixes crypto exposure and USD cash. The forecast
+              applies a confidence-weighted BTC/ETH/SOL model blend inside that
+              selected crypto sleeve.
+            </span>
+          </li>
+          {modelConfidence !== undefined && (
+            <li>
+              <span className="methodology-info-label">Confidence</span>
+              <span>
+                Model confidence: {(Number(modelConfidence) * 100).toFixed(2)}%;
+                strategic targets are blended with the forecast/covariance model
+                mix.
+              </span>
+            </li>
+          )}
+          <li>
+            <span className="methodology-info-label">Details</span>
+            <span>
+              {forecast.model_name}; seven-day horizon; experimental status; no
+              trade execution.
+            </span>
+          </li>
+        </ol>
+        {warnings.length > 0 && (
+          <ul className="methodology-info-notes">
+            {warnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        )}
       </div>
-    </section>
+    </div>
   );
 }
 

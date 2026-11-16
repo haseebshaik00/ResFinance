@@ -444,7 +444,13 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.getByText("USD cash reserve", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByText(/Model confidence: 20.00%/)).toBeVisible();
+  const methodologyButton = page.getByRole("button", {
+    name: "How recommendations are calculated",
+  });
+  await methodologyButton.hover();
+  await expect(page.locator(".methodology-info-tooltip")).toContainText(
+    "Model confidence: 20.00%; strategic targets are blended with the forecast/covariance model mix.",
+  );
   await expect(
     page.locator(".phase2-portfolio .portfolio-setup-row").getByText(
       "Risk Questionnaire",
