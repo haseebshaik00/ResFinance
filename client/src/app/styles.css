@@ -2236,38 +2236,77 @@ code {
   color: var(--warning);
 }
 
-.phase2-warning {
-  align-items: flex-start;
-  background: color-mix(in srgb, var(--warning) 10%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--warning) 38%, transparent);
-  border-radius: var(--radius-lg);
-  color: var(--text);
-  display: flex;
-  gap: 0.75rem;
-  padding: 1rem 1.1rem;
+.forecast-status {
+  position: relative;
 }
 
-.phase2-warning svg {
+.forecast-status-trigger {
+  cursor: help;
+  font-family: inherit;
+}
+
+.forecast-status-tooltip {
+  background: var(--popover-background);
+  border: 1px solid var(--control-border);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  color: var(--page-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  max-width: calc(100vw - 2rem);
+  min-width: 15.5rem;
+  opacity: 0;
+  padding: 0.7rem 0.8rem;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  text-align: left;
+  top: calc(100% + 0.45rem);
+  transform: translateY(-0.25rem);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    visibility 140ms ease;
+  visibility: hidden;
+  width: max-content;
+  z-index: 5;
+}
+
+.forecast-status:hover .forecast-status-tooltip,
+.forecast-status:focus-within .forecast-status-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.forecast-status-tooltip p {
+  margin: 0;
+}
+
+.forecast-status-tooltip p + p {
+  margin-top: 0.18rem;
+}
+
+.forecast-status-warning {
+  border-top: 1px solid var(--control-border);
+  color: var(--page-text);
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+}
+
+.forecast-status-warning strong {
   color: var(--warning);
-  flex: 0 0 auto;
 }
 
-.phase2-warning p {
-  color: var(--muted);
-  margin: 0.28rem 0 0;
+.forecast-status-warning ul {
+  color: var(--page-muted);
+  margin: 0.25rem 0 0;
+  padding-left: 1rem;
 }
 
 .phase2-market-section {
   display: grid;
   gap: 1rem;
-}
-
-.forecast-timestamps {
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.55;
-  margin: 0;
-  text-align: right;
 }
 
 .phase2-market-grid {
@@ -5562,10 +5601,6 @@ td.expense {
 
   .phase2-market-card:last-child {
     grid-column: auto;
-  }
-
-  .forecast-timestamps {
-    text-align: left;
   }
 
   .investment-capital-field {

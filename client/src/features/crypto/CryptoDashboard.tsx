@@ -108,29 +108,8 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
             trades are executed.
           </p>
         </div>
-        <span className={`forecast-status-pill ${forecast.status}`}>
-          {forecast.status === "current" ? (
-            <ShieldCheck size={17} />
-          ) : (
-            <AlertTriangle size={17} />
-          )}
-          {forecast.status === "current"
-            ? "Current forecast"
-            : "Stale forecast"}
-        </span>
+        <ForecastStatus forecast={forecast} />
       </section>
-
-      {forecast.stale_reasons.length > 0 && (
-        <section className="phase2-warning" role="alert">
-          <AlertTriangle aria-hidden="true" size={20} />
-          <div>
-            <strong>Forecast freshness warning</strong>
-            {forecast.stale_reasons.map((reason) => (
-              <p key={reason}>{reason}</p>
-            ))}
-          </div>
-        </section>
-      )}
 
       <MarketOverview forecast={forecast} />
 
@@ -264,6 +243,45 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
   );
 }
 
+function ForecastStatus({ forecast }: { forecast: SevenDayForecast }) {
+  const isCurrent = forecast.status === "current";
+  const tooltipId = "forecast-status-details";
+  return (
+    <div className="forecast-status">
+      <button
+        aria-describedby={tooltipId}
+        aria-label={`${isCurrent ? "Current" : "Stale"} forecast details`}
+        className={`forecast-status-pill forecast-status-trigger ${forecast.status}`}
+        type="button"
+      >
+        {isCurrent ? (
+          <ShieldCheck aria-hidden="true" size={17} />
+        ) : (
+          <AlertTriangle aria-hidden="true" size={17} />
+        )}
+        {isCurrent ? "Current forecast" : "Stale forecast"}
+      </button>
+      <div className="forecast-status-tooltip" id={tooltipId} role="tooltip">
+        <p>Generated {formatTimestamp(forecast.generated_at_utc)}</p>
+        <p>
+          Market cutoff{" "}
+          {formatForecastDate(forecast.market_data_cutoff_utc.slice(0, 10))}
+        </p>
+        {forecast.stale_reasons.length > 0 && (
+          <div className="forecast-status-warning">
+            <strong>Forecast freshness warning</strong>
+            <ul>
+              {forecast.stale_reasons.map((reason) => (
+                <li key={reason}>{reason}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function RiskQuestionnaire({
   profile,
   projectionVersion,
@@ -390,12 +408,6 @@ function MarketOverview({ forecast }: { forecast: SevenDayForecast }) {
           <p className="section-kicker">BTC · ETH · SOL</p>
           <h2 id="market-overview-title">Crypto Market Overview</h2>
         </div>
-        <p className="forecast-timestamps">
-          Generated {formatTimestamp(forecast.generated_at_utc)}
-          <br />
-          Market cutoff{" "}
-          {formatForecastDate(forecast.market_data_cutoff_utc.slice(0, 10))}
-        </p>
       </div>
       <div className="phase2-market-grid">
         {forecast.assets.map((item) => {

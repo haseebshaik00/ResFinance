@@ -67,7 +67,12 @@ const assets = [
   },
 ];
 
+let forecastStatus: "current" | "stale" = "current";
+let staleReasons: string[] = [];
+
 test.beforeEach(async ({ page }) => {
+  forecastStatus = "current";
+  staleReasons = [];
   await prepareWalletLogin(page);
   await page.route("**/api/v1/auth/refresh", async (route) => {
     await route.fulfill({
@@ -124,8 +129,8 @@ test.beforeEach(async ({ page }) => {
           "2026-11-20",
         ],
         assets,
-        status: "current",
-        stale_reasons: [],
+        status: forecastStatus,
+        stale_reasons: staleReasons,
         refreshed_from_checkpoint: false,
         quality_checks: {
           finite: true,
@@ -265,6 +270,16 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.getByText("Current forecast", { exact: true }),
   ).toBeVisible();
+  const forecastStatusButton = page.getByRole("button", {
+    name: "Current forecast details",
+  });
+  await forecastStatusButton.hover();
+  await expect(page.getByRole("tooltip")).toContainText(
+    "Generated 14 Nov 2026, 06:30 UTC",
+  );
+  await expect(page.getByRole("tooltip")).toContainText(
+    "Market cutoff 13 Nov 2026",
+  );
   await expect(
     page.getByRole("heading", { name: "Crypto Market Overview" }),
   ).toBeVisible();
@@ -326,6 +341,8 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator(".forecast-line")).toBeVisible();
   await expect(page.locator(".forecast-uncertainty-band")).toBeVisible();
+  await forecastStatusButton.hover();
+  await expect(page.getByRole("tooltip")).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth > innerWidth,
@@ -335,6 +352,24 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     path: "test-results/crypto-phase2-mobile.png",
     fullPage: true,
   });
+});
+
+test("shows stale reasons in the forecast status hover", async ({ page }) => {
+  forecastStatus = "stale";
+  staleReasons = [
+    "Market data is one day behind the latest completed UTC day.",
+  ];
+
+  await page.goto("/crypto");
+  await approveWalletLogin(page);
+
+  const forecastStatusButton = page.getByRole("button", {
+    name: "Stale forecast details",
+  });
+  await forecastStatusButton.hover();
+  const tooltip = page.getByRole("tooltip");
+  await expect(tooltip).toContainText("Forecast freshness warning");
+  await expect(tooltip).toContainText(staleReasons[0]!);
 });
 
 test("shows a meaningful forecast failure", async ({ page }) => {
