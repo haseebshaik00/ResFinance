@@ -34,6 +34,11 @@ const ASSET_NAMES: Record<Asset, string> = {
   ETH: "Ethereum",
   SOL: "Solana",
 };
+const ASSET_LOGOS: Record<Asset, string> = {
+  BTC: "/patterns/icons/btc.png",
+  ETH: "/patterns/icons/eth.png",
+  SOL: "/patterns/icons/sol.png",
+};
 
 function formatSavingsMonth(month: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -126,43 +131,6 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
         </div>
       </section>
 
-      <section className="crypto-top-row" aria-label="Portfolio setup">
-        <InvestmentCapitalCard
-          availableSavings={availableSavings}
-          capital={capital}
-          capitalError={capitalError}
-          financeError={
-            dashboard.financeOverview.isError
-              ? dashboard.financeOverview.error.message
-              : undefined
-          }
-          financePending={dashboard.financeOverview.isPending}
-          month={savingsMonth}
-          recommendationPending={dashboard.recommendation.isPending}
-          onChange={setCapital}
-        />
-        <RiskQuestionnaire
-          profile={riskProfile}
-          projectionVersion={
-            dashboard.riskProfile.data?.projection_version ?? 0
-          }
-          pending={dashboard.saveRiskProfile.isPending}
-          error={
-            dashboard.riskProfile.isError || dashboard.saveRiskProfile.isError
-              ? (dashboard.riskProfile.error ?? dashboard.saveRiskProfile.error)
-                  ?.message
-              : undefined
-          }
-          onSave={(answers) =>
-            dashboard.saveRiskProfile.mutate({
-              answers,
-              expected_version:
-                dashboard.riskProfile.data?.projection_version ?? 0,
-            })
-          }
-        />
-      </section>
-
       <section
         className="panel phase2-outlook"
         aria-labelledby="forecast-chart-title"
@@ -205,6 +173,44 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
             <p className="section-kicker">Model-informed diversification</p>
             <h2 id="allocation-title">Portfolio Allocation</h2>
           </div>
+        </div>
+        <div className="portfolio-setup-row" aria-label="Portfolio setup">
+          <InvestmentCapitalCard
+            availableSavings={availableSavings}
+            capital={capital}
+            capitalError={capitalError}
+            financeError={
+              dashboard.financeOverview.isError
+                ? dashboard.financeOverview.error.message
+                : undefined
+            }
+            financePending={dashboard.financeOverview.isPending}
+            month={savingsMonth}
+            recommendationPending={dashboard.recommendation.isPending}
+            onChange={setCapital}
+          />
+          <RiskQuestionnaire
+            profile={riskProfile}
+            projectionVersion={
+              dashboard.riskProfile.data?.projection_version ?? 0
+            }
+            pending={dashboard.saveRiskProfile.isPending}
+            error={
+              dashboard.riskProfile.isError || dashboard.saveRiskProfile.isError
+                ? (
+                    dashboard.riskProfile.error ??
+                    dashboard.saveRiskProfile.error
+                  )?.message
+                : undefined
+            }
+            onSave={(answers) =>
+              dashboard.saveRiskProfile.mutate({
+                answers,
+                expected_version:
+                  dashboard.riskProfile.data?.projection_version ?? 0,
+              })
+            }
+          />
         </div>
         {dashboard.recommendation.isError && (
           <p className="form-error" role="alert">
@@ -342,8 +348,7 @@ function InvestmentCapitalCard({
     <section className="panel capital-card" aria-labelledby="capital-title">
       <div className="capital-card-heading">
         <div>
-          <p className="section-kicker">Portfolio starting point</p>
-          <h2 id="capital-title">Investment Capital</h2>
+          <p className="section-kicker">Investment Capital</p>
         </div>
         <span className="capital-source">Available savings</span>
       </div>
@@ -507,10 +512,6 @@ function RiskQuestionnaire({
           />
         )}
       </div>
-      <p className="panel-note">
-        Your answers set the BTC, ETH, SOL, and cash targets. The forecast can
-        refine only the crypto sleeve.
-      </p>
       <div className="risk-form">
         {keys.map((key, index) => (
           <label className="form-field" key={key}>
@@ -583,8 +584,16 @@ function RiskScore({
         Score {score}
       </button>
       <div className="risk-score-tooltip" id={tooltipId} role="tooltip">
-        Profile version {projectionVersion}; responses are wallet-scoped and
-        informational only.
+        <ul>
+          <strong className="risk-score-profile-version">
+            [Profile version {projectionVersion}]
+          </strong>
+          <li>Your answers set the BTC, ETH, SOL, and cash targets.</li>
+          <li>The forecast can refine only the crypto sleeve.</li>
+          <li>
+            The responses are wallet-scoped and informational only.
+          </li>
+        </ul>
       </div>
     </div>
   );
@@ -611,7 +620,14 @@ function MarketOverview({ forecast }: { forecast: SevenDayForecast }) {
               className={`phase2-market-card ${item.asset.toLowerCase()} ${change >= 0 ? "positive" : "negative"}`}
               key={item.asset}
             >
-              <div>
+              <div className="phase2-market-card-header">
+                <img
+                  alt=""
+                  className="phase2-market-card-logo"
+                  height={28}
+                  src={ASSET_LOGOS[item.asset]}
+                  width={28}
+                />
                 <span>{item.asset}</span>
                 <small>{ASSET_NAMES[item.asset]}</small>
               </div>
@@ -837,7 +853,7 @@ function MethodologySection({ forecast }: { forecast: SevenDayForecast }) {
 function MethodProvenance({ forecast }: { forecast: SevenDayForecast }) {
   return (
     <>
-      <details className="provenance-panel crypto-provenance-panel" open>
+      <details className="provenance-panel crypto-provenance-panel">
         <summary>Historical Model Accuracy and Provenance</summary>
         <div className="provenance-columns crypto-provenance-columns">
           <section className="provenance-column">

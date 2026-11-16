@@ -341,16 +341,16 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await savingsMonthTrigger.press("Escape");
   await expect(savingsMonthMenu).toBeHidden();
   await expect(
-    page.getByRole("heading", { name: "Investment Capital" }),
-  ).toBeVisible();
+    page.locator(".phase2-portfolio .portfolio-setup-row .capital-card"),
+  ).toContainText("Investment Capital");
   await expect(
     page.locator(
-      ".crypto-top-row > .capital-card, .crypto-top-row > .risk-questionnaire-card",
+      ".phase2-portfolio .portfolio-setup-row > .capital-card, .phase2-portfolio .portfolio-setup-row > .risk-questionnaire-card",
     ),
   ).toHaveCount(2);
   const setupCardWidths = await page
     .locator(
-      ".crypto-top-row > .capital-card, .crypto-top-row > .risk-questionnaire-card",
+      ".phase2-portfolio .portfolio-setup-row > .capital-card, .phase2-portfolio .portfolio-setup-row > .risk-questionnaire-card",
     )
     .evaluateAll((cards) =>
       cards.map((card) => card.getBoundingClientRect().width),
@@ -362,6 +362,12 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await riskScore.hover();
   await expect(page.locator(".risk-score-tooltip")).toContainText(
     "Profile version 1; responses are wallet-scoped and informational only.",
+  );
+  await expect(page.locator(".risk-score-tooltip")).toContainText(
+    "Your answers set the BTC, ETH, SOL, and cash targets.",
+  );
+  await expect(page.locator(".risk-score-tooltip")).toContainText(
+    "The forecast can refine only the crypto sleeve.",
   );
   const forecastStatusButton = page.getByRole("button", {
     name: "Current forecast details",
@@ -388,13 +394,18 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.getByText("Historical Error Range", { exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".crypto-provenance-panel")).toHaveAttribute(
-    "open",
-    "",
-  );
+  const provenancePanel = page.locator(".crypto-provenance-panel");
+  await expect(provenancePanel).not.toHaveAttribute("open");
   await expect(
     page.locator(".phase2-portfolio + .crypto-provenance-panel"),
   ).toHaveCount(1);
+  await expect(
+    page.getByText("Historical Model Accuracy", { exact: true }),
+  ).not.toBeVisible();
+  await expect(
+    page.getByText("Forecast Provenance", { exact: true }),
+  ).not.toBeVisible();
+  await provenancePanel.locator("summary").click();
   await expect(
     page.getByText("Historical Model Accuracy", { exact: true }),
   ).toBeVisible();
@@ -418,7 +429,11 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     page.getByText("USD cash reserve", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText(/Model confidence: 20.00%/)).toBeVisible();
-  await expect(page.getByText("Risk Questionnaire")).toBeVisible();
+  await expect(
+    page.locator(".phase2-portfolio .portfolio-setup-row").getByText(
+      "Risk Questionnaire",
+    ),
+  ).toBeVisible();
   await expect(page.getByText(/15-day/i)).toHaveCount(0);
 
   await page.getByRole("button", { name: "Edit scenario amount" }).click();
@@ -462,6 +477,29 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     path: "test-results/crypto-phase2-mobile.png",
     fullPage: true,
   });
+});
+
+test("keeps historical model provenance collapsed until requested", async ({
+  page,
+}) => {
+  await page.goto("/crypto");
+  await approveWalletLogin(page);
+
+  const provenancePanel = page.locator(".crypto-provenance-panel");
+  await expect(provenancePanel).not.toHaveAttribute("open");
+  await expect(
+    page.getByText("Historical Model Accuracy", { exact: true }),
+  ).not.toBeVisible();
+
+  await provenancePanel.locator("summary").click();
+
+  await expect(provenancePanel).toHaveAttribute("open", "");
+  await expect(
+    page.getByText("Historical Model Accuracy", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Forecast Provenance", { exact: true }),
+  ).toBeVisible();
 });
 
 test("shows stale reasons in the forecast status hover", async ({ page }) => {

@@ -1101,23 +1101,23 @@ code {
   gap: 1rem;
 }
 
-.crypto-top-row {
+.portfolio-setup-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   align-items: stretch;
 }
 
-.crypto-top-row > .capital-card {
+.portfolio-setup-row > .capital-card {
   --crypto-panel-accent: var(--expense);
 }
 
-.crypto-top-row > .risk-questionnaire-card {
+.portfolio-setup-row > .risk-questionnaire-card {
   --crypto-panel-accent: var(--warning);
 }
 
-.crypto-top-row > .capital-card,
-.crypto-top-row > .risk-questionnaire-card {
+.portfolio-setup-row > .capital-card,
+.portfolio-setup-row > .risk-questionnaire-card {
   position: relative;
   overflow: hidden;
   border-color: color-mix(
@@ -1147,8 +1147,8 @@ code {
       color-mix(in srgb, var(--crypto-panel-accent) 72%, transparent);
 }
 
-.crypto-top-row > .capital-card::before,
-.crypto-top-row > .risk-questionnaire-card::before {
+.portfolio-setup-row > .capital-card::before,
+.portfolio-setup-row > .risk-questionnaire-card::before {
   position: absolute;
   top: 0;
   right: 0;
@@ -2243,6 +2243,21 @@ code {
   z-index: 5;
 }
 
+.risk-score-tooltip ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.risk-score-tooltip li + li {
+  margin-top: 0.28rem;
+}
+
+.risk-score-profile-version {
+  color: var(--warning);
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
 .risk-score:hover .risk-score-tooltip,
 .risk-score:focus-within .risk-score-tooltip {
   opacity: 1;
@@ -2440,20 +2455,28 @@ code {
   --market-asset-color: var(--sol-color);
 }
 
-.phase2-market-card > div:first-child {
+.phase2-market-card-header {
   align-items: center;
   display: flex;
   gap: 0.55rem;
 }
 
-.phase2-market-card > div span {
+.phase2-market-card-logo {
+  border-radius: 999px;
+  flex-shrink: 0;
+  height: 1.75rem;
+  object-fit: cover;
+  width: 1.75rem;
+}
+
+.phase2-market-card-header span {
   color: var(--market-asset-color);
   font-size: 1.1rem;
   font-weight: 900;
   letter-spacing: 0.035em;
 }
 
-.phase2-market-card > div small,
+.phase2-market-card-header small,
 .phase2-market-card dt {
   color: var(--muted);
 }
@@ -2494,7 +2517,8 @@ code {
   min-width: 0;
 }
 
-.phase2-outlook {
+.phase2-outlook,
+.phase2-portfolio {
   display: grid;
   gap: 1.1rem;
 }
@@ -2654,7 +2678,6 @@ code {
   display: grid;
   gap: clamp(1.5rem, 3vw, 3rem);
   grid-template-columns: minmax(14rem, 0.62fr) minmax(23rem, 1.38fr);
-  margin-top: 1rem;
 }
 
 .allocation-donut-wrap {
@@ -5530,7 +5553,7 @@ td.expense {
 }
 
 @media (max-width: 60rem) {
-  .crypto-top-row {
+  .portfolio-setup-row {
     grid-template-columns: 1fr;
   }
 }
@@ -5539,7 +5562,7 @@ td.expense {
   .dashboard-header,
   .dashboard-columns,
   .finance-overview-row,
-  .crypto-top-row,
+  .portfolio-setup-row,
   .analytics-grid,
   .insights-workspace,
   .provenance-columns,
