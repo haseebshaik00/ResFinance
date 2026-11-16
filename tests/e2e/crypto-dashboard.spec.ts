@@ -457,7 +457,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   );
   await expect(
     page.getByText(
-      /Finance default: \$1,000\.00 for .*Alternate amounts are read-only/,
+      /Default Investment Capital: \$1,000\.00 for .*Alternate amounts are read-only/,
     ),
   ).toBeVisible();
   await expect(
@@ -515,6 +515,9 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(page.getByText("$300.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$400.00", { exact: true })).toBeVisible();
   await expect(page.getByText(/Scenario active: \$2000\.00/)).toBeVisible();
+  await expect(
+    page.locator(".capital-source", { hasText: "Available savings" }),
+  ).toBeVisible();
 
   expect(
     await page.evaluate(
@@ -530,6 +533,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
         ),
       ),
   ).toBe(true);
+  await page.waitForTimeout(1_000);
   await page.screenshot({
     path: "test-results/crypto-phase2-desktop.png",
     fullPage: true,

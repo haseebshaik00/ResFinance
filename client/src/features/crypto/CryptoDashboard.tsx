@@ -232,6 +232,11 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           <p className="section-kicker">Model Informed Diversification</p>
           <h2 id="allocation-title">Portfolio Allocation</h2>
         </div>
+      </div>
+      <section
+        className="panel phase2-portfolio"
+        aria-labelledby="allocation-title"
+      >
         <div className="portfolio-heading-actions">
           <MethodologyInfo
             forecast={forecast}
@@ -257,11 +262,6 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
             />
           )}
         </div>
-      </div>
-      <section
-        className="panel phase2-portfolio"
-        aria-labelledby="allocation-title"
-      >
         <div className="portfolio-setup-row" aria-label="Portfolio setup">
           <InvestmentCapitalCard
             availableSavings={availableSavings}
@@ -442,7 +442,8 @@ function InvestmentCapitalCard({
       </form>
       {availableSavings !== undefined && (
         <p className="capital-disclaimer">
-          Finance default: <strong>{formatUsd(availableSavings)}</strong> for{" "}
+          Default Investment Capital:{" "}
+          <strong>{formatUsd(availableSavings)}</strong> for{" "}
           {formatSavingsMonth(month)}. Alternate amounts are read-only.
         </p>
       )}
