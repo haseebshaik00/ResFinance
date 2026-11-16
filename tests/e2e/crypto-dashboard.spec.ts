@@ -388,8 +388,9 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
       exact: true,
     }),
   ).toBeVisible();
+  await expect(page.locator(".phase2-market-section")).toHaveCount(1);
   await expect(
-    page.locator(".phase2-outlook .phase2-market-section"),
+    page.locator(".phase2-market-section + .phase2-outlook"),
   ).toHaveCount(1);
   await expect(page.getByText("$68,700.00", { exact: true })).toBeVisible();
   await expect(
