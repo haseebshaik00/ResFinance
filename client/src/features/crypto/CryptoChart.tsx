@@ -41,12 +41,7 @@ export function CryptoChart({
   const p10Prices = selected.p10_prices.map(Number);
   const p50Prices = selected.p50_prices.map(Number);
   const p90Prices = selected.p90_prices.map(Number);
-  const chartPrices = [
-    currentPrice,
-    ...p10Prices,
-    ...p50Prices,
-    ...p90Prices,
-  ];
+  const chartPrices = [currentPrice, ...p10Prices, ...p50Prices, ...p90Prices];
   const minimum = Math.min(...chartPrices);
   const maximum = Math.max(...chartPrices);
   const padding = Math.max((maximum - minimum) * 0.18, maximum * 0.002);
@@ -185,7 +180,9 @@ export function CryptoChart({
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           aria-hidden="true"
           onPointerLeave={() => setHover(null)}
-          onPointerMove={(event) => updateHover(event.clientX, event.currentTarget)}
+          onPointerMove={(event) =>
+            updateHover(event.clientX, event.currentTarget)
+          }
         >
           {grid.map((line) => (
             <g key={line.y}>
