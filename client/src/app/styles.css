@@ -1306,8 +1306,11 @@ code {
   min-height: 2.4rem;
 }
 
-.capital-card-heading > #capital-title {
-  color: color-mix(in srgb, var(--expense) 82%, var(--page-text));
+.capital-card-heading #capital-title {
+  margin: 0;
+  color: var(--page-text);
+  font-size: 1.2rem;
+  letter-spacing: -0.025em;
 }
 
 .capital-source {

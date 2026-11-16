@@ -478,7 +478,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     ),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Analyze scenario" }),
+    page.getByRole("button", { name: "Analyze Scenario" }),
   ).toBeVisible();
   await expect(
     page.locator(".capital-source", { hasText: "Available savings" }),
@@ -531,7 +531,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   expect(allocationProfileBox).not.toBeNull();
   expect(savingsAllocationBox!.x).toBeLessThan(allocationProfileBox!.x);
   await expect(page.locator(".allocation-donut-center-label")).toContainText(
-    "SavingsAllocation",
+    "AllocationBreakdown",
   );
   const firstAllocationSliceGroup = page
     .locator(".allocation-donut-chart .recharts-pie-sector")
@@ -546,7 +546,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(page.getByText(/15-day/i)).toHaveCount(0);
 
   await page.getByLabel("Investment Capital (USD)").fill("2000.00");
-  await page.getByRole("button", { name: "Analyze scenario" }).click();
+  await page.getByRole("button", { name: "Analyze Scenario" }).click();
   await expect(page.getByText("$500.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$800.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$300.00", { exact: true })).toBeVisible();
@@ -556,19 +556,6 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     page.locator(".capital-source.is-scenario-active", {
       hasText: "Scenario active",
     }),
-  ).toBeVisible();
-
-  const solAllocationSliceGroup = page
-    .locator(".allocation-donut-chart .recharts-pie-sector")
-    .nth(2);
-  await solAllocationSliceGroup.hover();
-  const activeAllocationLabel = page.locator(
-    ".allocation-donut-label.is-active",
-  );
-  await expect(activeAllocationLabel).toContainText("SOL");
-  await expect(activeAllocationLabel).toContainText("15.00% · $300.00");
-  await expect(
-    page.locator(".allocation-donut-active-label-card"),
   ).toBeVisible();
 
   expect(

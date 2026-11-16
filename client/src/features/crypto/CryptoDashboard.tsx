@@ -496,6 +496,7 @@ function InvestmentCapitalCard({
       <div className="capital-card-heading">
         <div>
           <p className="section-kicker">Investment Capital</p>
+          <h2 id="capital-title">Savings from Personal Finance</h2>
         </div>
         <span
           className={`capital-source${scenarioActive ? " is-scenario-active" : ""}`}
@@ -521,7 +522,7 @@ function InvestmentCapitalCard({
           type="submit"
         >
           <Check aria-hidden="true" size={16} />
-          {recommendationPending ? "Analyzing…" : "Analyze scenario"}
+          {recommendationPending ? "Analyzing…" : "Analyze Scenario"}
         </button>
         {validationError !== null && (
           <p className="form-error" role="alert">
@@ -955,9 +956,6 @@ function AllocationDonut({ slices }: { slices: AllocationSlice[] }) {
 
   return (
     <div className="allocation-donut-wrap">
-      <div className="allocation-donut-heading">
-        <h3>Allocation Breakdown</h3>
-      </div>
       <div
         ref={ref}
         className="allocation-donut-chart"
@@ -1012,8 +1010,8 @@ function AllocationDonut({ slices }: { slices: AllocationSlice[] }) {
           </PieChart>
         </ResponsiveContainer>
         <div className="allocation-donut-center-label" aria-hidden="true">
-          <span>Savings</span>
           <span>Allocation</span>
+          <span>Breakdown</span>
         </div>
       </div>
     </div>
@@ -1069,7 +1067,7 @@ function renderAllocationLabelLine(props: {
   );
 }
 
-export function renderAllocationSliceLabel(
+function renderAllocationSliceLabel(
   props: PieLabelRenderProps,
   activeIndex: number | null,
 ) {
@@ -1085,58 +1083,31 @@ export function renderAllocationSliceLabel(
     midAngle,
   );
   const scale = isActive ? 1.18 : 1;
-  const activeCardWidth = 152;
-  const activeCardHeight = 42;
-  const activeCardX = onRight ? x - 8 : x - activeCardWidth + 8;
-  const activeCardY = y - activeCardHeight / 2;
 
   return (
-    <g
+    <text
       className={`allocation-donut-label${isActive ? " is-active" : ""}${slice.key === "USD" ? " is-cash" : ""}`}
+      dominantBaseline="central"
+      fill="var(--page-text)"
+      fontFamily={chartFontFamily}
+      textAnchor={onRight ? "start" : "end"}
       transform={`translate(${x} ${y}) scale(${scale}) translate(${-x} ${-y})`}
+      x={x}
+      y={y}
     >
-      <title>
-        {slice.name}: {formatAllocationWeight(slice.weight)} ·{" "}
-        {formatUsd(slice.amount)}
-      </title>
-      {isActive ? (
-        <rect
-          aria-hidden="true"
-          className="allocation-donut-active-label-card"
-          height={activeCardHeight}
-          rx={7}
-          width={activeCardWidth}
-          x={activeCardX}
-          y={activeCardY}
-        />
-      ) : null}
-      <text
-        dominantBaseline="central"
-        fill="var(--page-text)"
-        fontFamily={chartFontFamily}
-        textAnchor={onRight ? "start" : "end"}
+      <tspan fontSize={11} fontWeight={800} x={x} dy="-0.4em">
+        {slice.shortName}
+      </tspan>
+      <tspan
+        fill={slice.key === "USD" ? "var(--page-text)" : "var(--page-muted)"}
+        fontSize={10}
+        fontWeight={600}
         x={x}
-        y={y}
+        dy="1.25em"
       >
-        <tspan fontSize={11} fontWeight={800} x={x} dy="-0.4em">
-          {slice.shortName}
-        </tspan>
-        <tspan
-          className="allocation-donut-label-value"
-          fill={
-            isActive || slice.key === "USD"
-              ? "var(--page-text)"
-              : "var(--page-muted)"
-          }
-          fontSize={10}
-          fontWeight={isActive ? 750 : 600}
-          x={x}
-          dy="1.25em"
-        >
-          {formatAllocationWeight(slice.weight)} · {formatUsd(slice.amount)}
-        </tspan>
-      </text>
-    </g>
+        {formatAllocationWeight(slice.weight)} · {formatUsd(slice.amount)}
+      </tspan>
+    </text>
   );
 }
 

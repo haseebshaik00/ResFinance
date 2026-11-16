@@ -1,6 +1,6 @@
 # ResFinance Current Status
 
-Last updated: 2026-11-16
+Last updated: 2026-11-17
 
 ResFinance uses the eight-milestone convention in
 [`milestones/milestones.md`](milestones/milestones.md). Milestones 1–7 are complete for the
@@ -212,6 +212,10 @@ earlier 15-day questionnaire/capped workflow remains immutable legacy evidence.
   table, metrics, research disclaimer, four methodology steps, and model facts
   remain visible; historical accuracy and provenance continue in the adjacent
   disclosure.
+- Refined the Crypto Intelligence presentation: the capital card now pairs its
+  **Investment Capital** label with **Savings from Personal Finance**, while
+  the allocation donut uses the center label **Allocation Breakdown** and
+  consistently readable static asset labels.
 - The executed v4 $1,000 Balanced-profile result fixes $200 cash and starts
   from $250 BTC / $400 ETH / $150 SOL. Its 3.39067511% model confidence
   produces $267.20 BTC / $386.44 ETH / $146.36 SOL / $200 cash, with
