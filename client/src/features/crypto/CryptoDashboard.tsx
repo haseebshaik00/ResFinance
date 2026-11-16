@@ -58,7 +58,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
   if (dashboard.forecast.isPending) {
     return (
       <DashboardState
-        title="Loading seven-day research forecast…"
+        title="Loading 7-day Research Forecast…"
         text="Verifying the selected MSPCIFormer model, immutable artifacts, and latest completed UTC market data."
       />
     );
