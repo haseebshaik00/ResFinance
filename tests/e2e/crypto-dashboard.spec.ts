@@ -271,6 +271,22 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     page.getByText("Current forecast", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Savings month", { exact: true })).toBeVisible();
+  const forecastStatusBox = await page
+    .locator(".crypto-header-actions .forecast-status")
+    .boundingBox();
+  const savingsMonthBox = await page
+    .locator(".crypto-header-actions .month-control")
+    .boundingBox();
+  expect(forecastStatusBox).not.toBeNull();
+  expect(savingsMonthBox).not.toBeNull();
+  expect(savingsMonthBox!.y).toBeGreaterThan(forecastStatusBox!.y);
+  expect(
+    Math.abs(
+      forecastStatusBox!.x +
+        forecastStatusBox!.width -
+        (savingsMonthBox!.x + savingsMonthBox!.width),
+    ),
+  ).toBeLessThan(2);
   await expect(
     page.getByRole("heading", { name: "Investment Capital" }),
   ).toBeVisible();

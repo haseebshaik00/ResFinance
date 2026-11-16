@@ -110,12 +110,12 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           </p>
         </div>
         <div className="crypto-header-actions">
+          <ForecastStatus forecast={forecast} />
           <MonthPicker
             label="Savings month"
             month={savingsMonth}
             onChange={setSavingsMonth}
           />
-          <ForecastStatus forecast={forecast} />
         </div>
       </section>
 
