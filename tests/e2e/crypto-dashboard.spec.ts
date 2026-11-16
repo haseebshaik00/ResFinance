@@ -544,6 +544,19 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     }),
   ).toBeVisible();
 
+  const solAllocationSliceGroup = page
+    .locator(".allocation-donut-chart .recharts-pie-sector")
+    .nth(2);
+  await solAllocationSliceGroup.hover();
+  const activeAllocationLabel = page.locator(
+    ".allocation-donut-label.is-active",
+  );
+  await expect(activeAllocationLabel).toContainText("SOL");
+  await expect(activeAllocationLabel).toContainText("15.00% · $300.00");
+  await expect(
+    page.locator(".allocation-donut-active-label-card"),
+  ).toBeVisible();
+
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth > innerWidth,

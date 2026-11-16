@@ -2895,6 +2895,7 @@ code {
 
 .allocation-donut-heading {
   align-self: stretch;
+  padding-top: 0.55rem;
   text-align: center;
 }
 
@@ -2969,8 +2970,18 @@ code {
 
 .allocation-donut-label.is-active {
   filter: drop-shadow(
-    0 0 0.35rem color-mix(in srgb, var(--page-text) 18%, transparent)
+    0 0 0.45rem color-mix(in srgb, var(--page-text) 25%, transparent)
   );
+}
+
+.allocation-donut-active-label-card {
+  fill: color-mix(in srgb, var(--surface-strong) 96%, transparent);
+  stroke: color-mix(in srgb, var(--page-accent) 72%, var(--control-border));
+  stroke-width: 1.5px;
+}
+
+.allocation-donut-label.is-active .allocation-donut-label-value {
+  fill: var(--page-text);
 }
 
 .allocation-table-wrap {

@@ -246,7 +246,8 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           <p className="section-kicker">Model Informed Diversification</p>
           <h2 id="allocation-title">Portfolio Allocation</h2>
           <p className="section-description">
-            Explore risk-aware 7-day portfolio recommendations across BTC, ETH, SOL, and USD cash.
+            Explore risk-aware 7-day portfolio recommendations across BTC, ETH,
+            SOL, and USD cash.
           </p>
         </div>
       </div>
@@ -1063,7 +1064,7 @@ function renderAllocationLabelLine(props: {
   );
 }
 
-function renderAllocationSliceLabel(
+export function renderAllocationSliceLabel(
   props: PieLabelRenderProps,
   activeIndex: number | null,
 ) {
@@ -1079,31 +1080,58 @@ function renderAllocationSliceLabel(
     midAngle,
   );
   const scale = isActive ? 1.18 : 1;
+  const activeCardWidth = 152;
+  const activeCardHeight = 42;
+  const activeCardX = onRight ? x - 8 : x - activeCardWidth + 8;
+  const activeCardY = y - activeCardHeight / 2;
 
   return (
-    <text
+    <g
       className={`allocation-donut-label${isActive ? " is-active" : ""}${slice.key === "USD" ? " is-cash" : ""}`}
-      dominantBaseline="central"
-      fill="var(--page-text)"
-      fontFamily={chartFontFamily}
-      textAnchor={onRight ? "start" : "end"}
       transform={`translate(${x} ${y}) scale(${scale}) translate(${-x} ${-y})`}
-      x={x}
-      y={y}
     >
-      <tspan fontSize={11} fontWeight={800} x={x} dy="-0.4em">
-        {slice.shortName}
-      </tspan>
-      <tspan
-        fill={slice.key === "USD" ? "var(--page-text)" : "var(--page-muted)"}
-        fontSize={10}
-        fontWeight={600}
+      <title>
+        {slice.name}: {formatAllocationWeight(slice.weight)} ·{" "}
+        {formatUsd(slice.amount)}
+      </title>
+      {isActive ? (
+        <rect
+          aria-hidden="true"
+          className="allocation-donut-active-label-card"
+          height={activeCardHeight}
+          rx={7}
+          width={activeCardWidth}
+          x={activeCardX}
+          y={activeCardY}
+        />
+      ) : null}
+      <text
+        dominantBaseline="central"
+        fill="var(--page-text)"
+        fontFamily={chartFontFamily}
+        textAnchor={onRight ? "start" : "end"}
         x={x}
-        dy="1.25em"
+        y={y}
       >
-        {formatAllocationWeight(slice.weight)} · {formatUsd(slice.amount)}
-      </tspan>
-    </text>
+        <tspan fontSize={11} fontWeight={800} x={x} dy="-0.4em">
+          {slice.shortName}
+        </tspan>
+        <tspan
+          className="allocation-donut-label-value"
+          fill={
+            isActive || slice.key === "USD"
+              ? "var(--page-text)"
+              : "var(--page-muted)"
+          }
+          fontSize={10}
+          fontWeight={isActive ? 750 : 600}
+          x={x}
+          dy="1.25em"
+        >
+          {formatAllocationWeight(slice.weight)} · {formatUsd(slice.amount)}
+        </tspan>
+      </text>
+    </g>
   );
 }
 
