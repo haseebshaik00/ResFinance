@@ -2295,6 +2295,11 @@ code {
   transform: translateY(-0.5rem);
 }
 
+.crypto-header-actions .forecast-status:hover,
+.crypto-header-actions .forecast-status:focus-within {
+  z-index: 2;
+}
+
 .forecast-status-trigger {
   cursor: help;
   font-family: inherit;
@@ -2788,7 +2793,7 @@ code {
 }
 
 .crypto-provenance-panel {
-  margin-top: 1.15rem;
+  margin-top: 0;
 }
 
 .crypto-provenance-panel .provenance-column h3 {

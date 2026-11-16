@@ -364,6 +364,9 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     "",
   );
   await expect(
+    page.locator(".phase2-method + .crypto-provenance-panel"),
+  ).toHaveCount(1);
+  await expect(
     page.getByText("Historical model accuracy", { exact: true }),
   ).toBeVisible();
   await expect(

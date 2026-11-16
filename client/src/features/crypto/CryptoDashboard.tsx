@@ -670,50 +670,52 @@ function RecommendationPanel({
 
 function MethodPanel({ forecast }: { forecast: SevenDayForecast }) {
   return (
-    <section className="panel phase2-method" aria-labelledby="method-title">
-      <div className="section-heading compact">
-        <div>
-          <p className="section-kicker">Transparent methodology</p>
-          <h2 id="method-title">How Recommendations Are Calculated</h2>
+    <>
+      <section className="panel phase2-method" aria-labelledby="method-title">
+        <div className="section-heading compact">
+          <div>
+            <p className="section-kicker">Transparent methodology</p>
+            <h2 id="method-title">How Recommendations Are Calculated</h2>
+          </div>
+          <FlaskConical aria-hidden="true" size={28} />
         </div>
-        <FlaskConical aria-hidden="true" size={28} />
-      </div>
-      <ol className="method-steps">
-        <li>
-          <strong>Forecast</strong>
-          <span>Validation-selected MSPCIFormer predicts Days 1–7.</span>
-        </li>
-        <li>
-          <strong>Return</strong>
-          <span>Day-7 price ÷ observed price − 1.</span>
-        </li>
-        <li>
-          <strong>Risk</strong>
-          <span>Ledoit–Wolf daily covariance over 365 days, scaled ×7.</span>
-        </li>
-        <li>
-          <strong>Allocate</strong>
+        <ol className="method-steps">
+          <li>
+            <strong>Forecast</strong>
+            <span>Validation-selected MSPCIFormer predicts Days 1–7.</span>
+          </li>
+          <li>
+            <strong>Return</strong>
+            <span>Day-7 price ÷ observed price − 1.</span>
+          </li>
+          <li>
+            <strong>Risk</strong>
+            <span>Ledoit–Wolf daily covariance over 365 days, scaled ×7.</span>
+          </li>
+          <li>
+            <strong>Allocate</strong>
+            <span>
+              The questionnaire fixes crypto exposure and USD cash. The forecast
+              applies a confidence-weighted BTC/ETH/SOL model blend inside that
+              selected crypto sleeve.
+            </span>
+          </li>
+        </ol>
+        <div className="method-facts">
           <span>
-            The questionnaire fixes crypto exposure and USD cash. The forecast
-            applies a confidence-weighted BTC/ETH/SOL model blend inside that
-            selected crypto sleeve.
+            Model <strong>{forecast.model_name}</strong>
           </span>
-        </li>
-      </ol>
-      <div className="method-facts">
-        <span>
-          Model <strong>{forecast.model_name}</strong>
-        </span>
-        <span>
-          Horizon <strong>Seven days</strong>
-        </span>
-        <span>
-          Status <strong>Experimental</strong>
-        </span>
-        <span>
-          Execution <strong>No trades</strong>
-        </span>
-      </div>
+          <span>
+            Horizon <strong>Seven days</strong>
+          </span>
+          <span>
+            Status <strong>Experimental</strong>
+          </span>
+          <span>
+            Execution <strong>No trades</strong>
+          </span>
+        </div>
+      </section>
       <details className="provenance-panel crypto-provenance-panel" open>
         <summary>Historical model accuracy and provenance</summary>
         <div className="provenance-columns crypto-provenance-columns">
@@ -774,7 +776,7 @@ function MethodPanel({ forecast }: { forecast: SevenDayForecast }) {
           </section>
         </div>
       </details>
-    </section>
+    </>
   );
 }
 
