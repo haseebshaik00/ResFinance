@@ -361,13 +361,16 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   });
   await riskScore.hover();
   await expect(page.locator(".risk-score-tooltip")).toContainText(
-    "Profile version 1; responses are wallet-scoped and informational only.",
+    "[Profile version 1]",
   );
   await expect(page.locator(".risk-score-tooltip")).toContainText(
     "Your answers set the BTC, ETH, SOL, and cash targets.",
   );
   await expect(page.locator(".risk-score-tooltip")).toContainText(
     "The forecast can refine only the crypto sleeve.",
+  );
+  await expect(page.locator(".risk-score-tooltip")).toContainText(
+    "The responses are wallet-scoped and informational only.",
   );
   const forecastStatusButton = page.getByRole("button", {
     name: "Current forecast details",
