@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type FormEvent,
@@ -12,6 +13,7 @@ import {
   FileText,
   FlaskConical,
   ShieldCheck,
+  X,
 } from "lucide-react";
 import {
   Cell,
@@ -87,6 +89,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
   const [asset, setAsset] = useState<Asset>("BTC");
   const [capital, setCapital] = useState<string | null>(null);
   const [capitalError, setCapitalError] = useState<string | null>(null);
+  const [showDashboardGuide, setShowDashboardGuide] = useState(false);
   const snapshotId = dashboard.forecast.data?.snapshot_id;
   const riskProfile = dashboard.riskProfile.data?.profile;
   const availableSavings =
@@ -145,8 +148,19 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
   return (
     <div className="finance-dashboard crypto-dashboard phase2-dashboard">
       <section className="dashboard-header" aria-labelledby="crypto-title">
-        <div>
-          <p className="eyebrow">Crypto Intelligence</p>
+        <div className="dashboard-hero-copy">
+          <div className="dashboard-eyebrow-row">
+            <p className="eyebrow">Crypto Intelligence</p>
+            <button
+              aria-label="How to use the Crypto Intelligence dashboard"
+              className="dashboard-info-button"
+              onClick={() => setShowDashboardGuide(true)}
+              title="How to use the Crypto Intelligence dashboard"
+              type="button"
+            >
+              <CircleHelp aria-hidden="true" size={20} />
+            </button>
+          </div>
           <h1 id="crypto-title">Savings, translated into portfolio!</h1>
           <p className="lede">
             Explore AI-powered 7-day BTC, ETH, and SOL price forecasts and
@@ -320,7 +334,71 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
       </section>
 
       <MethodProvenance forecast={forecast} />
+      {showDashboardGuide && (
+        <CryptoDashboardGuideDialog
+          onClose={() => setShowDashboardGuide(false)}
+        />
+      )}
     </div>
+  );
+}
+
+function CryptoDashboardGuideDialog({ onClose }: { onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const element = dialog.current;
+    if (element !== null && !element.open) element.showModal();
+    return () => {
+      if (element?.open) element.close();
+    };
+  }, []);
+
+  return (
+    <dialog
+      ref={dialog}
+      aria-labelledby="crypto-dashboard-guide-title"
+      className="dashboard-guide-dialog"
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+    >
+      <div className="dashboard-guide-heading">
+        <div>
+          <p className="section-kicker">Crypto Intelligence guide</p>
+          <h2 id="crypto-dashboard-guide-title">How to use this dashboard?</h2>
+        </div>
+        <button
+          aria-label="Close dashboard guide"
+          onClick={onClose}
+          type="button"
+        >
+          <X aria-hidden="true" size={20} />
+        </button>
+      </div>
+      <ul className="dashboard-guide-points">
+        <li>
+          Review completed-market-data BTC, ETH, and SOL prices alongside the
+          seven-day model outlook. Historical Error Range summarizes past
+          held-out error; it is not a price guarantee.
+        </li>
+        <li>
+          Available savings from the selected Personal Finance month is the
+          default investment capital. An alternate amount runs a read-only
+          scenario and never updates Finance.
+        </li>
+        <li>
+          Set the risk questionnaire to choose strategic BTC, ETH, SOL, and USD
+          cash targets. The model refines only the crypto sleeve within those
+          targets.
+        </li>
+        <li>
+          Recommendations are informational only. ResFinance does not execute
+          trades, transfer cryptocurrency, or provide custody.
+        </li>
+      </ul>
+    </dialog>
   );
 }
 
@@ -397,11 +475,14 @@ function InvestmentCapitalCard({
   function submit(event: FormEvent) {
     event.preventDefault();
     try {
-      if (usdToMinorUnits(draftCapital) <= 0) {
+      const minorUnits = usdToMinorUnits(draftCapital);
+      if (minorUnits <= 0) {
         throw new Error("Investment capital must be greater than zero.");
       }
       setValidationError(null);
-      setScenarioActive(true);
+      setScenarioActive(
+        availableSavings === undefined || minorUnits !== availableSavings,
+      );
       onChange(draftCapital);
     } catch (error) {
       setValidationError(
@@ -416,7 +497,11 @@ function InvestmentCapitalCard({
         <div>
           <p className="section-kicker">Investment Capital</p>
         </div>
-        <span className="capital-source">Available savings</span>
+        <span
+          className={`capital-source${scenarioActive ? " is-scenario-active" : ""}`}
+        >
+          {scenarioActive ? "Scenario active" : "Available savings"}
+        </span>
       </div>
       <form className="capital-scenario-form" onSubmit={submit}>
         <label className="capital-edit-field">
@@ -461,12 +546,21 @@ function InvestmentCapitalCard({
           Available savings could not be loaded: {financeError}
         </p>
       )}
-      {scenarioActive && capital !== null && (
+      {capital !== null && (
         <p className="scenario-result">
           <Check aria-hidden="true" size={16} />
           <span>
-            <strong>Scenario active: </strong>${capital}. Finance default
-            unchanged.
+            {scenarioActive ? (
+              <>
+                <strong>Scenario active: </strong>${capital}. Default investment
+                capital unchanged.
+              </>
+            ) : (
+              <>
+                <strong>Default scenario: </strong>Using available savings as
+                investment capital.
+              </>
+            )}
           </span>
         </p>
       )}
@@ -856,6 +950,9 @@ function AllocationDonut({ slices }: { slices: AllocationSlice[] }) {
 
   return (
     <div className="allocation-donut-wrap">
+      <div className="allocation-donut-heading">
+        <h3>Allocation breakdown</h3>
+      </div>
       <div
         ref={ref}
         className="allocation-donut-chart"

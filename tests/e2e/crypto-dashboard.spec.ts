@@ -454,6 +454,18 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
       "Review a risk-aware seven-day allocation across BTC, ETH, SOL, and USD cash.",
     ),
   ).toBeVisible();
+  await page
+    .getByRole("button", {
+      name: "How to use the Crypto Intelligence dashboard",
+    })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "Crypto Intelligence guide",
+  );
+  await expect(page.getByRole("dialog")).toContainText(
+    "Recommendations are informational only",
+  );
+  await page.getByRole("button", { name: "Close dashboard guide" }).click();
   await expect(
     page.locator(".portfolio-section-heading + .phase2-portfolio"),
   ).toHaveCount(1);
@@ -467,6 +479,12 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Analyze scenario" }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".capital-source", { hasText: "Available savings" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Default scenario: Using available savings/),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Edit scenario amount" }),
@@ -521,7 +539,9 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(page.getByText("$400.00", { exact: true })).toBeVisible();
   await expect(page.getByText(/Scenario active: \$2000\.00/)).toBeVisible();
   await expect(
-    page.locator(".capital-source", { hasText: "Available savings" }),
+    page.locator(".capital-source.is-scenario-active", {
+      hasText: "Scenario active",
+    }),
   ).toBeVisible();
 
   expect(
