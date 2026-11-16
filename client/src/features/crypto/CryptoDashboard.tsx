@@ -246,8 +246,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           <p className="section-kicker">Model Informed Diversification</p>
           <h2 id="allocation-title">Portfolio Allocation</h2>
           <p className="section-description">
-            Review a risk-aware seven-day allocation across BTC, ETH, SOL, and
-            USD cash.
+            Explore risk-aware 7-day portfolio recommendations across BTC, ETH, SOL, and USD cash.
           </p>
         </div>
       </div>
@@ -533,7 +532,7 @@ function InvestmentCapitalCard({
         <p className="capital-disclaimer">
           Default Investment Capital:{" "}
           <strong>{formatUsd(availableSavings)}</strong> for{" "}
-          {formatSavingsMonth(month)}. Alternate amounts are read-only.
+          {formatSavingsMonth(month)}. Alternate amounts are read-only!
         </p>
       )}
       {financePending && (
@@ -951,7 +950,7 @@ function AllocationDonut({ slices }: { slices: AllocationSlice[] }) {
   return (
     <div className="allocation-donut-wrap">
       <div className="allocation-donut-heading">
-        <h3>Allocation breakdown</h3>
+        <h3>Allocation Breakdown</h3>
       </div>
       <div
         ref={ref}

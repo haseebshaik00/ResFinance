@@ -451,7 +451,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   ).toBeVisible();
   await expect(
     page.getByText(
-      "Review a risk-aware seven-day allocation across BTC, ETH, SOL, and USD cash.",
+      "Explore risk-aware 7-day portfolio recommendations across BTC, ETH, SOL, and USD cash.",
     ),
   ).toBeVisible();
   await page
