@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   AlertTriangle,
   Check,
+  CircleHelp,
   FlaskConical,
   Pencil,
   ShieldCheck,
@@ -130,7 +131,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           />
         </div>
       </section>
-
+      <MarketOverview forecast={forecast} />
       <section
         className="panel phase2-outlook"
         aria-labelledby="forecast-chart-title"
@@ -142,28 +143,54 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
               Crypto Market Overview & Model Output: 7-Day Price Forecast
             </h2>
           </div>
-          <div className="asset-switcher" aria-label="Chart asset">
-            {ASSETS.map((value) => (
+          <div className="forecast-chart-actions">
+            <div className="asset-switcher" aria-label="Chart asset">
+              {ASSETS.map((value) => (
+                <button
+                  key={value}
+                  className={value === asset ? "active" : ""}
+                  type="button"
+                  onClick={() => setAsset(value)}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            <div className="forecast-chart-info">
               <button
-                key={value}
-                className={value === asset ? "active" : ""}
+                aria-describedby="forecast-chart-info-tooltip"
+                aria-label="Forecast chart details"
+                className="dashboard-info-button forecast-chart-info-trigger"
                 type="button"
-                onClick={() => setAsset(value)}
               >
-                {value}
+                <CircleHelp size={18} aria-hidden="true" />
               </button>
-            ))}
+              <div
+                className="forecast-chart-info-tooltip"
+                id="forecast-chart-info-tooltip"
+                role="tooltip"
+              >
+                <ul>
+                  <li>Solid marker: observed cutoff price.</li>
+                  <li>
+                    The Historical Error Range is derived from the selected
+                    model&apos;s held-out residuals.
+                  </li>
+                  <li>
+                    It is a visualization-only summary of past error, not a
+                    validated 80% prediction interval or a price guarantee.
+                  </li>
+                  <li>
+                    Portfolio calculations continue to use the original
+                    seven-day research forecast.
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
-        <MarketOverview forecast={forecast} />
+
         <CryptoChart forecast={forecast} asset={asset} />
-        <p className="panel-note">
-          Solid marker: observed cutoff price. The Historical Error Range is
-          derived from the selected model&apos;s held-out residuals; it is a
-          visualization-only summary of past error, not a validated 80%
-          prediction interval or a price guarantee. Portfolio calculations
-          continue to use the original seven-day research forecast.
-        </p>
       </section>
 
       <section

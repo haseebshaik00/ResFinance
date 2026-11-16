@@ -42,6 +42,9 @@
   --status-current-glow: rgb(91 71 153 / 30%);
   --panel-background: rgb(255 255 255 / 48%);
   --chart-grid: rgb(70 82 112 / 14%);
+  --muted: var(--page-muted);
+  --surface: #ffffff;
+  --surface-strong: #f3f6fb;
   --income: #187867;
   --expense: #b5475f;
   --warning: #a56b16;
@@ -2527,9 +2530,70 @@ code {
   margin-bottom: 0;
 }
 
+.forecast-chart-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-end;
+}
+
+.forecast-chart-info {
+  position: relative;
+  z-index: 3;
+}
+
+.forecast-chart-info-trigger {
+  cursor: help;
+}
+
+.forecast-chart-info-tooltip {
+  background: var(--popover-background);
+  border: 1px solid var(--control-border);
+  border-radius: 0.75rem;
+  box-shadow: var(--card-shadow);
+  color: var(--page-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  max-width: min(22rem, calc(100vw - 2rem));
+  min-width: 16rem;
+  opacity: 0;
+  padding: 0.75rem 0.85rem;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  text-align: left;
+  top: calc(100% + 0.45rem);
+  transform: translateY(-0.25rem);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    visibility 140ms ease;
+  visibility: hidden;
+  width: max-content;
+  z-index: 6;
+}
+
+.forecast-chart-info:hover .forecast-chart-info-tooltip,
+.forecast-chart-info:focus-within .forecast-chart-info-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.forecast-chart-info-tooltip ul {
+  margin: 0;
+  padding-left: 1.05rem;
+}
+
+.forecast-chart-info-tooltip li + li {
+  margin-top: 0.35rem;
+}
+
 .phase2-chart {
-  color: var(--muted);
+  color: var(--page-text);
   min-height: 320px;
+  position: relative;
   width: 100%;
 }
 
@@ -2542,14 +2606,34 @@ code {
 }
 
 .forecast-grid-line {
-  stroke: color-mix(in srgb, var(--muted) 22%, transparent);
-  stroke-dasharray: 4 5;
+  stroke: color-mix(in srgb, var(--page-text) 18%, transparent);
+  stroke-dasharray: 3 6;
+}
+
+.forecast-baseline {
+  stroke: color-mix(in srgb, var(--btc-color) 55%, transparent);
+  stroke-dasharray: 2 5;
+  stroke-width: 1.5;
+}
+
+.forecast-hover-line {
+  pointer-events: none;
+  stroke: color-mix(in srgb, var(--page-text) 55%, transparent);
+  stroke-dasharray: 3 4;
+  stroke-width: 1.25;
+}
+
+.forecast-hover-capture {
+  cursor: crosshair;
+  fill: transparent;
 }
 
 .forecast-axis-label,
 .forecast-x-label {
-  fill: var(--muted);
+  fill: var(--page-text);
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.88;
 }
 
 .forecast-axis-label {
@@ -2566,11 +2650,11 @@ code {
   stroke-dasharray: 8 6;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 4;
+  stroke-width: 3.5;
 }
 
 .forecast-uncertainty-band {
-  fill: color-mix(in srgb, var(--eth-color) 16%, transparent);
+  fill: color-mix(in srgb, var(--eth-color) 22%, transparent);
   stroke: none;
 }
 
@@ -2578,7 +2662,7 @@ code {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2;
+  stroke-width: 2.25;
 }
 
 .forecast-quantile-line.p10 {
@@ -2591,6 +2675,57 @@ code {
   stroke-dasharray: 5 5;
 }
 
+.forecast-quantile-point {
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.forecast-quantile-point.p10 {
+  fill: #d16d7f;
+}
+
+.forecast-quantile-point.p90 {
+  fill: #d49735;
+}
+
+.forecast-quantile-label-bg {
+  stroke-width: 1;
+}
+
+.forecast-quantile-label.p10 .forecast-quantile-label-bg {
+  fill: color-mix(in srgb, #d16d7f 18%, var(--surface));
+  stroke: #d16d7f;
+}
+
+.forecast-quantile-label.p50 .forecast-quantile-label-bg {
+  fill: color-mix(in srgb, var(--eth-color) 18%, var(--surface));
+  stroke: var(--eth-color);
+}
+
+.forecast-quantile-label.p90 .forecast-quantile-label-bg {
+  fill: color-mix(in srgb, #d49735 18%, var(--surface));
+  stroke: #d49735;
+}
+
+.forecast-quantile-label-text {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-anchor: middle;
+}
+
+.forecast-quantile-label.p10 .forecast-quantile-label-text {
+  fill: #d16d7f;
+}
+
+.forecast-quantile-label.p50 .forecast-quantile-label-text {
+  fill: var(--eth-color);
+}
+
+.forecast-quantile-label.p90 .forecast-quantile-label-text {
+  fill: #d49735;
+}
+
 .forecast-point {
   fill: var(--eth-color);
   stroke: var(--surface);
@@ -2601,13 +2736,66 @@ code {
   fill: var(--btc-color);
 }
 
+.forecast-chart-tooltip {
+  background: color-mix(in srgb, var(--surface-strong) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--page-text) 18%, transparent);
+  border-radius: 0.7rem;
+  box-shadow: 0 0.75rem 1.75rem rgb(0 0 0 / 28%);
+  color: var(--page-text);
+  display: grid;
+  font-size: 0.74rem;
+  gap: 0.28rem;
+  min-width: 9.5rem;
+  padding: 0.55rem 0.7rem;
+  pointer-events: none;
+  position: absolute;
+  transform: translate(-50%, 0);
+  z-index: 2;
+}
+
+.forecast-chart-tooltip strong {
+  color: var(--page-text);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.12rem;
+}
+
+.forecast-chart-tooltip span {
+  align-items: baseline;
+  color: var(--page-muted);
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+}
+
+.forecast-chart-tooltip em {
+  color: var(--page-text);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+}
+
+.forecast-chart-tooltip .p10 em {
+  color: #d16d7f;
+}
+
+.forecast-chart-tooltip .p50 em {
+  color: var(--eth-color);
+}
+
+.forecast-chart-tooltip .p90 em {
+  color: #d49735;
+}
+
 .chart-legend {
-  color: var(--muted);
+  color: var(--page-text);
   display: flex;
   flex-wrap: wrap;
   font-size: 0.78rem;
-  gap: 1rem;
+  gap: 0.85rem 1.1rem;
   justify-content: center;
+  opacity: 0.9;
 }
 
 .chart-legend span {
@@ -2632,9 +2820,26 @@ code {
   );
 }
 
+.chart-legend i.p10 {
+  background: repeating-linear-gradient(
+    90deg,
+    #d16d7f 0 5px,
+    transparent 5px 9px
+  );
+}
+
+.chart-legend i.p90 {
+  background: repeating-linear-gradient(
+    90deg,
+    #d49735 0 5px,
+    transparent 5px 9px
+  );
+}
+
 .chart-legend i.uncertainty {
-  background: color-mix(in srgb, var(--eth-color) 25%, transparent);
-  border: 1px solid var(--eth-color);
+  background: color-mix(in srgb, var(--eth-color) 28%, transparent);
+  border: 1px solid color-mix(in srgb, var(--eth-color) 70%, transparent);
+  border-radius: 3px;
   height: 0.65rem;
 }
 
@@ -3774,6 +3979,9 @@ td.expense {
   --status-current-glow: rgb(242 189 90 / 48%);
   --panel-background: rgb(19 25 36 / 68%);
   --chart-grid: rgb(255 255 255 / 9%);
+  --muted: var(--page-muted);
+  --surface: #131924;
+  --surface-strong: #1a2230;
   --income: #46d6bd;
   --expense: #ff8ca0;
   --warning: #f2bd5a;
