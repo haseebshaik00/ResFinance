@@ -383,7 +383,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     "",
   );
   await expect(
-    page.locator(".phase2-method + .crypto-provenance-panel"),
+    page.locator(".phase2-portfolio + .crypto-provenance-panel"),
   ).toHaveCount(1);
   await expect(
     page.getByText("Historical model accuracy", { exact: true }),
@@ -426,7 +426,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   ).toBe(false);
   expect(
     await page
-      .locator(".phase2-portfolio .section-heading")
+      .locator(".phase2-portfolio > .section-heading")
       .evaluate((heading) =>
         Array.from(heading.children).every(
           (child) => child.scrollWidth <= child.clientWidth,

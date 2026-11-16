@@ -1,6 +1,6 @@
 # ResFinance Current Status
 
-Last updated: 2026-11-15
+Last updated: 2026-11-16
 
 ResFinance uses the eight-milestone convention in
 [`milestones/milestones.md`](milestones/milestones.md). Milestones 1–7 are complete for the
@@ -207,6 +207,11 @@ earlier 15-day questionnaire/capped workflow remains immutable legacy evidence.
   Range summarizes past held-out error; it is not a validated 80% prediction
   interval, is visualization-only, and does not affect the optimizer's existing
   point-forecast inputs. No trading control exists.
+- Consolidated the allocation and calculation-methodology views into one
+  responsive Portfolio Allocation panel. The allocation donut, exact-cent
+  table, metrics, research disclaimer, four methodology steps, and model facts
+  remain visible; historical accuracy and provenance continue in the adjacent
+  disclosure.
 - The executed v4 $1,000 Balanced-profile result fixes $200 cash and starts
   from $250 BTC / $400 ETH / $150 SOL. Its 3.39067511% model confidence
   produces $267.20 BTC / $386.44 ETH / $146.36 SOL / $200 cash, with
