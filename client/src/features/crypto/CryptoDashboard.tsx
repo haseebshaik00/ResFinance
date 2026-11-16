@@ -63,11 +63,11 @@ const ASSET_COLORS: Record<AllocationAsset, string> = {
   USD: "var(--cash-color)",
 };
 const PIE_ANIMATION_MS = 900;
-const DONUT_INNER_RADIUS = 64;
-const DONUT_OUTER_RADIUS = 100;
+const DONUT_INNER_RADIUS = 76;
+const DONUT_OUTER_RADIUS = 120;
 const DONUT_LABEL_OFFSET = 28;
 const DONUT_LABEL_SIDE_EXTRA = 10;
-const DONUT_ACTIVE_EXPAND = 10;
+const DONUT_ACTIVE_EXPAND = 12;
 
 function formatSavingsMonth(month: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -227,33 +227,41 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
         </section>
       </div>
 
+      <div className="portfolio-section-heading">
+        <div>
+          <p className="section-kicker">Model Informed Diversification</p>
+          <h2 id="allocation-title">Portfolio Allocation</h2>
+        </div>
+        <div className="portfolio-heading-actions">
+          <MethodologyInfo
+            forecast={forecast}
+            modelConfidence={dashboard.recommendation.data?.model_confidence}
+            warnings={dashboard.recommendation.data?.warnings ?? []}
+          />
+          <a
+            aria-label="Open portfolio allocation research PDF"
+            className="dashboard-info-button portfolio-research-link"
+            href="https://github.com/haseebshaik00/ResFinance/blob/feat/haseeb-base-crypto-research/docs/research/ResFinance-Research-Flow.pdf"
+            rel="noreferrer"
+            target="_blank"
+            title="Research behind this allocation"
+          >
+            <FileText size={22} aria-hidden="true" />
+          </a>
+          {riskProfile !== null && riskProfile !== undefined && (
+            <RiskScore
+              projectionVersion={
+                dashboard.riskProfile.data?.projection_version ?? 0
+              }
+              score={riskProfile.score}
+            />
+          )}
+        </div>
+      </div>
       <section
         className="panel phase2-portfolio"
         aria-labelledby="allocation-title"
       >
-        <div className="section-heading">
-          <div>
-            <p className="section-kicker">Model Informed Diversification</p>
-            <h2 id="allocation-title">Portfolio Allocation</h2>
-          </div>
-          <div className="portfolio-heading-actions">
-            <MethodologyInfo
-              forecast={forecast}
-              modelConfidence={dashboard.recommendation.data?.model_confidence}
-              warnings={dashboard.recommendation.data?.warnings ?? []}
-            />
-            <a
-              aria-label="Open portfolio allocation research PDF"
-              className="dashboard-info-button portfolio-research-link"
-              href="https://github.com/haseebshaik00/ResFinance/blob/feat/haseeb-base-crypto-research/docs/research/ResFinance-Research-Flow.pdf"
-              rel="noreferrer"
-              target="_blank"
-              title="Research behind this allocation"
-            >
-              <FileText size={22} aria-hidden="true" />
-            </a>
-          </div>
-        </div>
         <div className="portfolio-setup-row" aria-label="Portfolio setup">
           <InvestmentCapitalCard
             availableSavings={availableSavings}
@@ -271,9 +279,6 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           />
           <RiskQuestionnaire
             profile={riskProfile}
-            projectionVersion={
-              dashboard.riskProfile.data?.projection_version ?? 0
-            }
             pending={dashboard.saveRiskProfile.isPending}
             error={
               dashboard.riskProfile.isError || dashboard.saveRiskProfile.isError
@@ -471,7 +476,6 @@ function InvestmentCapitalCard({
 
 function RiskQuestionnaire({
   profile,
-  projectionVersion,
   pending,
   error,
   onSave,
@@ -487,7 +491,6 @@ function RiskQuestionnaire({
       }
     | null
     | undefined;
-  projectionVersion: number;
   pending: boolean;
   error: string | undefined;
   onSave: (answers: {
@@ -517,12 +520,6 @@ function RiskQuestionnaire({
           <p className="section-kicker">Strategic allocation policy</p>
           <h2 id="risk-profile-title">Risk Questionnaire</h2>
         </div>
-        {profile !== null && profile !== undefined && (
-          <RiskScore
-            projectionVersion={projectionVersion}
-            score={profile.score}
-          />
-        )}
       </div>
       <div className="risk-form">
         {keys.map((key, index) => (
@@ -589,10 +586,10 @@ function RiskScore({
       <button
         aria-describedby={tooltipId}
         aria-label={`Risk score ${score} details`}
-        className="freshness-pill risk-score-trigger"
+        className="dashboard-info-button risk-score-trigger"
         type="button"
       >
-        Score {score}
+        {score}
       </button>
       <div className="risk-score-tooltip" id={tooltipId} role="tooltip">
         <ul>
@@ -737,7 +734,7 @@ function RecommendationPanel({
       <AllocationDonut slices={slices} />
       <div className="allocation-table-wrap">
         <p className="panel-note">
-          {formatRiskProfile(recommendation.risk_profile)} Profile · Score{" "}
+          {formatRiskProfile(recommendation.risk_profile)} Profile · Risk Score{" "}
           {recommendation.risk_score} · Cash{" "}
           {formatAllocationWeight(recommendation.strategic_cash_reserve.weight)}
         </p>
@@ -866,7 +863,7 @@ function AllocationDonut({ slices }: { slices: AllocationSlice[] }) {
           width="100%"
           height="100%"
         >
-          <PieChart margin={{ top: 48, right: 104, bottom: 48, left: 104 }}>
+          <PieChart margin={{ top: 56, right: 88, bottom: 56, left: 88 }}>
             <Pie
               animationBegin={0}
               animationDuration={PIE_ANIMATION_MS}

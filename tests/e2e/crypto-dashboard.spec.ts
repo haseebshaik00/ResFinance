@@ -359,6 +359,24 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   const riskScore = page.getByRole("button", {
     name: "Risk score 78 details",
   });
+  const portfolioActions = page.locator(
+    ".portfolio-heading-actions > .methodology-info, .portfolio-heading-actions > a, .portfolio-heading-actions > .risk-score",
+  );
+  await expect(portfolioActions).toHaveCount(3);
+  const portfolioActionBounds = await portfolioActions.evaluateAll((actions) =>
+    actions.map((action) => action.getBoundingClientRect()),
+  );
+  expect(
+    portfolioActionBounds.every(
+      (action) =>
+        Math.abs(action.height - portfolioActionBounds[0]!.height) < 1,
+    ),
+  ).toBe(true);
+  expect(
+    portfolioActionBounds.every(
+      (action) => Math.abs(action.top - portfolioActionBounds[0]!.top) < 1,
+    ),
+  ).toBe(true);
   await riskScore.hover();
   await expect(page.locator(".risk-score-tooltip")).toContainText(
     "[Profile version 1]",
@@ -431,6 +449,9 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.getByRole("heading", { name: "Portfolio Allocation" }),
   ).toBeVisible();
+  await expect(
+    page.locator(".portfolio-section-heading + .phase2-portfolio"),
+  ).toHaveCount(1);
   await expect(page.getByLabel("Investment Capital (USD)")).toHaveValue(
     "1000.00",
   );
@@ -470,7 +491,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     ),
   ).toHaveCount(0);
   await expect(
-    page.getByText("Growth Profile · Score 78 · Cash 20.00%"),
+    page.getByText("Growth Profile · Risk Score 78 · Cash 20.00%"),
   ).toBeVisible();
   await expect(page.locator(".allocation-donut-center-label")).toContainText(
     "SavingsAllocation",
@@ -502,7 +523,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   ).toBe(false);
   expect(
     await page
-      .locator(".phase2-portfolio > .section-heading")
+      .locator(".portfolio-section-heading")
       .evaluate((heading) =>
         Array.from(heading.children).every(
           (child) => child.scrollWidth <= child.clientWidth,

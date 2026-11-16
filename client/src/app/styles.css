@@ -1407,7 +1407,7 @@ code {
   background: var(--page-accent);
   color: #fff;
   font: inherit;
-  font-size: 0.76rem;
+  font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
 }
@@ -2077,19 +2077,16 @@ code {
   font-weight: 700;
 }
 
-.risk-questionnaire-card .freshness-pill {
-  border-color: color-mix(in srgb, var(--income) 48%, var(--control-border));
-  background: color-mix(in srgb, var(--income) 10%, transparent);
-  color: var(--income);
-}
-
 .risk-score {
+  flex: 0 0 auto;
   position: relative;
 }
 
 .risk-score-trigger {
   cursor: help;
   font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 850;
 }
 
 .risk-score-tooltip {
@@ -2888,7 +2885,7 @@ code {
   margin-inline: auto;
   overflow: visible;
   position: relative;
-  width: min(100%, 27rem);
+  width: min(100%, 31rem);
   aspect-ratio: 1;
 }
 
@@ -2961,11 +2958,11 @@ code {
 
 .allocation-table-wrap > .panel-note {
   align-items: center;
-  background: color-mix(in srgb, var(--page-accent) 8%, transparent);
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
   border: 1px solid
-    color-mix(in srgb, var(--page-accent) 24%, var(--control-border));
+    color-mix(in srgb, var(--warning) 48%, var(--control-border));
   border-radius: 999px;
-  color: color-mix(in srgb, var(--page-text) 82%, var(--page-accent));
+  color: var(--warning);
   display: inline-flex;
   justify-self: start;
   margin: 0;
@@ -3103,9 +3100,9 @@ code {
 
 .portfolio-metrics span {
   align-items: flex-start;
-  background: color-mix(in srgb, var(--page-accent) 7%, var(--surface-strong));
+  background: color-mix(in srgb, var(--btc-color) 16%, var(--surface-strong));
   border: 1px solid
-    color-mix(in srgb, var(--page-accent) 20%, var(--control-border));
+    color-mix(in srgb, var(--btc-color) 54%, var(--control-border));
   border-radius: 0.8rem;
   display: flex;
   flex-direction: column;
@@ -3122,7 +3119,7 @@ code {
 }
 
 .portfolio-metrics strong {
-  color: var(--income);
+  color: color-mix(in srgb, var(--btc-color) 72%, #fff);
   font-size: 1.18rem;
   letter-spacing: -0.02em;
 }
@@ -3132,12 +3129,20 @@ code {
   margin: 0;
 }
 
-.phase2-portfolio > .section-heading {
+.portfolio-section-heading {
   align-items: start;
   display: flex;
-  margin-bottom: 0;
+  justify-content: space-between;
+  margin: 0 0 0.65rem;
+  padding-inline: 0.15rem;
   position: relative;
   z-index: 4;
+}
+
+.portfolio-section-heading h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  letter-spacing: -0.025em;
 }
 
 .portfolio-heading-actions {
@@ -3150,6 +3155,12 @@ code {
 .portfolio-heading-actions .dashboard-info-button {
   height: 2.75rem;
   width: 2.75rem;
+}
+
+.portfolio-heading-actions .risk-score-trigger {
+  background: color-mix(in srgb, var(--warning) 12%, var(--control-background));
+  border-color: color-mix(in srgb, var(--warning) 56%, var(--control-border));
+  color: var(--warning);
 }
 
 .methodology-info {
