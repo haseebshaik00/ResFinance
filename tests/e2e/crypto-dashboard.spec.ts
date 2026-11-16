@@ -298,6 +298,22 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     (savingsMonthBox!.y + savingsMonthBox!.height);
   expect(monthBottomOffset).toBeGreaterThanOrEqual(8);
   expect(monthBottomOffset).toBeLessThan(16);
+  const savingsMonthTrigger = page.locator(".crypto-header-actions .reporting-month-trigger");
+  await savingsMonthTrigger.click();
+  const savingsMonthMenu = page.locator(".crypto-header-actions .reporting-month-menu");
+  await expect(savingsMonthMenu).toBeVisible();
+  await expect(
+    page.locator(".crypto-header-actions"),
+  ).toHaveCSS("z-index", "1");
+  const menuIsTopmostAtCenter = await savingsMonthMenu.evaluate((menu) => {
+    const { left, top, width, height } = menu.getBoundingClientRect();
+    return document
+      .elementFromPoint(left + width / 2, top + height / 2)
+      ?.closest(".reporting-month-menu") === menu;
+  });
+  expect(menuIsTopmostAtCenter).toBe(true);
+  await savingsMonthTrigger.press("Escape");
+  await expect(savingsMonthMenu).toBeHidden();
   await expect(
     page.getByRole("heading", { name: "Investment Capital" }),
   ).toBeVisible();
