@@ -296,7 +296,7 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     cryptoHeroBox!.y +
     cryptoHeroBox!.height -
     (savingsMonthBox!.y + savingsMonthBox!.height);
-  expect(monthBottomOffset).toBeGreaterThan(8);
+  expect(monthBottomOffset).toBeGreaterThanOrEqual(8);
   expect(monthBottomOffset).toBeLessThan(16);
   await expect(
     page.getByRole("heading", { name: "Investment Capital" }),

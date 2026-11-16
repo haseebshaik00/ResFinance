@@ -2289,6 +2289,10 @@ code {
   position: relative;
 }
 
+.crypto-header-actions .forecast-status {
+  transform: translateY(-0.5rem);
+}
+
 .forecast-status-trigger {
   cursor: help;
   font-family: inherit;
