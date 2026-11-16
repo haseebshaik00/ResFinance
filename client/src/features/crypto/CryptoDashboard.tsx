@@ -1,7 +1,6 @@
 import {
   useEffect,
   useMemo,
-  useRef,
   useState,
   type CSSProperties,
   type FormEvent,
@@ -12,13 +11,10 @@ import {
   CircleHelp,
   FileText,
   FlaskConical,
-  Pencil,
   ShieldCheck,
-  X,
 } from "lucide-react";
 import {
   Cell,
-  Label,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -67,11 +63,11 @@ const ASSET_COLORS: Record<AllocationAsset, string> = {
   USD: "var(--cash-color)",
 };
 const PIE_ANIMATION_MS = 900;
-const DONUT_INNER_RADIUS = 46;
-const DONUT_OUTER_RADIUS = 70;
-const DONUT_LABEL_OFFSET = 30;
-const DONUT_LABEL_SIDE_EXTRA = 12;
-const DONUT_ACTIVE_EXPAND = 8;
+const DONUT_INNER_RADIUS = 64;
+const DONUT_OUTER_RADIUS = 100;
+const DONUT_LABEL_OFFSET = 28;
+const DONUT_LABEL_SIDE_EXTRA = 10;
+const DONUT_ACTIVE_EXPAND = 10;
 
 function formatSavingsMonth(month: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -79,6 +75,10 @@ function formatSavingsMonth(month: string): string {
     timeZone: "UTC",
     year: "numeric",
   }).format(new Date(`${month}-01T00:00:00Z`));
+}
+
+function formatRiskProfile(profile: PortfolioRecommendation["risk_profile"]) {
+  return `${profile.charAt(0).toUpperCase()}${profile.slice(1)}`;
 }
 
 export function CryptoDashboard({ accessToken }: { accessToken: string }) {
@@ -374,37 +374,16 @@ function InvestmentCapitalCard({
   onChange: (value: string) => void;
 }) {
   const [draftCapital, setDraftCapital] = useState(capital ?? "");
-  const [isEditing, setIsEditing] = useState(false);
   const [scenarioActive, setScenarioActive] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const amountInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (capital !== null && !isEditing) setDraftCapital(capital);
-  }, [capital, isEditing]);
+    if (capital !== null) setDraftCapital(capital);
+  }, [capital]);
 
   useEffect(() => {
     if (availableSavings !== undefined) setScenarioActive(false);
   }, [availableSavings]);
-
-  useEffect(() => {
-    if (isEditing) {
-      amountInput.current?.focus();
-      amountInput.current?.select();
-    }
-  }, [isEditing]);
-
-  function startEditing() {
-    setDraftCapital(capital ?? "");
-    setValidationError(null);
-    setIsEditing(true);
-  }
-
-  function cancelEditing() {
-    setDraftCapital(capital ?? "");
-    setValidationError(null);
-    setIsEditing(false);
-  }
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -414,7 +393,6 @@ function InvestmentCapitalCard({
       }
       setValidationError(null);
       setScenarioActive(true);
-      setIsEditing(false);
       onChange(draftCapital);
     } catch (error) {
       setValidationError(
@@ -431,62 +409,37 @@ function InvestmentCapitalCard({
         </div>
         <span className="capital-source">Available savings</span>
       </div>
-      {isEditing ? (
-        <form className="capital-scenario-form" onSubmit={submit}>
-          <label className="capital-edit-field">
-            <span className="sr-only">Investment Capital (USD)</span>
-            <span aria-hidden="true">$</span>
-            <input
-              aria-label="Investment Capital (USD)"
-              disabled={financePending || recommendationPending}
-              inputMode="decimal"
-              ref={amountInput}
-              value={draftCapital}
-              onChange={(event) => setDraftCapital(event.target.value)}
-            />
-          </label>
-          <p className="capital-edit-hint">
-            Analyze an alternate amount without changing Finance.
+      <form className="capital-scenario-form" onSubmit={submit}>
+        <label className="capital-edit-field">
+          <span className="sr-only">Investment Capital (USD)</span>
+          <span aria-hidden="true">$</span>
+          <input
+            aria-label="Investment Capital (USD)"
+            disabled={financePending || recommendationPending}
+            inputMode="decimal"
+            value={draftCapital}
+            onChange={(event) => setDraftCapital(event.target.value)}
+          />
+        </label>
+        <button
+          className="capital-scenario-button"
+          disabled={financePending || recommendationPending}
+          type="submit"
+        >
+          <Check aria-hidden="true" size={16} />
+          {recommendationPending ? "Analyzing…" : "Analyze scenario"}
+        </button>
+        {validationError !== null && (
+          <p className="form-error" role="alert">
+            {validationError}
           </p>
-          <div className="capital-actions">
-            <button
-              className="capital-scenario-button"
-              disabled={financePending || recommendationPending}
-              type="submit"
-            >
-              <Check aria-hidden="true" size={15} />
-              {recommendationPending ? "Analyzing…" : "Analyze scenario"}
-            </button>
-            <button
-              className="capital-cancel-button"
-              disabled={financePending || recommendationPending}
-              onClick={cancelEditing}
-              type="button"
-            >
-              <X aria-hidden="true" size={15} />
-              Cancel
-            </button>
-          </div>
-          {validationError !== null && (
-            <p className="form-error" role="alert">
-              {validationError}
-            </p>
-          )}
-        </form>
-      ) : (
-        <div className="capital-amount-display">
-          <strong>{capital === null ? "—" : `$${capital}`}</strong>
-          <button
-            aria-label="Edit scenario amount"
-            className="capital-edit-button"
-            disabled={financePending}
-            onClick={startEditing}
-            title="Edit scenario amount"
-            type="button"
-          >
-            <Pencil aria-hidden="true" size={17} />
-          </button>
-        </div>
+        )}
+      </form>
+      {availableSavings !== undefined && (
+        <p className="capital-disclaimer">
+          Finance default: <strong>{formatUsd(availableSavings)}</strong> for{" "}
+          {formatSavingsMonth(month)}. Alternate amounts are read-only.
+        </p>
       )}
       {financePending && (
         <p className="capital-disclaimer" role="status">
@@ -498,16 +451,6 @@ function InvestmentCapitalCard({
           Available savings could not be loaded: {financeError}
         </p>
       )}
-      {availableSavings !== undefined && (
-        <p className="capital-disclaimer">
-          Default: <strong>{formatUsd(availableSavings)}</strong> available
-          savings from Personal Finance for {formatSavingsMonth(month)}.
-        </p>
-      )}
-      <p className="capital-disclaimer">
-        Changing this amount runs a read-only scenario and never updates
-        Finance.
-      </p>
       {scenarioActive && capital !== null && (
         <p className="scenario-result">
           <Check aria-hidden="true" size={16} />
@@ -558,17 +501,7 @@ function RiskQuestionnaire({
     risk_tolerance: 2,
     liquidity_needs: 2,
   });
-  const labels = [
-    [
-      "Investment horizon",
-      "How long can this hypothetical allocation remain invested?",
-    ],
-    [
-      "Risk tolerance",
-      "How comfortable are you with substantial price changes?",
-    ],
-    ["Liquidity needs", "How soon might you need this hypothetical capital?"],
-  ] as const;
+  const labels = ["Investment horizon", "Risk tolerance", "Liquidity needs"];
   const keys = [
     "investment_horizon",
     "risk_tolerance",
@@ -594,10 +527,9 @@ function RiskQuestionnaire({
       <div className="risk-form">
         {keys.map((key, index) => (
           <label className="form-field" key={key}>
-            <span>{labels[index]![0]}</span>
-            <small>{labels[index]![1]}</small>
+            <span>{labels[index]}</span>
             <select
-              aria-label={labels[index]![0]}
+              aria-label={labels[index]}
               value={answers[key]}
               onChange={(event) =>
                 setAnswers((current) => ({
@@ -805,8 +737,8 @@ function RecommendationPanel({
       <AllocationDonut slices={slices} />
       <div className="allocation-table-wrap">
         <p className="panel-note">
-          {recommendation.risk_profile} profile · score{" "}
-          {recommendation.risk_score} · cash fixed at{" "}
+          {formatRiskProfile(recommendation.risk_profile)} Profile · Score{" "}
+          {recommendation.risk_score} · Cash{" "}
           {formatAllocationWeight(recommendation.strategic_cash_reserve.weight)}
         </p>
         <table className="allocation-table">
@@ -934,7 +866,7 @@ function AllocationDonut({ slices }: { slices: AllocationSlice[] }) {
           width="100%"
           height="100%"
         >
-          <PieChart margin={{ top: 44, right: 96, bottom: 44, left: 72 }}>
+          <PieChart margin={{ top: 48, right: 104, bottom: 48, left: 104 }}>
             <Pie
               animationBegin={0}
               animationDuration={PIE_ANIMATION_MS}
@@ -963,17 +895,22 @@ function AllocationDonut({ slices }: { slices: AllocationSlice[] }) {
               {slices.map((slice) => (
                 <Cell
                   key={slice.key}
+                  className={
+                    slice.key === slices[activeIndex ?? -1]?.key
+                      ? "is-active"
+                      : undefined
+                  }
                   fill={slice.color}
                   style={{ cursor: "pointer" }}
                 />
               ))}
-              <Label
-                content={(props) => renderSavingsAllocationCenter(props)}
-                position="center"
-              />
             </Pie>
           </PieChart>
         </ResponsiveContainer>
+        <div className="allocation-donut-center-label" aria-hidden="true">
+          <span>Savings</span>
+          <span>Allocation</span>
+        </div>
       </div>
     </div>
   );
@@ -1025,43 +962,6 @@ function renderAllocationLabelLine(props: {
       stroke="var(--control-border)"
       strokeWidth={1}
     />
-  );
-}
-
-function renderSavingsAllocationCenter(props: unknown) {
-  const viewBox = (props as { viewBox?: Record<string, number | undefined> })
-    .viewBox;
-  const cx = Number(viewBox?.cx ?? 0);
-  const cy = Number(viewBox?.cy ?? 0);
-  const holeRadius = Math.max(
-    Number(viewBox?.innerRadius ?? DONUT_INNER_RADIUS) - 2,
-    28,
-  );
-  return (
-    <g className="allocation-donut-center-label" pointerEvents="none">
-      <circle
-        cx={cx}
-        cy={cy}
-        fill="var(--surface)"
-        r={holeRadius}
-        stroke="color-mix(in srgb, var(--control-border) 80%, transparent)"
-        strokeWidth={1}
-      />
-      <text
-        fill="var(--page-text)"
-        fontFamily={chartFontFamily}
-        textAnchor="middle"
-        x={cx}
-        y={cy}
-      >
-        <tspan fontSize={12} fontWeight={800} x={cx} dy="-0.35em">
-          Savings
-        </tspan>
-        <tspan fontSize={12} fontWeight={800} x={cx} dy="1.2em">
-          Allocation
-        </tspan>
-      </text>
-    </g>
   );
 }
 

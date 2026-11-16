@@ -431,12 +431,20 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.getByRole("heading", { name: "Portfolio Allocation" }),
   ).toBeVisible();
-  await expect(page.getByText("$1000.00", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Investment Capital (USD)")).toHaveValue(
+    "1000.00",
+  );
   await expect(
     page.getByText(
-      /Default: \$1,000\.00 available savings from Personal Finance/,
+      /Finance default: \$1,000\.00 for .*Alternate amounts are read-only/,
     ),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Analyze scenario" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Edit scenario amount" }),
+  ).toHaveCount(0);
   await expect(page.getByText("$250.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$400.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$150.00", { exact: true })).toBeVisible();
@@ -452,13 +460,33 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     "Model confidence: 20.00%; strategic targets are blended with the forecast/covariance model mix.",
   );
   await expect(
-    page.locator(".phase2-portfolio .portfolio-setup-row").getByText(
-      "Risk Questionnaire",
-    ),
+    page
+      .locator(".phase2-portfolio .portfolio-setup-row")
+      .getByText("Risk Questionnaire"),
   ).toBeVisible();
+  await expect(
+    page.getByText(
+      "How long can this hypothetical allocation remain invested?",
+    ),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Growth Profile · Score 78 · Cash 20.00%"),
+  ).toBeVisible();
+  await expect(page.locator(".allocation-donut-center-label")).toContainText(
+    "SavingsAllocation",
+  );
+  const firstAllocationSliceGroup = page
+    .locator(".allocation-donut-chart .recharts-pie-sector")
+    .first();
+  const firstAllocationSlice = firstAllocationSliceGroup.locator("path");
+  const idleSlicePath = await firstAllocationSlice.getAttribute("d");
+  await firstAllocationSliceGroup.hover();
+  await expect(firstAllocationSlice).toHaveClass(/is-active/);
+  await expect
+    .poll(() => firstAllocationSlice.getAttribute("d"))
+    .not.toBe(idleSlicePath);
   await expect(page.getByText(/15-day/i)).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Edit scenario amount" }).click();
   await page.getByLabel("Investment Capital (USD)").fill("2000.00");
   await page.getByRole("button", { name: "Analyze scenario" }).click();
   await expect(page.getByText("$500.00", { exact: true })).toBeVisible();
