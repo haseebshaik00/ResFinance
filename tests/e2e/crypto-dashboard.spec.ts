@@ -292,13 +292,12 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     .first()
     .boundingBox();
   expect(cryptoHeroBox).not.toBeNull();
-  expect(
-    Math.abs(
-      savingsMonthBox!.y +
-        savingsMonthBox!.height -
-        (cryptoHeroBox!.y + cryptoHeroBox!.height),
-    ),
-  ).toBeLessThan(2);
+  const monthBottomOffset =
+    cryptoHeroBox!.y +
+    cryptoHeroBox!.height -
+    (savingsMonthBox!.y + savingsMonthBox!.height);
+  expect(monthBottomOffset).toBeGreaterThan(8);
+  expect(monthBottomOffset).toBeLessThan(16);
   await expect(
     page.getByRole("heading", { name: "Investment Capital" }),
   ).toBeVisible();

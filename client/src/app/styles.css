@@ -2261,6 +2261,7 @@ code {
   gap: 1.25rem;
   align-items: flex-end;
   flex-direction: column;
+  transform: translateY(-0.75rem);
 }
 
 .forecast-status-pill {
