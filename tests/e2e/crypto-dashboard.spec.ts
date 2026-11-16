@@ -298,6 +298,25 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     (savingsMonthBox!.y + savingsMonthBox!.height);
   expect(monthBottomOffset).toBeGreaterThanOrEqual(8);
   expect(monthBottomOffset).toBeLessThan(16);
+  const forecastStatusTrigger = page.getByRole("button", {
+    name: "Current forecast details",
+  });
+  await forecastStatusTrigger.hover();
+  const forecastStatusTooltip = page.locator(".forecast-status-tooltip");
+  await expect(forecastStatusTooltip).toBeVisible();
+  const tooltipIsTopmostAtBottom = await forecastStatusTooltip.evaluate(
+    (tooltip) => {
+      const { left, top, width, height } = tooltip.getBoundingClientRect();
+      tooltip.style.pointerEvents = "auto";
+      const isTopmost =
+        document
+          .elementFromPoint(left + width / 2, top + height - 8)
+          ?.closest(".forecast-status-tooltip") === tooltip;
+      tooltip.style.pointerEvents = "";
+      return isTopmost;
+    },
+  );
+  expect(tooltipIsTopmostAtBottom).toBe(true);
   const savingsMonthTrigger = page.locator(".crypto-header-actions .reporting-month-trigger");
   await savingsMonthTrigger.click();
   const savingsMonthMenu = page.locator(".crypto-header-actions .reporting-month-menu");
