@@ -380,7 +380,7 @@ function GroupWorkspace({
         <summary>
           <span>Update the Group - Add Member, Expense & Fund Credits</span>
           <small>
-            Every change is approved in ResWallet and confirmed by ResContract.
+            Every change is approved in ResWallet and confirmed by ResContract!
           </small>
         </summary>
         <div className="group-entry-grid">

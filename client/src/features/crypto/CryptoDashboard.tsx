@@ -100,12 +100,12 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
     <div className="finance-dashboard crypto-dashboard phase2-dashboard">
       <section className="dashboard-header" aria-labelledby="crypto-title">
         <div>
-          <p className="eyebrow">Experimental · Seven-day outlook</p>
-          <h1 id="crypto-title">Crypto Intelligence</h1>
+          <p className="eyebrow">Crypto Intelligence</p>
+          <h1 id="crypto-title">Savings, translated into portfolio!</h1>
           <p className="lede">
-            Review validation-selected MSPCIFormer forecasts and a transparent,
-            long-only BTC/ETH/SOL sleeve with an optional USD cash reserve. No
-            trades are executed.
+            Explore AI-powered 7-day BTC, ETH, and SOL price forecasts and
+            personalized portfolio recommendations tailored to your savings and
+            risk profile.
           </p>
         </div>
         <ForecastStatus forecast={forecast} />
