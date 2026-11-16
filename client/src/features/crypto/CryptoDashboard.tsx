@@ -832,11 +832,16 @@ function RecommendationPanel({
     <div className="recommendation-layout">
       <AllocationDonut slices={slices} />
       <div className="allocation-table-wrap">
-        <p className="panel-note">
-          {formatRiskProfile(recommendation.risk_profile)} Profile · Risk Score{" "}
-          {recommendation.risk_score} · Cash{" "}
-          {formatAllocationWeight(recommendation.strategic_cash_reserve.weight)}
-        </p>
+        <div className="allocation-table-heading">
+          <h3>Savings Allocation</h3>
+          <p className="panel-note">
+            {formatRiskProfile(recommendation.risk_profile)} Profile · Risk
+            Score {recommendation.risk_score} · Cash{" "}
+            {formatAllocationWeight(
+              recommendation.strategic_cash_reserve.weight,
+            )}
+          </p>
+        </div>
         <table className="allocation-table">
           <thead>
             <tr>

@@ -516,6 +516,20 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.getByText("Growth Profile · Risk Score 78 · Cash 20.00%"),
   ).toBeVisible();
+  const savingsAllocationHeading = page.getByRole("heading", {
+    name: "Savings Allocation",
+  });
+  await expect(savingsAllocationHeading).toBeVisible();
+  const allocationProfile = page.getByText(
+    "Growth Profile · Risk Score 78 · Cash 20.00%",
+  );
+  const [savingsAllocationBox, allocationProfileBox] = await Promise.all([
+    savingsAllocationHeading.boundingBox(),
+    allocationProfile.boundingBox(),
+  ]);
+  expect(savingsAllocationBox).not.toBeNull();
+  expect(allocationProfileBox).not.toBeNull();
+  expect(savingsAllocationBox!.x).toBeLessThan(allocationProfileBox!.x);
   await expect(page.locator(".allocation-donut-center-label")).toContainText(
     "SavingsAllocation",
   );

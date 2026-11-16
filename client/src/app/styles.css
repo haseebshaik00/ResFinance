@@ -2989,18 +2989,33 @@ code {
   gap: 0.7rem;
   min-width: 0;
   position: relative;
+  transform: translateY(0.5rem);
   z-index: 1;
 }
 
-.allocation-table-wrap > .panel-note {
+.allocation-table-heading {
   align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.allocation-table-heading h3 {
+  color: var(--page-text);
+  font-size: 1rem;
+  font-weight: 850;
+  margin: 0;
+}
+
+.allocation-table-heading > .panel-note {
   background: color-mix(in srgb, var(--warning) 12%, transparent);
   border: 1px solid
     color-mix(in srgb, var(--warning) 48%, var(--control-border));
   border-radius: 999px;
   color: var(--warning);
   display: inline-flex;
-  justify-self: start;
+  flex: 0 1 auto;
   margin: 0;
   max-width: 100%;
   padding: 0.34rem 0.65rem;
