@@ -88,6 +88,19 @@ test.beforeEach(async ({ page }) => {
       body: JSON.stringify({ status: "ok", service: "resfinance-api" }),
     });
   });
+  await page.route("**/api/v1/finance/overview?month=*", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        summary: {
+          savings: {
+            available: { currency: "USD", minor_units: 100000 },
+          },
+        },
+      }),
+    });
+  });
   await page.route("**/api/v1/crypto/forecast", async (route) => {
     await route.fulfill({
       status: 200,
@@ -266,6 +279,14 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Portfolio Allocation" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Investment Capital (USD)")).toHaveValue(
+    "1000.00",
+  );
+  await expect(
+    page.getByText(
+      /Default: \$1,000\.00 available savings from Personal Finance/,
+    ),
   ).toBeVisible();
   await expect(page.getByText("$250.00", { exact: true })).toBeVisible();
   await expect(page.getByText("$400.00", { exact: true })).toBeVisible();

@@ -139,8 +139,9 @@ The v1 cryptocurrency universe contains exactly three assets: Bitcoin, Ethereum,
 
 ### Investment capital
 
-The user enters one hypothetical positive USD amount. The recommendation is
-read-only and does not change Finance.
+The current month's available savings from Personal Finance is the default
+positive USD capital. The user may replace it only for a read-only hypothetical
+scenario; neither outcome changes Finance.
 
 ### Smart Savings Insights
 
@@ -161,13 +162,14 @@ ETH, and SOL with no shorts, leverage, custom coin caps, or risk questionnaire.
 5. **Save** - Updated savings remains available to Personal Finance and Smart Insights.
 6. **Explore** - Alex reviews BTC, ETH, and SOL completed market prices.
 7. **Forecast** - The validation-selected MSPCIFormer produces seven direct daily prices.
-8. **Enter** - Alex supplies one hypothetical USD investment amount.
+8. **Allocate** - Alex starts with the current month's available savings; an
+   optional replacement amount remains a read-only scenario.
 9. **Build** - Mean–variance optimization converts Day-7 returns and covariance into weights.
 10. **Monitor** - Forecast freshness, model error, solver status, and provenance stay visible.
 
 ### Complete product story
 
-Earn -> Spend -> Split -> Settle -> Update Personal Finance -> Explore BTC/ETH/SOL -> Forecast Seven Days -> Enter Capital -> Build Portfolio -> Monitor.
+Earn -> Spend -> Split -> Settle -> Update Personal Finance -> Use Available Savings -> Explore BTC/ETH/SOL -> Forecast Seven Days -> Build Portfolio -> Monitor.
 
 The ledger stays shared and auditable; Crypto Intelligence remains an isolated,
 read-only scenario.

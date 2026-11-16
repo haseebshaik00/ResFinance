@@ -5,7 +5,12 @@ import type {
   PortfolioRecommendation,
   SevenDayForecast,
 } from "../../lib/api/client";
-import { formatUsd, usdToMinorUnits } from "../finance/money";
+import {
+  currentMonth,
+  formatUsd,
+  minorUnitsToUsdInput,
+  usdToMinorUnits,
+} from "../finance/money";
 import { CryptoChart } from "./CryptoChart";
 import {
   formatForecastDate,
@@ -22,19 +27,36 @@ const ASSET_NAMES: Record<Asset, string> = {
   SOL: "Solana",
 };
 
+function formatSavingsMonth(month: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    timeZone: "UTC",
+    year: "numeric",
+  }).format(new Date(`${month}-01T00:00:00Z`));
+}
+
 export function CryptoDashboard({ accessToken }: { accessToken: string }) {
-  const dashboard = useCryptoDashboard(accessToken);
+  const [savingsMonth] = useState(currentMonth);
+  const dashboard = useCryptoDashboard(accessToken, savingsMonth);
   const [asset, setAsset] = useState<Asset>("BTC");
-  const [capital, setCapital] = useState("1000.00");
+  const [capital, setCapital] = useState<string | null>(null);
   const [capitalError, setCapitalError] = useState<string | null>(null);
   const snapshotId = dashboard.forecast.data?.snapshot_id;
   const riskProfile = dashboard.riskProfile.data?.profile;
+  const availableSavings =
+    dashboard.financeOverview.data?.summary.savings.available.minor_units;
+
+  useEffect(() => {
+    if (availableSavings === undefined) return;
+    setCapital(minorUnitsToUsdInput(availableSavings));
+  }, [availableSavings]);
 
   useEffect(() => {
     if (
       snapshotId === undefined ||
       riskProfile === null ||
-      riskProfile === undefined
+      riskProfile === undefined ||
+      capital === null
     )
       return;
     const timer = window.setTimeout(() => {
@@ -179,12 +201,31 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
               <input
                 aria-label="Investment Capital (USD)"
                 inputMode="decimal"
-                value={capital}
+                value={capital ?? ""}
+                disabled={dashboard.financeOverview.isPending}
                 onChange={(event) => setCapital(event.target.value)}
               />
             </span>
           </label>
         </div>
+        {dashboard.financeOverview.isPending && (
+          <p className="panel-note" role="status">
+            Loading available savings from Personal Finance…
+          </p>
+        )}
+        {dashboard.financeOverview.isError && (
+          <p className="form-error" role="alert">
+            Available savings could not be loaded:{" "}
+            {dashboard.financeOverview.error.message}
+          </p>
+        )}
+        {availableSavings !== undefined && (
+          <p className="panel-note">
+            Default: {formatUsd(availableSavings)} available savings from
+            Personal Finance for {formatSavingsMonth(savingsMonth)}. Changing
+            this amount runs a read-only scenario and never updates Finance.
+          </p>
+        )}
         {capitalError !== null && (
           <p className="form-error" role="alert">
             {capitalError}

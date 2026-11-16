@@ -17,9 +17,10 @@ Status: complete for the active local, seven-day market-only workflow.
    CLARABEL/SCS fallback on the same objective, and exact-cent reconciliation.
 
 The page shows market cards, a seven-day chart with a Historical Error Range,
-one hypothetical USD capital input, risk questionnaire, cash-inclusive
-allocation, provenance, and freshness warnings. No trade is executed and no
-Finance record is changed.
+the current month's Personal Finance available savings as default USD capital,
+a risk questionnaire, cash-inclusive allocation, provenance, and freshness
+warnings. An edited capital amount is a read-only scenario. No trade is
+executed and no Finance record is changed.
 
 Active endpoints:
 

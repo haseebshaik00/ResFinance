@@ -199,9 +199,11 @@ earlier 15-day questionnaire/capped workflow remains immutable legacy evidence.
   USD cents reconcile to 100% and the exact entered capital.
 - Replaced the active Crypto Intelligence page with BTC/ETH/SOL overview cards,
   a seven-day P10/P50/P90 chart and a P10–P90 **Historical Error Range** derived
-  from the selected model's immutable held-out residuals, one USD capital input,
-  an allocation donut/table, model error, provenance, freshness warnings,
-  methodology, and responsive light/dark presentation. The Historical Error
+  from the selected model's immutable held-out residuals, a USD capital input
+  defaulted from the current month's Personal Finance available savings, an
+  allocation donut/table, model error, provenance, freshness warnings,
+  methodology, and responsive light/dark presentation. An edited capital value
+  remains a read-only scenario. The Historical Error
   Range summarizes past held-out error; it is not a validated 80% prediction
   interval, is visualization-only, and does not affect the optimizer's existing
   point-forecast inputs. No trading control exists.
