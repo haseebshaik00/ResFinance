@@ -119,8 +119,6 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
         </div>
       </section>
 
-      <MarketOverview forecast={forecast} />
-
       <section className="crypto-top-row" aria-label="Portfolio setup">
         <InvestmentCapitalCard
           availableSavings={availableSavings}
@@ -179,6 +177,7 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
             ))}
           </div>
         </div>
+        <MarketOverview forecast={forecast} />
         <CryptoChart forecast={forecast} asset={asset} />
         <p className="panel-note">
           Solid marker: observed cutoff price. The Historical Error Range is
@@ -482,10 +481,11 @@ function MarketOverview({ forecast }: { forecast: SevenDayForecast }) {
       className="phase2-market-section"
       aria-labelledby="market-overview-title"
     >
-      <div className="section-heading compact">
+      <div className="phase2-market-intro">
         <div>
-          <p className="section-kicker">BTC · ETH · SOL</p>
-          <h2 id="market-overview-title">Crypto Market Overview</h2>
+          <p className="section-kicker">BTC · ETH · SOL market snapshot</p>
+          <h3 id="market-overview-title">Crypto Market Overview</h3>
+          <p>Observed cutoff price and the model&apos;s Day 7 reference.</p>
         </div>
       </div>
       <div className="phase2-market-grid">
@@ -493,7 +493,7 @@ function MarketOverview({ forecast }: { forecast: SevenDayForecast }) {
           const change = Number(item.predicted_return_7d);
           return (
             <article
-              className={`phase2-market-card ${change >= 0 ? "positive" : "negative"}`}
+              className={`phase2-market-card ${item.asset.toLowerCase()} ${change >= 0 ? "positive" : "negative"}`}
               key={item.asset}
             >
               <div>

@@ -317,18 +317,25 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     },
   );
   expect(tooltipIsTopmostAtBottom).toBe(true);
-  const savingsMonthTrigger = page.locator(".crypto-header-actions .reporting-month-trigger");
+  const savingsMonthTrigger = page.locator(
+    ".crypto-header-actions .reporting-month-trigger",
+  );
   await savingsMonthTrigger.click();
-  const savingsMonthMenu = page.locator(".crypto-header-actions .reporting-month-menu");
+  const savingsMonthMenu = page.locator(
+    ".crypto-header-actions .reporting-month-menu",
+  );
   await expect(savingsMonthMenu).toBeVisible();
-  await expect(
-    page.locator(".crypto-header-actions"),
-  ).toHaveCSS("z-index", "1");
+  await expect(page.locator(".crypto-header-actions")).toHaveCSS(
+    "z-index",
+    "1",
+  );
   const menuIsTopmostAtCenter = await savingsMonthMenu.evaluate((menu) => {
     const { left, top, width, height } = menu.getBoundingClientRect();
-    return document
-      .elementFromPoint(left + width / 2, top + height / 2)
-      ?.closest(".reporting-month-menu") === menu;
+    return (
+      document
+        .elementFromPoint(left + width / 2, top + height / 2)
+        ?.closest(".reporting-month-menu") === menu
+    );
   });
   expect(menuIsTopmostAtCenter).toBe(true);
   await savingsMonthTrigger.press("Escape");
@@ -369,6 +376,9 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await expect(
     page.getByRole("heading", { name: "Crypto Market Overview" }),
   ).toBeVisible();
+  await expect(
+    page.locator(".phase2-outlook .phase2-market-section"),
+  ).toHaveCount(1);
   await expect(page.getByText("$68,700.00", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("img", {
