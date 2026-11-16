@@ -383,7 +383,10 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
     "Market cutoff 13 Nov 2026",
   );
   await expect(
-    page.getByRole("heading", { name: "Crypto Market Overview" }),
+    page.getByRole("heading", {
+      name: "Crypto Market Overview",
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
     page.locator(".phase2-outlook .phase2-market-section"),
