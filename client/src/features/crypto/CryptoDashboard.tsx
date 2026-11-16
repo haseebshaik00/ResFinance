@@ -131,67 +131,71 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
           />
         </div>
       </section>
-      <MarketOverview forecast={forecast} />
-      <section
-        className="panel phase2-outlook"
-        aria-labelledby="forecast-chart-title"
-      >
-        <div className="section-heading compact">
-          <div>
-            <p className="section-kicker">Market observation & Price Outlook</p>
-            <h2 id="forecast-chart-title">
-              Crypto Market Overview & Model Output: 7-Day Price Forecast
-            </h2>
-          </div>
-          <div className="forecast-chart-actions">
-            <div className="asset-switcher" aria-label="Chart asset">
-              {ASSETS.map((value) => (
-                <button
-                  key={value}
-                  className={value === asset ? "active" : ""}
-                  type="button"
-                  onClick={() => setAsset(value)}
-                >
-                  {value}
-                </button>
-              ))}
+      <div className="phase2-market-layout">
+        <MarketOverview forecast={forecast} />
+        <section
+          className="panel phase2-outlook"
+          aria-labelledby="forecast-chart-title"
+        >
+          <div className="section-heading compact">
+            <div>
+              <p className="section-kicker">
+                Market observation & Price Outlook
+              </p>
+              <h2 id="forecast-chart-title">
+                Crypto Market Overview & Model Output: 7-Day Price Forecast
+              </h2>
             </div>
-            <div className="forecast-chart-info">
-              <button
-                aria-describedby="forecast-chart-info-tooltip"
-                aria-label="Forecast chart details"
-                className="dashboard-info-button forecast-chart-info-trigger"
-                type="button"
-              >
-                <CircleHelp size={18} aria-hidden="true" />
-              </button>
-              <div
-                className="forecast-chart-info-tooltip"
-                id="forecast-chart-info-tooltip"
-                role="tooltip"
-              >
-                <ul>
-                  <li>Solid marker: observed cutoff price.</li>
-                  <li>
-                    The Historical Error Range is derived from the selected
-                    model&apos;s held-out residuals.
-                  </li>
-                  <li>
-                    It is a visualization-only summary of past error, not a
-                    validated 80% prediction interval or a price guarantee.
-                  </li>
-                  <li>
-                    Portfolio calculations continue to use the original
-                    seven-day research forecast.
-                  </li>
-                </ul>
+            <div className="forecast-chart-actions">
+              <div className="asset-switcher" aria-label="Chart asset">
+                {ASSETS.map((value) => (
+                  <button
+                    key={value}
+                    className={value === asset ? "active" : ""}
+                    type="button"
+                    onClick={() => setAsset(value)}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+              <div className="forecast-chart-info">
+                <button
+                  aria-describedby="forecast-chart-info-tooltip"
+                  aria-label="Forecast chart details"
+                  className="dashboard-info-button forecast-chart-info-trigger"
+                  type="button"
+                >
+                  <CircleHelp size={18} aria-hidden="true" />
+                </button>
+                <div
+                  className="forecast-chart-info-tooltip"
+                  id="forecast-chart-info-tooltip"
+                  role="tooltip"
+                >
+                  <ul>
+                    <li>Solid marker: observed cutoff price.</li>
+                    <li>
+                      The Historical Error Range is derived from the selected
+                      model&apos;s held-out residuals.
+                    </li>
+                    <li>
+                      It is a visualization-only summary of past error, not a
+                      validated 80% prediction interval or a price guarantee.
+                    </li>
+                    <li>
+                      Portfolio calculations continue to use the original
+                      seven-day research forecast.
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <CryptoChart forecast={forecast} asset={asset} />
-      </section>
+          <CryptoChart forecast={forecast} asset={asset} />
+        </section>
+      </div>
 
       <section
         className="panel phase2-portfolio"

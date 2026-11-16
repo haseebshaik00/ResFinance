@@ -2387,12 +2387,18 @@ code {
   padding-left: 1rem;
 }
 
+.phase2-market-layout {
+  align-items: stretch;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 7fr);
+}
+
 .phase2-market-section {
   display: grid;
   gap: 0.75rem;
+  min-width: 0;
   padding: 1rem 0;
-  border-top: 1px solid var(--control-border);
-  border-bottom: 1px solid var(--control-border);
 }
 
 .phase2-market-intro {
@@ -2420,7 +2426,11 @@ code {
 .phase2-market-grid {
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.phase2-market-layout .phase2-outlook {
+  min-width: 0;
 }
 
 .phase2-market-card {
@@ -2673,6 +2683,39 @@ code {
 .forecast-quantile-line.p90 {
   stroke: #d49735;
   stroke-dasharray: 5 5;
+}
+
+/* Match Cash Flow Over Time idle motion: flowing dashes + soft blink. */
+.phase2-chart[data-animated="true"] .forecast-line {
+  stroke-dasharray: 7 9;
+  animation:
+    chart-line-flow 1.5s linear infinite,
+    chart-series-blink 2.4s ease-in-out infinite;
+}
+
+.phase2-chart[data-animated="true"] .forecast-quantile-line.p10 {
+  stroke-dasharray: 7 9;
+  animation:
+    chart-line-flow 1.5s linear infinite,
+    chart-series-blink 2.4s ease-in-out infinite;
+  animation-delay: 0s, 0.2s;
+}
+
+.phase2-chart[data-animated="true"] .forecast-quantile-line.p90 {
+  stroke-dasharray: 7 9;
+  animation:
+    chart-line-flow 1.5s linear infinite,
+    chart-series-blink 2.4s ease-in-out infinite;
+  animation-delay: 0s, 0.4s;
+}
+
+.phase2-chart[data-animated="true"] .forecast-uncertainty-band {
+  animation: chart-area-flow 2.6s ease-in-out infinite;
+}
+
+.phase2-chart[data-animated="true"] .forecast-point,
+.phase2-chart[data-animated="true"] .forecast-quantile-point {
+  animation: chart-series-blink 2.4s ease-in-out infinite;
 }
 
 .forecast-quantile-point {
@@ -6004,13 +6047,12 @@ td.expense {
 }
 
 @media (max-width: 900px) {
-  .phase2-market-grid,
-  .method-steps {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .phase2-market-layout {
+    grid-template-columns: 1fr;
   }
 
-  .phase2-market-card:last-child {
-    grid-column: 1 / -1;
+  .method-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .recommendation-layout {
@@ -6043,7 +6085,6 @@ td.expense {
     justify-content: center;
   }
 
-  .phase2-market-grid,
   .method-steps,
   .accuracy-grid,
   .portfolio-metrics {
@@ -6052,10 +6093,6 @@ td.expense {
 
   .crypto-accuracy-grid dl {
     grid-template-columns: 1fr;
-  }
-
-  .phase2-market-card:last-child {
-    grid-column: auto;
   }
 
   .investment-capital-field {
@@ -6098,6 +6135,12 @@ td.expense {
   .analytics-chart[data-animated="true"] .recharts-line-dots circle,
   .analytics-chart[data-animated="true"] .recharts-dot,
   .analytics-chart[data-animated="true"] .recharts-pie-sector,
+  .phase2-chart[data-animated="true"] .forecast-line,
+  .phase2-chart[data-animated="true"] .forecast-quantile-line.p10,
+  .phase2-chart[data-animated="true"] .forecast-quantile-line.p90,
+  .phase2-chart[data-animated="true"] .forecast-uncertainty-band,
+  .phase2-chart[data-animated="true"] .forecast-point,
+  .phase2-chart[data-animated="true"] .forecast-quantile-point,
   .budget-list progress::-webkit-progress-value,
   .budget-list progress::-moz-progress-bar,
   .budget-list[data-animated="true"] progress::-webkit-progress-value,

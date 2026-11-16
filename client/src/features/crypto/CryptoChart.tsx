@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 
 import type { SevenDayForecast } from "../../lib/api/client";
+import { useAnimateWhenVisible } from "../../lib/useAnimateWhenVisible";
 import { formatForecastDate, formatForecastPrice } from "./forecastChart";
 
 type Asset = "BTC" | "ETH" | "SOL";
@@ -32,6 +33,7 @@ export function CryptoChart({
 }) {
   const tooltipId = useId();
   const [hover, setHover] = useState<HoverPoint | null>(null);
+  const { ref, animated } = useAnimateWhenVisible<HTMLDivElement>();
   const selected = forecast.assets.find((item) => item.asset === asset);
   if (selected === undefined) return null;
 
@@ -171,7 +173,9 @@ export function CryptoChart({
   return (
     <div className="phase2-chart-frame">
       <div
+        ref={ref}
         className="phase2-chart"
+        data-animated={animated ? "true" : "false"}
         role="img"
         aria-label={`${asset} observed price on ${formatForecastDate(cutoff)} and P10, P50, and P90 daily USD paths through ${formatForecastDate(dates.at(-1) ?? cutoff)}. The Historical Error Range summarizes held-out error; it is not a validated 80% prediction interval, is visualization-only, and does not affect portfolio calculations.`}
         aria-describedby={hover ? tooltipId : undefined}

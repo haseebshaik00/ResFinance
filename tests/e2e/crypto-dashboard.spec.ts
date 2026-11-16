@@ -388,7 +388,11 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
       exact: true,
     }),
   ).toBeVisible();
+  await expect(page.locator(".phase2-market-layout")).toHaveCount(1);
   await expect(page.locator(".phase2-market-section")).toHaveCount(1);
+  await expect(
+    page.locator(".phase2-market-layout > .phase2-market-section"),
+  ).toHaveCount(1);
   await expect(
     page.locator(".phase2-market-section + .phase2-outlook"),
   ).toHaveCount(1);
@@ -473,6 +477,10 @@ test("renders the seven-day forecast and updates optimizer amounts", async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator(".forecast-line")).toBeVisible();
   await expect(page.locator(".forecast-uncertainty-band")).toBeVisible();
+  await expect(page.locator(".phase2-chart")).toHaveAttribute(
+    "data-animated",
+    "true",
+  );
   await forecastStatusButton.hover();
   await expect(page.locator(".forecast-status-tooltip")).toBeVisible();
   expect(
