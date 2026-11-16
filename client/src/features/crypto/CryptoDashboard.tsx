@@ -137,8 +137,10 @@ export function CryptoDashboard({ accessToken }: { accessToken: string }) {
       >
         <div className="section-heading compact">
           <div>
-            <p className="section-kicker">Current observation + model output</p>
-            <h2 id="forecast-chart-title">Seven-Day Price Outlook</h2>
+            <p className="section-kicker">Market observation & Price Outlook</p>
+            <h2 id="forecast-chart-title">
+              Crypto Market Overview & Model Output: 7-Day Price Forecast
+            </h2>
           </div>
           <div className="asset-switcher" aria-label="Chart asset">
             {ASSETS.map((value) => (
