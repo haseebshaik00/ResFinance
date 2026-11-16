@@ -590,9 +590,7 @@ function RiskScore({
           </strong>
           <li>Your answers set the BTC, ETH, SOL, and cash targets.</li>
           <li>The forecast can refine only the crypto sleeve.</li>
-          <li>
-            The responses are wallet-scoped and informational only.
-          </li>
+          <li>The responses are wallet-scoped and informational only.</li>
         </ul>
       </div>
     </div>
