@@ -1,12 +1,12 @@
 # ResFinance Architecture and Delivery Plan
 
-Status: Approved planning baseline for local implementation; cloud deployment is on hold
+Status: Approved architecture and completed-local-implementation baseline; cloud deployment is on hold
 
-Last reviewed: 2026-10-22
+Last reviewed: 2026-11-17
 
-Implementation status: Milestones 1–7 passed for local development and research under the canonical convention in [`milestones/milestones.md`](milestones/milestones.md). The active Crypto Intelligence flow is a market-only MSPCIFormer/VASA seven-day forecast with daily completed-market-data refresh and inference-only checkpoint use. Milestone 8 production hardening and deployment remains on hold.
+Implementation status: Local implementation for Milestones 1–7 is complete under the canonical convention in [`milestones/milestones.md`](milestones/milestones.md). Ongoing activity is limited to operating, maintaining, and reproducibly verifying the completed local system. The active Crypto Intelligence flow is a market-only MSPCIFormer/VASA seven-day forecast with daily completed-market-data refresh and inference-only checkpoint use. Milestone 8 production hardening and deployment remains on hold.
 
-Deployment status: On hold pending a separate, evidence-backed ResilientDB cloud feasibility review. Current work is limited to local development, integration, research, and end-to-end validation.
+Deployment status: On hold pending a separate, evidence-backed ResilientDB cloud feasibility review. Ongoing work is limited to local operation, maintenance, research, and end-to-end validation.
 
 ## 1. Summary and Product Boundaries
 

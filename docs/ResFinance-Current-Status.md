@@ -8,6 +8,15 @@ declared local development and non-commercial research scope. Milestone 8 is on
 hold. Local completion does not establish cloud, production, commercial,
 custody, trading, investment-advice, or independent-BFT readiness.
 
+## Local development completion
+
+Local implementation work for Milestones 1–7 is complete. The completed local
+system covers ResWallet authentication, Personal Finance, Friends & Groups
+settlement, Crypto Intelligence, cross-dashboard integration, and the local
+operator handoff. Ongoing local activity is limited to operating, maintaining,
+and reproducibly verifying that completed system; it does not expand product
+scope or lift the Milestone 8 deployment hold.
+
 On 2026-10-24, the project owner finalized and accepted the ResWallet
 functionality and Personal Finance dashboard for the declared local-development
 scope. No remaining owner-side functionality or presentation tasks are tracked

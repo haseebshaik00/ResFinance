@@ -4,9 +4,11 @@ ResFinance is a locally implemented wallet-authenticated finance platform that
 connects personal budgeting, shared expenses, and explainable BTC/ETH/SOL
 portfolio analysis through one auditable financial record.
 
-The ResWallet experience and Personal Finance dashboard are finalized and
-project-owner accepted for the declared local-development scope. This does not
-lift the cloud and production deployment hold.
+Local implementation is complete for Milestones 1–7: ResWallet, Personal
+Finance, Friends & Groups, Crypto Intelligence, cross-dashboard integration,
+and the local operator handoff. The project remains limited to its declared
+local-development and non-commercial research scope. This does not lift the
+cloud and production deployment hold.
 
 For milestone progress and current readiness, see [`docs/ResFinance-Current-Status.md`](docs/ResFinance-Current-Status.md).
 The canonical eight-milestone convention is defined in [`docs/milestones/milestones.md`](docs/milestones/milestones.md).
