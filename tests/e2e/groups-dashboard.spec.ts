@@ -155,7 +155,7 @@ test("approves and settles an obligation partially and fully", async ({
     groupNetwork.getByRole("heading", { name: "Your Groups Network!" }),
   ).toBeVisible();
   await expect(
-    groupNetwork.getByRole("button", { name: "New Group" }),
+    page.locator(".group-bar").getByRole("button", { name: "New Group" }),
   ).toBeVisible();
   await expect(groupNetwork.locator(".network-metric")).toHaveCount(2);
   expect(
@@ -440,6 +440,92 @@ test("approves and settles an obligation partially and fully", async ({
       credit_disclaimer:
         "Internal credits are non-redeemable, non-monetary, and have no cash value.",
     };
+  }
+});
+
+test("keeps every group reachable and creates groups outside net balances", async ({
+  page,
+}) => {
+  await mockSession(page, creditor);
+  const groups = Array.from({ length: 6 }, (_, index) => ({
+    group_id: `group-${index}`,
+    name: `Shared group ${index + 1}`,
+    member_count: 1,
+    open_obligation_count: 0,
+    projection_version: 1,
+  }));
+  await page.route("**/api/v1/groups", (route) =>
+    route.fulfill({ json: groups }),
+  );
+  await page.route("**/api/v1/groups/group-*", (route) => {
+    const group = groups.find((item) =>
+      route.request().url().endsWith(`/${item.group_id}`),
+    );
+    if (!group) return route.fallback();
+    return route.fulfill({
+      json: {
+        ...group,
+        owner_address: creditor,
+        members: [
+          {
+            actor_address: creditor,
+            display_name: "Alex",
+            active: true,
+            source_event_id: "member",
+          },
+        ],
+        expenses: [],
+        obligations: [],
+        credit_balances: {},
+        notifications: [],
+        provenance: {
+          projection_version: 1,
+          as_of_utc: "2026-11-17T00:00:00Z",
+          source_event_ids: ["member"],
+        },
+        credit_disclaimer:
+          "Internal credits are non-redeemable, non-monetary, and have no cash value.",
+      },
+    });
+  });
+  await page.goto("/groups");
+  await approveWalletLogin(page);
+  const navigation = page.getByRole("navigation", { name: "Your groups" });
+  await expect(navigation.getByRole("button")).toHaveCount(6);
+  await expect(
+    page.locator(".network-counterparties").getByRole("button"),
+  ).toHaveCount(0);
+  for (const width of [1440, 768, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await navigation.evaluate(
+        (element) => element.scrollWidth <= element.clientWidth,
+      ),
+    ).toBe(true);
+    for (const group of groups) {
+      const chip = navigation.getByRole("button", { name: group.name });
+      await expectInsideViewport(page, chip);
+      await chip.click();
+      await expect(page.locator("#group-name")).toHaveText(group.name);
+      await expect(chip).toHaveAttribute("aria-current", "true");
+    }
+    const create = page
+      .locator(".group-bar")
+      .getByRole("button", { name: "New Group" });
+    await create.click();
+    await expect(page.locator(".group-bar .new-group-button")).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    await expect(page.locator(".create-group-panel")).toBeVisible();
+    await page
+      .locator(".group-bar")
+      .getByRole("button", { name: "Close" })
+      .click();
+    await expect(page.locator(".create-group-panel")).toHaveCount(0);
+    await page
+      .locator(".group-bar")
+      .screenshot({ path: `test-results/groups-navigation-${width}.png` });
   }
 });
 

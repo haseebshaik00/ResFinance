@@ -4735,9 +4735,10 @@ td.expense {
   transform: translateY(0);
 }
 
-/* Active group on the left, scrollable group chips on the right. */
+/* Group actions above a wrapping list so every group remains reachable. */
 .group-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 1rem 1.5rem;
   align-items: end;
   justify-content: space-between;
@@ -4745,7 +4746,6 @@ td.expense {
 }
 
 .group-bar .group-heading {
-  flex: 1 1 18rem;
   min-width: 0;
   margin: 0;
 }
@@ -4756,17 +4756,11 @@ td.expense {
 
 .group-switcher {
   display: flex;
-  flex: 0 1 auto;
-  justify-content: flex-end;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
   gap: 0.6rem;
-  max-width: min(100%, 36rem);
   min-width: 0;
   padding: 0.25rem 0.15rem 0.45rem;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
-  scrollbar-width: thin;
-  margin-left: auto;
 }
 
 .group-chip {
@@ -4774,7 +4768,7 @@ td.expense {
   flex: 0 0 auto;
   gap: 0.2rem;
   min-width: 11.5rem;
-  max-width: 16rem;
+  max-width: min(100%, 16rem);
   padding: 0.75rem 1rem;
   border: 1px solid var(--control-border);
   border-radius: 1rem;
@@ -4783,7 +4777,6 @@ td.expense {
   text-align: left;
   background: var(--control-background);
   cursor: pointer;
-  scroll-snap-align: start;
   transition:
     background 140ms ease,
     border-color 140ms ease;
@@ -4824,7 +4817,7 @@ td.expense {
   align-items: center;
   flex: 0 0 auto;
   min-width: 11.5rem;
-  max-width: 16rem;
+  max-width: min(100%, 16rem);
   padding: 0.75rem 1rem;
   border: 1px solid color-mix(in srgb, #f2bd5a 58%, #1a2436);
   border-radius: 1rem;
@@ -5013,18 +5006,18 @@ td.expense {
 
 .network-counterparties {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 0.7rem;
   min-height: 16.25rem;
   min-width: 0;
 }
 
-.group-network-action {
+.group-create-action {
   display: flex;
   padding-top: 0.1rem;
 }
 
-.group-network-action .new-group-button {
+.group-create-action .new-group-button {
   width: 100%;
   max-width: none;
   padding: 0.65rem 0.85rem;
@@ -6075,18 +6068,8 @@ td.expense {
   }
 
   .group-bar {
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
-  }
-
-  .group-bar .group-heading {
-    flex-basis: auto;
-  }
-
-  .group-switcher {
-    max-width: none;
-    justify-content: start;
-    margin-left: 0;
   }
 
   .inline-actions,

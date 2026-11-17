@@ -159,6 +159,10 @@ Evidence:
   payables/receivables sit beside one signed, color-coded list of every
   counterparty. This presentation does not alter obligation or settlement
   state.
+- Group selection wraps across the available width so multiple groups remain
+  visible on desktop and mobile. New Group now sits with group navigation,
+  outside individual net balances. Browser coverage checks six groups,
+  switching, and create-form toggling at desktop, tablet, and mobile widths.
 
 Evidence:
 [`milestones/milestone4-bill-split-contractual-settlement.md`](milestones/milestone4-bill-split-contractual-settlement.md).
