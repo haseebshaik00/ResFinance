@@ -7,7 +7,6 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import { ArchitectureDiagram } from "../components/ArchitectureDiagram";
 import { AuthCard } from "../components/AuthCard";
 import { GitHubLink } from "../components/GitHubLink";
 import { MediumLink } from "../components/MediumLink";
@@ -46,32 +45,6 @@ export function App() {
     }
   }
 
-  const authCard = (
-    <AuthCard
-      state={authentication.state}
-      message={authentication.message}
-      walletAddress={authentication.identity?.address ?? null}
-      actorAddress={authentication.actorAddress}
-      onConnect={() => void authentication.connect()}
-      onLogout={() => void logout()}
-      actions={
-        authenticated ? (
-          <NotificationCenter accessToken={authentication.accessToken!} />
-        ) : undefined
-      }
-    >
-      {authenticated && (
-        <div className="authenticated-navigation">
-          <nav className="dashboard-nav" aria-label="ResFinance dashboards">
-            <NavLink to="/finance">Personal Finance</NavLink>
-            <NavLink to="/groups">Friends &amp; Groups</NavLink>
-            <NavLink to="/crypto">Crypto Intelligence</NavLink>
-          </nav>
-        </div>
-      )}
-    </AuthCard>
-  );
-
   return (
     <main className={authenticated ? "app-shell" : "shell"}>
       {!authenticated && (
@@ -82,20 +55,38 @@ export function App() {
         </div>
       )}
       {!authenticated && (
-        <section className="welcome-layout" aria-label="ResFinance welcome">
-          <div className="welcome-copy">
-            <h1>ResFinance</h1>
-            <p className="lede">
-              Connect to the ResWallet extension to open your Encrypted Personal
-              Finance, Bill Split, and Crypto Intelligence dashboards. Your seed
-              always stays inside the extension.
-            </p>
-            {authCard}
-          </div>
-          <ArchitectureDiagram />
-        </section>
+        <>
+          <h1>ResFinance</h1>
+          <p className="lede">
+            Connect to the ResWallet extension to open your Encrypted Personal
+            Finance, Bill Split, and Crypto Intelligence dashboards. Your seed
+            always stays inside the extension.
+          </p>
+        </>
       )}
-      {authenticated ? authCard : null}
+      <AuthCard
+        state={authentication.state}
+        message={authentication.message}
+        walletAddress={authentication.identity?.address ?? null}
+        actorAddress={authentication.actorAddress}
+        onConnect={() => void authentication.connect()}
+        onLogout={() => void logout()}
+        actions={
+          authenticated ? (
+            <NotificationCenter accessToken={authentication.accessToken!} />
+          ) : undefined
+        }
+      >
+        {authenticated && (
+          <div className="authenticated-navigation">
+            <nav className="dashboard-nav" aria-label="ResFinance dashboards">
+              <NavLink to="/finance">Personal Finance</NavLink>
+              <NavLink to="/groups">Friends &amp; Groups</NavLink>
+              <NavLink to="/crypto">Crypto Intelligence</NavLink>
+            </nav>
+          </div>
+        )}
+      </AuthCard>
       {authenticated ? (
         <>
           <Routes>

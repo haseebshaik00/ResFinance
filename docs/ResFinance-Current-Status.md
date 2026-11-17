@@ -38,10 +38,6 @@ for those two areas.
   generated `/api/v1` client contract, encrypted append-only event and blob
   repositories, deterministic idempotency, projection rebuilds, and the local
   four-replica ResilientDB topology.
-- Refined the responsive welcome screen into a two-column wallet and system
-  architecture view. Its lightweight SVG overlay animates connector flow only,
-  preserves the reference diagram, and disables motion for reduced-motion
-  preferences.
 - Real-stack acceptance passed encrypted write, deduplication, full restart,
   readback, and deterministic projection rebuild without another database.
 - The upstream ResVault audit failed the required custody boundary and led to
