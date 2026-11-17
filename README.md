@@ -15,6 +15,9 @@ ResFinance is an AI-powered financial management platform built on ResilientDB, 
   obligations, Non-redeemable internal-credit settlement, and Finance updates.
 - **Crypto Intelligence:** BTC/ETH/SOL-only 7-day research forecasts and
   read-only allocation scenarios based on available savings.
+- **Architecture-aware welcome:** The responsive wallet-authentication screen
+  pairs the existing ResWallet flow with the complete system diagram and a
+  reduced-motion-safe SVG data-flow overlay.
 
 ## Architecture
 
@@ -68,7 +71,6 @@ docs/          Product, architecture, milestone evidence, and development refere
 - [Milestone Evidence](docs/milestones/)
 - [Current milestone status](docs/ResFinance-Current-Status.md)
 - [Repository instructions for coding agents](AGENTS.md)
-
 
 ## Contributors
 

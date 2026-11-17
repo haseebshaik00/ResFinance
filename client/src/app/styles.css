@@ -93,9 +93,85 @@ body::before {
 }
 
 .shell {
-  width: min(50rem, calc(100% - 2rem));
+  display: grid;
+  width: min(96rem, calc(100% - 3rem));
+  min-height: 100vh;
   margin: 0 auto;
-  padding: 15vh 0 4rem;
+  align-items: center;
+  padding: 5.5rem 0 4rem;
+}
+
+.welcome-layout {
+  display: grid;
+  grid-template-columns: minmax(25rem, 0.43fr) minmax(0, 0.57fr);
+  gap: clamp(2rem, 4vw, 4.75rem);
+  align-items: center;
+  width: 100%;
+}
+
+.welcome-copy {
+  min-width: 0;
+}
+
+.welcome-copy h1 {
+  line-height: 0.94;
+}
+
+.welcome-copy .lede {
+  max-width: 39rem;
+  margin: 1.35rem 0 0;
+}
+
+.welcome-copy > .auth-card {
+  margin-top: 2rem;
+}
+
+.architecture-diagram {
+  min-width: 0;
+  margin: 0;
+}
+
+.architecture-diagram-stage {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  filter: drop-shadow(0 1.5rem 3rem rgb(10 14 25 / 22%));
+  isolation: isolate;
+}
+
+.architecture-diagram-stage img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.architecture-flow-overlay {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.architecture-flow-path {
+  fill: none;
+  stroke: #65f3e8;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 8 92;
+  filter: drop-shadow(0 0 5px rgb(101 243 232 / 72%));
+  opacity: 0.9;
+  animation: architecture-data-flow 2.6s linear infinite;
+  vector-effect: non-scaling-stroke;
+}
+
+@keyframes architecture-data-flow {
+  to {
+    stroke-dashoffset: -100;
+  }
 }
 
 .app-shell {
@@ -5978,6 +6054,25 @@ td.expense {
 }
 
 @media (max-width: 70rem) {
+  .shell {
+    width: min(64rem, calc(100% - 2rem));
+    align-items: start;
+    padding-top: 7rem;
+  }
+
+  .welcome-layout {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .welcome-copy {
+    width: min(100%, 46rem);
+  }
+
+  .architecture-diagram {
+    width: 100%;
+  }
+
   .app-shell > .auth-card {
     grid-template-areas:
       "session actions"
@@ -6136,6 +6231,50 @@ td.expense {
 }
 
 @media (max-width: 32rem) {
+  .shell {
+    width: min(100% - 1rem, 64rem);
+    padding-top: 5.75rem;
+  }
+
+  .welcome-layout {
+    gap: 2rem;
+  }
+
+  .welcome-copy h1 {
+    font-size: clamp(3rem, 18vw, 4.35rem);
+  }
+
+  .welcome-copy .lede {
+    margin-top: 1rem;
+    font-size: 0.98rem;
+    line-height: 1.6;
+  }
+
+  .welcome-copy > .auth-card {
+    margin-top: 1.5rem;
+  }
+
+  .architecture-diagram-stage {
+    border-radius: 0.8rem;
+  }
+
+  .auth-card:not([data-state="authenticated"]) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .auth-card:not([data-state="authenticated"]) .auth-connect-controls {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .auth-card:not([data-state="authenticated"])
+    .auth-connect-controls
+    > .auth-button {
+    transform: none;
+  }
+
   .auth-card {
     grid-template-columns: 1fr;
   }
@@ -6388,6 +6527,7 @@ td.expense {
 @media (prefers-reduced-motion: reduce) {
   .auth-help-popover,
   .auth-status-bulb,
+  .architecture-flow-path,
   .loading-orb,
   .theme-slider-thumb {
     animation: none;
