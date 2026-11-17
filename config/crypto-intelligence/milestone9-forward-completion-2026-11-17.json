@@ -1,0 +1,23 @@
+{
+  "assets": [
+    "BTC",
+    "ETH",
+    "SOL"
+  ],
+  "completed_at_utc": "2026-11-17T13:58:07.609947Z",
+  "current_cutoff_date": "2026-11-16",
+  "execution_mode": "market-ingestion-only",
+  "inference_refresh": "The active Phase 1 checkpoint refreshes on the next forecast read.",
+  "market_data_ingested": true,
+  "market_history_start": "2020-04-10",
+  "provider_receipt": {
+    "attempt_id": "crypto-market-refresh-b0594c3fea6f44038d700943435a681f",
+    "deduplicated_count": 0,
+    "inserted_count": 7236,
+    "observation_count": 7236,
+    "observation_set_sha256": "01f766b27b8083a12f17d8df22f43d7c4f16dc1366af31c6c74b14f9738e5e31",
+    "provider": "coin-metrics"
+  },
+  "schema_version": 2,
+  "scope": "daily-market-only-refresh-for-mspciformer-vasa-inference"
+}
