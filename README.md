@@ -13,56 +13,34 @@ cloud and production deployment hold.
 For milestone progress and current readiness, see [`docs/ResFinance-Current-Status.md`](docs/ResFinance-Current-Status.md).
 The canonical eight-milestone convention is defined in [`docs/milestones/milestones.md`](docs/milestones/milestones.md).
 
-## Product journey
+## What it does
 
-```text
-Earn → Spend → Split → Settle → Update Finance → Explore BTC/ETH/SOL → Forecast 7 Days → Allocate a Scenario Amount
-```
-
-A user connects ResWallet, manages personal finances, splits expenses with
-friends, approves contractual settlements, and uses available savings from
-Personal Finance as the default capital for an experimental seven-day crypto
-allocation.
-
-## Product areas
-
-| Personal Finance | Friends & Groups | Crypto Intelligence |
-| --- | --- | --- |
-| <ul><li>Record income, expenses, budgets, and recurring items with a fixed, direction-aware category catalog.</li><li>Track contract-confirmed receivables and payables from shared expenses.</li><li>Review any period with an in-app, keyboard-accessible Reporting month picker.</li><li>Keep Cash flow, transactions, and planning panels aligned while long records scroll with matching visible rails.</li><li>View cash-flow summaries, budget alerts, and actual or projected savings.</li><li>Receive practical, evidence-linked Smart Savings Insights.</li><li>Preserve append-only audit history through compensating corrections.</li></ul> | <ul><li>Create groups and add shared expenses, choosing which members share each expense and splitting it equally or by exact amounts.</li><li>Require each participant to approve or reject obligations with ResWallet.</li><li>Settle with internal, non-redeemable credits and immutable receipts.</li><li>Reflect confirmed obligations and settlements back into Personal Finance.</li></ul> | <ul><li>Analyze <strong>BTC, ETH, and SOL only</strong> from completed daily market prices.</li><li>View a P10/P50/P90 <strong>Historical Error Range</strong> derived from immutable held-out residuals; it summarizes past error, is not a validated 80% prediction interval, and never supplies portfolio inputs.</li><li>Complete a wallet-scoped questionnaire that selects a conservative, balanced, or growth strategic allocation.</li><li>Use current-month available savings from Personal Finance as the default capital; edits remain read-only scenarios.</li><li>Receive a confidence-weighted forecast/covariance blend within the selected BTC/ETH/SOL sleeve while the policy fixes USD cash.</li><li>Reconcile all crypto and cash amounts to exact cents without executing trades or changing Finance.</li></ul> |
+- **Personal Finance:** append-only income, expenses, budgets, recurring items,
+  savings, and evidence-linked read-only insights.
+- **Friends & Groups:** exact shared-expense splits, ResWallet-approved
+  obligations, non-redeemable internal-credit settlement, and Finance updates.
+- **Crypto Intelligence:** BTC/ETH/SOL-only seven-day research forecasts and
+  read-only allocation scenarios based on available savings.
 
 ## Architecture
 
-| Component | Role |
-|---|---|
-| React, TypeScript, and Vite | Shared interface for Personal Finance, Friends & Groups, and Crypto Intelligence |
-| FastAPI REST API | Authentication, validation, business rules, orchestration, and `/api/v1` |
-| Apache ResilientDB | Only persistent store for application events, research data, forecasts, and artifacts |
-| ResWallet | Extension-held identity, local key custody, login signing, and explicit action approval |
-| ResContract | Authoritative obligation, settlement-credit, and receipt transitions |
-| Ingestion and ML workers | Daily market refresh, reproducible MSPCIFormer/VASA research, and forecasts |
-| Read-only AI | Evidence-linked explanations without write, wallet, settlement, or trading authority |
+![ResFinance architecture and data flow](docs/images/resfinance-architecture-data-flow.png)
 
-The application uses append-only, schema-versioned events; deterministic and
-idempotent writes; encrypted sensitive payloads; rebuildable projections; and
-freshness/provenance records for meaningful outputs. Browser code reaches
-application services only through the generated `/api/v1` REST client.
+The React client communicates only with the FastAPI `/api/v1` service.
+ResWallet holds keys and approves actions; ResContract is authoritative for
+settlement; Apache ResilientDB is the sole persistent application and research
+store. Events are encrypted where sensitive, append-only, schema-versioned,
+idempotent, and reducer-rebuildable.
 
-## Product boundaries
+## Scope and safety
 
-- Apache ResilientDB is the sole persistent application and research database.
-- USD is the only V1 fiat denomination; money uses integer cents.
+- USD is the only V1 fiat denomination; money is stored as integer cents.
 - Crypto support is exactly `BTC | ETH | SOL`.
-- ResWallet seeds and private keys never leave the extension. Its five-minute
-  inactivity lock is extended only by trusted interaction in a visible
-  ResFinance tab, while an authenticated open tab renews its short-lived API
-  access token without restoring login after a reload.
-- ResContract is authoritative for obligations and settlement state.
-- Internal settlement credits are non-redeemable and non-monetary.
-- ResFinance does not transfer fiat or native cryptocurrency, execute trades,
-  provide exchange custody, guarantee returns, or provide investment advice.
-- Scenario analysis and AI are read-only and cannot mutate Finance or invoke
-  wallet, settlement, or trading operations.
-- Cloud and production deployment remain on hold.
+- Seeds and private keys never leave ResWallet; contract-affecting actions need
+  explicitly approved, backend-verified signed intents.
+- Internal credits are non-redeemable and non-monetary. ResFinance does not
+  transfer fiat or cryptocurrency, trade, custody assets, or provide investment advice.
+- Scenario analysis and AI are read-only; cloud and production deployment remain on hold.
 
 ## Repository layout
 
@@ -89,6 +67,8 @@ docs/          Product, architecture, milestone evidence, and development refere
 - [Research Protocol](docs/research-protocol.md)
 - [Active MSPCIFormer VASA two-model protocol](docs/research/mspciformer-vasa-phase1-v2.md)
 - [Seven-day portfolio recommendation](docs/research/phase2-seven-day-portfolio.md)
+- [ResFinance Research Flow (PDF)](docs/research/ResFinance-Research-Flow.pdf)
+- [ResFinance MSPCIFormer Research (PDF)](docs/research/ResFinance-MSPCIFormer-Research.pdf)
 - [Provider coverage and terms review](docs/provider-terms-review.md)
 - [ResilientDB ecosystem development references](docs/development-references.md)
 - [Canonical Milestone Convention](docs/milestones/milestones.md)
@@ -96,26 +76,17 @@ docs/          Product, architecture, milestone evidence, and development refere
 - [Current milestone status](docs/ResFinance-Current-Status.md)
 - [Repository instructions for coding agents](AGENTS.md)
 
-## Before pushing
+## Verification
 
-GitHub Actions uses a pinned Ubuntu 24.04 runner and commit-pinned action
-revisions so `ubuntu-latest` migrations do not silently change the toolchain.
-Enable the repository's pre-push hook once per clone to run the same backend,
-client, browser, and ResWallet checks before remote CI:
+Enable the pre-push hook once per clone to run the backend, client, browser,
+and ResWallet checks locally:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-The checks can also be run directly with `./scripts/verify_ci.sh`.
-
-After it is merged to `main` and a dedicated local runner is registered, the
-daily Crypto Intelligence market-refresh workflow runs at 6:00 AM fixed PST,
-persists completed BTC/ETH/SOL market observations in ResilientDB, and commits dated evidence JSON under
-`config/crypto-intelligence/`. The optional macOS catch-up launcher dispatches
-one missed daily run shortly after login or wake, without duplicating an
-existing run. Runner setup, GitHub CLI authorization, and failure behavior are
-documented in the [Local Operator Guide](docs/local-operator-guide.md#daily-runner-and-catch-up).
+You can also run `./scripts/verify_ci.sh` directly. Local startup, scheduled
+market refresh, and recovery procedures are in the [Local Operator Guide](docs/local-operator-guide.md).
 
 ## Contributors
 
