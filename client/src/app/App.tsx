@@ -58,9 +58,8 @@ export function App() {
         <>
           <h1>ResFinance</h1>
           <p className="lede">
-            Connect to the ResWallet extension to open your Encrypted Personal
-            Finance, Bill Split, and Crypto Intelligence dashboards. Your seed
-            always stays inside the extension.
+            Connect to the ResWallet extension to access your encrypted Personal
+            Finance, Friends & Groups (Bill Split), and Crypto Intelligence dashboards.
           </p>
         </>
       )}

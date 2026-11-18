@@ -95,7 +95,7 @@ body::before {
 .shell {
   width: min(50rem, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 15vh 0 4rem;
+  padding: calc(15vh + 5rem) 0 4rem;
 }
 
 .app-shell {
